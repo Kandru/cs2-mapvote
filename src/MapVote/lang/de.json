@@ -1,0 +1,6 @@
+{
+  "vote.title": "Stimmt für die nächste Map ab",
+  "rtv.already": "Du hast bereits für RTV gestimmt.",
+  "rtv.progress": "RTV: {0}/{1}",
+  "rtv.success": "RTV erfolgreich — Match endet für die Map-Abstimmung."
+}

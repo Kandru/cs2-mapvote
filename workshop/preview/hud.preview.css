@@ -1,0 +1,450 @@
+/* AUTO-GENERATED from hud.vcss — do not edit. Run: make panorama */
+
+* { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid transparent; }
+html, body { height: 100%; }
+body {
+  min-height: 100vh;
+  background: #12161c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='%23161b22'/%3E%3Cpath d='M0 0h20v20H0zM20 20h20v20H20z' fill='%23181e26'/%3E%3C/svg%3E");
+  font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  color: #f2f5ff;
+}
+button {
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+  position: relative;
+}
+.HudScreen {
+  position: fixed;
+  inset: 0;
+}
+.VoteRoot {
+  position: relative;
+}
+.VoteRoot.ph-off {
+  /* Preview forces the card visible; game starts closed. */
+  opacity: 1 !important;
+  transform: none !important;
+}
+.VoteBody {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+.VotedRow {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+.MapGrid {
+  overflow-y: auto;
+  overflow-x: hidden;
+  align-content: flex-start;
+}
+.MapTile {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+.WinnerFrame {
+  position: relative;
+  flex: 0 0 auto;
+}
+.MapShot {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.WinnerShot {
+  position: absolute;
+  inset: 0;
+}
+.MapVotes, .WinnerVotes {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  z-index: 2;
+  pointer-events: none;
+}
+.MapVotesBack, .WinnerVotes.MapVotesBack {
+  z-index: 1;
+}
+.WinnerName {
+  position: relative;
+}
+.pv-var { min-width: 0.5ch; }
+.pv-bar {
+  position: fixed;
+  left: 12px;
+  bottom: 10px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font: 12px/1.4 ui-monospace, monospace;
+  color: #8a93a0;
+  max-width: 70ch;
+}
+.pv-bar button {
+  border: 1px solid #ffffff22;
+  background: #ffffff10;
+  padding: 4px 10px;
+  border-radius: 3px;
+  color: #d7deea;
+  cursor: pointer;
+}
+.pv-bar button:hover { background: #ffffff1c; }
+.pv-bar .pv-note { opacity: 0.85; }
+.is-empty { display: none !important; }
+.VoteRoot.is-reveal .VotedRow,
+.VoteRoot.is-reveal .MapGrid { display: none !important; }
+/* Compose filters the way Panorama stacks saturation + blur. */
+.MapShot { filter: saturate(0); }
+.MapTile:hover .MapShot,
+.MapTile.is-voted .MapShot,
+.MapTile.is-mine .MapShot { filter: saturate(1); }
+.MapTile.is-voted .MapShot { filter: saturate(1) blur(2.5px); }
+.Winner.tick-a .WinnerShot { filter: brightness(1.08); }
+.Winner.tick-b .WinnerShot { filter: brightness(0.92); }
+.mv-bg { opacity: 1; } /* ignore background-img-opacity→opacity translation */
+
+/* ---- hud.vcss (translated) ---- */
+/* MapVote HUD — Panorama CSS only (see workshop/panorama-css.md). */
+
+@keyframes mv-in
+{
+	0%
+	{
+		transform: scale3d( 0.96, 0.96, 1.0 );
+		opacity: 0.0;
+	}
+	100%
+	{
+		transform: scale3d( 1.0, 1.0, 1.0 );
+		opacity: 1.0;
+	}
+}
+
+@keyframes mv-out
+{
+	0%
+	{
+		transform: scale3d( 1.0, 1.0, 1.0 );
+		opacity: 1.0;
+	}
+	100%
+	{
+		transform: scale3d( 0.96, 0.96, 1.0 );
+		opacity: 0.0;
+	}
+}
+
+@keyframes mv-bump
+{
+	0%
+	{
+		transform: scale3d( 1.06, 1.06, 1.0 );
+	}
+	100%
+	{
+		transform: scale3d( 1.0, 1.0, 1.0 );
+	}
+}
+
+.HudScreen
+{
+	width: 100%;
+	height: 100%;
+}
+
+.VoteRoot
+{
+	width: 100%;
+	height: 100%;
+	margin-left: auto; margin-right: auto;
+	align-self: center;
+}
+
+.VoteRoot.ph-fs
+{
+	width: 100%;
+	height: 100%;
+}
+
+.VoteRoot.ph-card
+{
+	background-color: linear-gradient(to bottom, #0d1118ee, #121820f2);
+	border: 1px solid #ffffff14;
+	box-shadow: 0px 18px 48px 0px #000000aa;
+	overflow: visible;
+}
+
+.VoteRoot.ph-on
+{
+	animation-name: mv-in;
+	animation-duration: 0.22s;
+	animation-timing-function: ease-out;
+	animation-fill-mode: forwards;
+}
+
+.VoteRoot.ph-off
+{
+	animation-name: mv-out;
+	animation-duration: 0.16s;
+	animation-timing-function: ease-in;
+	animation-fill-mode: forwards;
+}
+
+.mv-bg
+{
+	width: 100%;
+	height: 100%;
+	background-color: #070a10cc;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff11'/%3E%3C/svg%3E");
+	background-size: auto auto;
+	opacity: 0.04; /* background-img-opacity */
+	
+	filter: saturate(0.35); /* saturation */
+	backdrop-filter: blur(10px);
+	position: absolute; inset: 0;
+}
+
+.VoteBody
+{
+	width: 100%;
+	height: 100%;
+	display: flex; flex-direction: column;
+	padding: 36px 40px 36px 40px;
+}
+
+.VoteHeader
+{
+	width: 100%;
+	display: flex; flex-direction: row; flex-wrap: nowrap;
+	margin-bottom: 16px;
+}
+
+.VoteTitle
+{
+	font-size: 42px;
+	color: #f2f5ff;
+	text-shadow: #000000aa 0px 2px 10px 0px;
+	margin-right: auto;
+	align-self: center;
+}
+
+.VoteTimer
+{
+	font-size: 36px;
+	color: #9eb6ff;
+	text-shadow: #000000aa 0px 2px 10px 0px;
+	margin-left: auto;
+	align-self: center;
+	flex: 1 1 auto;
+	text-align: right;
+}
+
+/* Top strip: maps with votes, sorted by count. Horizontal scroll when >5. */
+.VotedRow
+{
+	width: 100%;
+	height: auto;
+	display: flex; flex-direction: row; flex-wrap: nowrap;
+	overflow: auto;
+	margin-bottom: 14px;
+	padding-bottom: 6px;
+}
+
+.VotedRow.is-empty
+{
+	display: none;
+	height: 0px;
+	margin-bottom: 0px;
+	padding-bottom: 0px;
+}
+
+/* Full catalog. Vertical scroll + wrap, five columns. */
+.MapGrid
+{
+	width: 100%;
+	flex: 1 1 auto; min-height: 0;
+	display: flex; flex-direction: row; flex-wrap: wrap;
+	overflow: auto;
+	margin-left: auto; margin-right: auto;
+	padding-top: 4px;
+}
+
+.VoteRoot.is-reveal .VotedRow,
+.VoteRoot.is-reveal .MapGrid
+{
+	display: none;
+}
+
+/* Five per row: padding replaces margin so 5×20% = 100%. */
+.MapTile
+{
+	width: 20%;
+	aspect-ratio: 100 / 56.25; height: auto;
+	padding: 8px;
+	background-color: #00000000;
+	transition-property: transform, box-shadow;
+	transition-duration: 0.12s;
+	transition-timing-function: ease-out;
+	overflow: visible;
+}
+
+.MapTile:hover
+{
+	transform: scale3d( 1.02, 1.02, 1.0 );
+	box-shadow: 0px 10px 28px 0px #00000088;
+}
+
+.MapTile:active
+{
+	transform: scale3d( 0.98, 0.98, 1.0 );
+	
+	
+}
+
+.MapTile.is-empty
+{
+	display: none;
+}
+
+.MapTile.is-mine
+{
+	box-shadow: 0px 0px 18px 0px #f0c85a55;
+}
+
+.MapTile.bump-a,
+.MapTile.bump-b
+{
+	animation-name: mv-bump;
+	animation-duration: 0.28s;
+	animation-timing-function: ease-out;
+	animation-fill-mode: forwards;
+}
+
+.MapShot
+{
+	width: 100%;
+	height: 100%;
+	background-color: #1a2430;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	border: 2px solid #ffffff18;
+	filter: saturate(0.0); /* saturation */
+}
+
+.MapTile:hover .MapShot
+{
+	border: 2px solid #9eb6ffaa;
+	filter: saturate(1.0); /* saturation */
+}
+
+.MapTile.is-voted .MapShot
+{
+	border: 2px solid #9eb6ff88;
+	filter: saturate(1.0); /* saturation */
+	filter: blur(2.5px);
+}
+
+.MapTile.is-mine .MapShot
+{
+	border: 2px solid #f0c85a;
+	filter: saturate(1.0); /* saturation */
+}
+
+.MapVotes
+{
+	margin-left: auto;
+	align-self: flex-end;
+	margin: 0px 18px 16px 0px;
+	font-size: 28px;
+	color: #ffffff;
+	text-shadow: #000000cc 0px 2px 6px 0px;
+}
+
+.MapVotesBack
+{
+	color: #000000;
+	text-shadow: #000000 1px 1px 0px 0px,
+		#000000 -1px -1px 0px 0px,
+		#000000 1px -1px 0px 0px,
+		#000000 -1px 1px 0px 0px;
+	z-index: -1;
+}
+
+.Winner
+{
+	width: 720px;
+	height: auto;
+	margin-left: auto; margin-right: auto;
+	align-self: center;
+	display: flex; flex-direction: column;
+	margin-top: 40px;
+}
+
+.Winner.is-empty
+{
+	display: none;
+}
+
+.WinnerFrame
+{
+	width: 720px;
+	height: 405px;
+	overflow: visible;
+}
+
+.WinnerShot
+{
+	width: 720px;
+	height: 405px;
+	border: 3px solid #f0c85a;
+	box-shadow: 0px 0px 28px 0px #f0c85a66;
+	background-color: #1a2430;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+}
+
+.WinnerName
+{
+	margin-left: auto; margin-right: auto;
+	margin-top: 18px;
+	font-size: 40px;
+	color: #f2f5ff;
+	text-shadow: #000000aa 0px 2px 10px 0px;
+}
+
+.WinnerVotes
+{
+	margin-left: auto;
+	align-self: flex-end;
+	margin: 0px 16px 12px 0px;
+	font-size: 36px;
+	color: #ffffff;
+	text-shadow: #000000cc 0px 2px 6px 0px;
+}
+
+.Winner.tick-a .WinnerShot
+{
+	filter: brightness(1.08); /* brightness */
+}
+
+.Winner.tick-b .WinnerShot
+{
+	filter: brightness(0.92); /* brightness */
+}
+
+/* BEGIN mv-map-palette */
+/* Map screenshots — class names must stay ASCII-safe for CustomHud.SetHasClass.
+   `make images` rewrites this block from extracted PNGs. */
+.mv-map-default { background-image: url("../content/panorama/images/custom_game/mapvote/maps/default.png"); }
+/* END mv-map-palette */
+

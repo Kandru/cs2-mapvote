@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+tools/.cache/
+*.vtex_c
+__pycache__/
+*.pyc
+.DS_Store

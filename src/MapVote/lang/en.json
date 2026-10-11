@@ -1,0 +1,6 @@
+{
+  "vote.title": "Vote for the next map",
+  "rtv.already": "You already voted to rock the vote.",
+  "rtv.progress": "RTV: {0}/{1}",
+  "rtv.success": "RTV passed — ending the match for a map vote."
+}
