@@ -1,5 +1,5 @@
 <!-- MapVote fullscreen overlay. Root Panel has no id. Card starts ph-off.
-     Voted strip (by count, horizontal scroll) + full catalog grid (wrap + vertical scroll). SlotCount=50. -->
+     Voted strip (h-scroll) + catalog grid (163×286, 48px gap, v-scroll). SlotCount=50. -->
 <root>
 	<styles>
 		<include src="s2r://panorama/styles/csgostyles.vcss" />
@@ -10,518 +10,714 @@
 		<Panel id="Vote" class="VoteRoot ph-fs ph-card ph-off" hittest="true">
 			<Panel class="mv-bg" hittest="false" />
 			<Panel class="VoteBody" hittest="false">
-				<Panel class="VoteHeader" hittest="false">
-					<Label id="mv-title" class="VoteTitle stratum-bold-tf" text="{s:title}" hittest="false" />
-					<Label id="mv-timer" class="VoteTimer stratum-bold-tf" text="{s:timer}" hittest="false" />
-				</Panel>
+				<Panel class="ThumbLead" hittest="false" />
 				<Panel id="mv-voted-row" class="VotedRow is-empty" hittest="false">
 						<Button id="mv-voted-0" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-0" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-0" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv0}" hittest="false" />
-							<Label id="mv-voted-votes-0" class="MapVotes stratum-bold-tf" text="{s:vv0}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-0" class="MapVotes stratum-bold-tf" text="{s:vv0}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn0}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-1" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-1" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-1" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv1}" hittest="false" />
-							<Label id="mv-voted-votes-1" class="MapVotes stratum-bold-tf" text="{s:vv1}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-1" class="MapVotes stratum-bold-tf" text="{s:vv1}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn1}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-2" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-2" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-2" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv2}" hittest="false" />
-							<Label id="mv-voted-votes-2" class="MapVotes stratum-bold-tf" text="{s:vv2}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-2" class="MapVotes stratum-bold-tf" text="{s:vv2}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn2}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-3" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-3" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-3" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv3}" hittest="false" />
-							<Label id="mv-voted-votes-3" class="MapVotes stratum-bold-tf" text="{s:vv3}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-3" class="MapVotes stratum-bold-tf" text="{s:vv3}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn3}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-4" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-4" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-4" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv4}" hittest="false" />
-							<Label id="mv-voted-votes-4" class="MapVotes stratum-bold-tf" text="{s:vv4}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-4" class="MapVotes stratum-bold-tf" text="{s:vv4}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn4}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-5" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-5" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-5" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv5}" hittest="false" />
-							<Label id="mv-voted-votes-5" class="MapVotes stratum-bold-tf" text="{s:vv5}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-5" class="MapVotes stratum-bold-tf" text="{s:vv5}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn5}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-6" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-6" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-6" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv6}" hittest="false" />
-							<Label id="mv-voted-votes-6" class="MapVotes stratum-bold-tf" text="{s:vv6}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-6" class="MapVotes stratum-bold-tf" text="{s:vv6}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn6}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-7" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-7" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-7" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv7}" hittest="false" />
-							<Label id="mv-voted-votes-7" class="MapVotes stratum-bold-tf" text="{s:vv7}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-7" class="MapVotes stratum-bold-tf" text="{s:vv7}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn7}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-8" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-8" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-8" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv8}" hittest="false" />
-							<Label id="mv-voted-votes-8" class="MapVotes stratum-bold-tf" text="{s:vv8}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-8" class="MapVotes stratum-bold-tf" text="{s:vv8}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn8}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-9" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-9" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-9" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv9}" hittest="false" />
-							<Label id="mv-voted-votes-9" class="MapVotes stratum-bold-tf" text="{s:vv9}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-9" class="MapVotes stratum-bold-tf" text="{s:vv9}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn9}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-10" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-10" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-10" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv10}" hittest="false" />
-							<Label id="mv-voted-votes-10" class="MapVotes stratum-bold-tf" text="{s:vv10}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-10" class="MapVotes stratum-bold-tf" text="{s:vv10}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn10}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-11" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-11" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-11" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv11}" hittest="false" />
-							<Label id="mv-voted-votes-11" class="MapVotes stratum-bold-tf" text="{s:vv11}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-11" class="MapVotes stratum-bold-tf" text="{s:vv11}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn11}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-12" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-12" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-12" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv12}" hittest="false" />
-							<Label id="mv-voted-votes-12" class="MapVotes stratum-bold-tf" text="{s:vv12}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-12" class="MapVotes stratum-bold-tf" text="{s:vv12}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn12}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-13" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-13" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-13" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv13}" hittest="false" />
-							<Label id="mv-voted-votes-13" class="MapVotes stratum-bold-tf" text="{s:vv13}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-13" class="MapVotes stratum-bold-tf" text="{s:vv13}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn13}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-14" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-14" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-14" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv14}" hittest="false" />
-							<Label id="mv-voted-votes-14" class="MapVotes stratum-bold-tf" text="{s:vv14}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-14" class="MapVotes stratum-bold-tf" text="{s:vv14}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn14}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-15" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-15" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-15" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv15}" hittest="false" />
-							<Label id="mv-voted-votes-15" class="MapVotes stratum-bold-tf" text="{s:vv15}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-15" class="MapVotes stratum-bold-tf" text="{s:vv15}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn15}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-16" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-16" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-16" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv16}" hittest="false" />
-							<Label id="mv-voted-votes-16" class="MapVotes stratum-bold-tf" text="{s:vv16}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-16" class="MapVotes stratum-bold-tf" text="{s:vv16}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn16}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-17" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-17" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-17" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv17}" hittest="false" />
-							<Label id="mv-voted-votes-17" class="MapVotes stratum-bold-tf" text="{s:vv17}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-17" class="MapVotes stratum-bold-tf" text="{s:vv17}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn17}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-18" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-18" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-18" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv18}" hittest="false" />
-							<Label id="mv-voted-votes-18" class="MapVotes stratum-bold-tf" text="{s:vv18}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-18" class="MapVotes stratum-bold-tf" text="{s:vv18}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn18}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-19" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-19" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-19" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv19}" hittest="false" />
-							<Label id="mv-voted-votes-19" class="MapVotes stratum-bold-tf" text="{s:vv19}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-19" class="MapVotes stratum-bold-tf" text="{s:vv19}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn19}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-20" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-20" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-20" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv20}" hittest="false" />
-							<Label id="mv-voted-votes-20" class="MapVotes stratum-bold-tf" text="{s:vv20}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-20" class="MapVotes stratum-bold-tf" text="{s:vv20}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn20}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-21" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-21" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-21" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv21}" hittest="false" />
-							<Label id="mv-voted-votes-21" class="MapVotes stratum-bold-tf" text="{s:vv21}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-21" class="MapVotes stratum-bold-tf" text="{s:vv21}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn21}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-22" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-22" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-22" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv22}" hittest="false" />
-							<Label id="mv-voted-votes-22" class="MapVotes stratum-bold-tf" text="{s:vv22}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-22" class="MapVotes stratum-bold-tf" text="{s:vv22}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn22}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-23" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-23" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-23" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv23}" hittest="false" />
-							<Label id="mv-voted-votes-23" class="MapVotes stratum-bold-tf" text="{s:vv23}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-23" class="MapVotes stratum-bold-tf" text="{s:vv23}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn23}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-24" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-24" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-24" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv24}" hittest="false" />
-							<Label id="mv-voted-votes-24" class="MapVotes stratum-bold-tf" text="{s:vv24}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-24" class="MapVotes stratum-bold-tf" text="{s:vv24}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn24}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-25" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-25" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-25" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv25}" hittest="false" />
-							<Label id="mv-voted-votes-25" class="MapVotes stratum-bold-tf" text="{s:vv25}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-25" class="MapVotes stratum-bold-tf" text="{s:vv25}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn25}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-26" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-26" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-26" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv26}" hittest="false" />
-							<Label id="mv-voted-votes-26" class="MapVotes stratum-bold-tf" text="{s:vv26}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-26" class="MapVotes stratum-bold-tf" text="{s:vv26}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn26}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-27" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-27" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-27" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv27}" hittest="false" />
-							<Label id="mv-voted-votes-27" class="MapVotes stratum-bold-tf" text="{s:vv27}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-27" class="MapVotes stratum-bold-tf" text="{s:vv27}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn27}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-28" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-28" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-28" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv28}" hittest="false" />
-							<Label id="mv-voted-votes-28" class="MapVotes stratum-bold-tf" text="{s:vv28}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-28" class="MapVotes stratum-bold-tf" text="{s:vv28}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn28}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-29" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-29" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-29" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv29}" hittest="false" />
-							<Label id="mv-voted-votes-29" class="MapVotes stratum-bold-tf" text="{s:vv29}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-29" class="MapVotes stratum-bold-tf" text="{s:vv29}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn29}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-30" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-30" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-30" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv30}" hittest="false" />
-							<Label id="mv-voted-votes-30" class="MapVotes stratum-bold-tf" text="{s:vv30}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-30" class="MapVotes stratum-bold-tf" text="{s:vv30}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn30}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-31" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-31" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-31" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv31}" hittest="false" />
-							<Label id="mv-voted-votes-31" class="MapVotes stratum-bold-tf" text="{s:vv31}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-31" class="MapVotes stratum-bold-tf" text="{s:vv31}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn31}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-32" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-32" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-32" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv32}" hittest="false" />
-							<Label id="mv-voted-votes-32" class="MapVotes stratum-bold-tf" text="{s:vv32}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-32" class="MapVotes stratum-bold-tf" text="{s:vv32}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn32}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-33" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-33" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-33" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv33}" hittest="false" />
-							<Label id="mv-voted-votes-33" class="MapVotes stratum-bold-tf" text="{s:vv33}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-33" class="MapVotes stratum-bold-tf" text="{s:vv33}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn33}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-34" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-34" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-34" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv34}" hittest="false" />
-							<Label id="mv-voted-votes-34" class="MapVotes stratum-bold-tf" text="{s:vv34}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-34" class="MapVotes stratum-bold-tf" text="{s:vv34}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn34}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-35" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-35" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-35" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv35}" hittest="false" />
-							<Label id="mv-voted-votes-35" class="MapVotes stratum-bold-tf" text="{s:vv35}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-35" class="MapVotes stratum-bold-tf" text="{s:vv35}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn35}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-36" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-36" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-36" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv36}" hittest="false" />
-							<Label id="mv-voted-votes-36" class="MapVotes stratum-bold-tf" text="{s:vv36}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-36" class="MapVotes stratum-bold-tf" text="{s:vv36}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn36}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-37" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-37" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-37" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv37}" hittest="false" />
-							<Label id="mv-voted-votes-37" class="MapVotes stratum-bold-tf" text="{s:vv37}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-37" class="MapVotes stratum-bold-tf" text="{s:vv37}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn37}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-38" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-38" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-38" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv38}" hittest="false" />
-							<Label id="mv-voted-votes-38" class="MapVotes stratum-bold-tf" text="{s:vv38}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-38" class="MapVotes stratum-bold-tf" text="{s:vv38}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn38}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-39" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-39" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-39" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv39}" hittest="false" />
-							<Label id="mv-voted-votes-39" class="MapVotes stratum-bold-tf" text="{s:vv39}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-39" class="MapVotes stratum-bold-tf" text="{s:vv39}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn39}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-40" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-40" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-40" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv40}" hittest="false" />
-							<Label id="mv-voted-votes-40" class="MapVotes stratum-bold-tf" text="{s:vv40}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-40" class="MapVotes stratum-bold-tf" text="{s:vv40}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn40}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-41" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-41" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-41" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv41}" hittest="false" />
-							<Label id="mv-voted-votes-41" class="MapVotes stratum-bold-tf" text="{s:vv41}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-41" class="MapVotes stratum-bold-tf" text="{s:vv41}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn41}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-42" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-42" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-42" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv42}" hittest="false" />
-							<Label id="mv-voted-votes-42" class="MapVotes stratum-bold-tf" text="{s:vv42}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-42" class="MapVotes stratum-bold-tf" text="{s:vv42}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn42}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-43" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-43" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-43" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv43}" hittest="false" />
-							<Label id="mv-voted-votes-43" class="MapVotes stratum-bold-tf" text="{s:vv43}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-43" class="MapVotes stratum-bold-tf" text="{s:vv43}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn43}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-44" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-44" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-44" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv44}" hittest="false" />
-							<Label id="mv-voted-votes-44" class="MapVotes stratum-bold-tf" text="{s:vv44}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-44" class="MapVotes stratum-bold-tf" text="{s:vv44}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn44}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-45" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-45" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-45" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv45}" hittest="false" />
-							<Label id="mv-voted-votes-45" class="MapVotes stratum-bold-tf" text="{s:vv45}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-45" class="MapVotes stratum-bold-tf" text="{s:vv45}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn45}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-46" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-46" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-46" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv46}" hittest="false" />
-							<Label id="mv-voted-votes-46" class="MapVotes stratum-bold-tf" text="{s:vv46}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-46" class="MapVotes stratum-bold-tf" text="{s:vv46}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn46}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-47" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-47" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-47" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv47}" hittest="false" />
-							<Label id="mv-voted-votes-47" class="MapVotes stratum-bold-tf" text="{s:vv47}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-47" class="MapVotes stratum-bold-tf" text="{s:vv47}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn47}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-48" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-48" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-48" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv48}" hittest="false" />
-							<Label id="mv-voted-votes-48" class="MapVotes stratum-bold-tf" text="{s:vv48}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-48" class="MapVotes stratum-bold-tf" text="{s:vv48}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn48}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-voted-49" class="MapTile is-empty">
 							<Panel id="mv-voted-shot-49" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-voted-votes-back-49" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:vv49}" hittest="false" />
-							<Label id="mv-voted-votes-49" class="MapVotes stratum-bold-tf" text="{s:vv49}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-voted-votes-49" class="MapVotes stratum-bold-tf" text="{s:vv49}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:vn49}" hittest="false" />
+							</Panel>
 						</Button>
 				</Panel>
 				<Panel id="mv-grid" class="MapGrid" hittest="false">
 						<Button id="mv-0" class="MapTile is-empty">
 							<Panel id="mv-shot-0" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-0" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v0}" hittest="false" />
-							<Label id="mv-votes-0" class="MapVotes stratum-bold-tf" text="{s:v0}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-0" class="MapVotes stratum-bold-tf" text="{s:v0}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n0}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-1" class="MapTile is-empty">
 							<Panel id="mv-shot-1" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-1" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v1}" hittest="false" />
-							<Label id="mv-votes-1" class="MapVotes stratum-bold-tf" text="{s:v1}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-1" class="MapVotes stratum-bold-tf" text="{s:v1}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n1}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-2" class="MapTile is-empty">
 							<Panel id="mv-shot-2" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-2" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v2}" hittest="false" />
-							<Label id="mv-votes-2" class="MapVotes stratum-bold-tf" text="{s:v2}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-2" class="MapVotes stratum-bold-tf" text="{s:v2}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n2}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-3" class="MapTile is-empty">
 							<Panel id="mv-shot-3" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-3" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v3}" hittest="false" />
-							<Label id="mv-votes-3" class="MapVotes stratum-bold-tf" text="{s:v3}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-3" class="MapVotes stratum-bold-tf" text="{s:v3}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n3}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-4" class="MapTile is-empty">
 							<Panel id="mv-shot-4" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-4" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v4}" hittest="false" />
-							<Label id="mv-votes-4" class="MapVotes stratum-bold-tf" text="{s:v4}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-4" class="MapVotes stratum-bold-tf" text="{s:v4}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n4}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-5" class="MapTile is-empty">
 							<Panel id="mv-shot-5" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-5" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v5}" hittest="false" />
-							<Label id="mv-votes-5" class="MapVotes stratum-bold-tf" text="{s:v5}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-5" class="MapVotes stratum-bold-tf" text="{s:v5}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n5}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-6" class="MapTile is-empty">
 							<Panel id="mv-shot-6" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-6" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v6}" hittest="false" />
-							<Label id="mv-votes-6" class="MapVotes stratum-bold-tf" text="{s:v6}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-6" class="MapVotes stratum-bold-tf" text="{s:v6}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n6}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-7" class="MapTile is-empty">
 							<Panel id="mv-shot-7" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-7" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v7}" hittest="false" />
-							<Label id="mv-votes-7" class="MapVotes stratum-bold-tf" text="{s:v7}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-7" class="MapVotes stratum-bold-tf" text="{s:v7}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n7}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-8" class="MapTile is-empty">
 							<Panel id="mv-shot-8" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-8" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v8}" hittest="false" />
-							<Label id="mv-votes-8" class="MapVotes stratum-bold-tf" text="{s:v8}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-8" class="MapVotes stratum-bold-tf" text="{s:v8}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n8}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-9" class="MapTile is-empty">
 							<Panel id="mv-shot-9" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-9" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v9}" hittest="false" />
-							<Label id="mv-votes-9" class="MapVotes stratum-bold-tf" text="{s:v9}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-9" class="MapVotes stratum-bold-tf" text="{s:v9}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n9}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-10" class="MapTile is-empty">
 							<Panel id="mv-shot-10" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-10" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v10}" hittest="false" />
-							<Label id="mv-votes-10" class="MapVotes stratum-bold-tf" text="{s:v10}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-10" class="MapVotes stratum-bold-tf" text="{s:v10}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n10}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-11" class="MapTile is-empty">
 							<Panel id="mv-shot-11" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-11" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v11}" hittest="false" />
-							<Label id="mv-votes-11" class="MapVotes stratum-bold-tf" text="{s:v11}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-11" class="MapVotes stratum-bold-tf" text="{s:v11}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n11}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-12" class="MapTile is-empty">
 							<Panel id="mv-shot-12" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-12" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v12}" hittest="false" />
-							<Label id="mv-votes-12" class="MapVotes stratum-bold-tf" text="{s:v12}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-12" class="MapVotes stratum-bold-tf" text="{s:v12}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n12}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-13" class="MapTile is-empty">
 							<Panel id="mv-shot-13" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-13" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v13}" hittest="false" />
-							<Label id="mv-votes-13" class="MapVotes stratum-bold-tf" text="{s:v13}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-13" class="MapVotes stratum-bold-tf" text="{s:v13}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n13}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-14" class="MapTile is-empty">
 							<Panel id="mv-shot-14" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-14" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v14}" hittest="false" />
-							<Label id="mv-votes-14" class="MapVotes stratum-bold-tf" text="{s:v14}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-14" class="MapVotes stratum-bold-tf" text="{s:v14}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n14}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-15" class="MapTile is-empty">
 							<Panel id="mv-shot-15" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-15" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v15}" hittest="false" />
-							<Label id="mv-votes-15" class="MapVotes stratum-bold-tf" text="{s:v15}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-15" class="MapVotes stratum-bold-tf" text="{s:v15}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n15}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-16" class="MapTile is-empty">
 							<Panel id="mv-shot-16" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-16" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v16}" hittest="false" />
-							<Label id="mv-votes-16" class="MapVotes stratum-bold-tf" text="{s:v16}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-16" class="MapVotes stratum-bold-tf" text="{s:v16}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n16}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-17" class="MapTile is-empty">
 							<Panel id="mv-shot-17" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-17" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v17}" hittest="false" />
-							<Label id="mv-votes-17" class="MapVotes stratum-bold-tf" text="{s:v17}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-17" class="MapVotes stratum-bold-tf" text="{s:v17}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n17}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-18" class="MapTile is-empty">
 							<Panel id="mv-shot-18" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-18" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v18}" hittest="false" />
-							<Label id="mv-votes-18" class="MapVotes stratum-bold-tf" text="{s:v18}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-18" class="MapVotes stratum-bold-tf" text="{s:v18}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n18}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-19" class="MapTile is-empty">
 							<Panel id="mv-shot-19" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-19" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v19}" hittest="false" />
-							<Label id="mv-votes-19" class="MapVotes stratum-bold-tf" text="{s:v19}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-19" class="MapVotes stratum-bold-tf" text="{s:v19}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n19}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-20" class="MapTile is-empty">
 							<Panel id="mv-shot-20" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-20" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v20}" hittest="false" />
-							<Label id="mv-votes-20" class="MapVotes stratum-bold-tf" text="{s:v20}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-20" class="MapVotes stratum-bold-tf" text="{s:v20}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n20}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-21" class="MapTile is-empty">
 							<Panel id="mv-shot-21" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-21" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v21}" hittest="false" />
-							<Label id="mv-votes-21" class="MapVotes stratum-bold-tf" text="{s:v21}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-21" class="MapVotes stratum-bold-tf" text="{s:v21}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n21}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-22" class="MapTile is-empty">
 							<Panel id="mv-shot-22" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-22" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v22}" hittest="false" />
-							<Label id="mv-votes-22" class="MapVotes stratum-bold-tf" text="{s:v22}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-22" class="MapVotes stratum-bold-tf" text="{s:v22}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n22}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-23" class="MapTile is-empty">
 							<Panel id="mv-shot-23" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-23" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v23}" hittest="false" />
-							<Label id="mv-votes-23" class="MapVotes stratum-bold-tf" text="{s:v23}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-23" class="MapVotes stratum-bold-tf" text="{s:v23}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n23}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-24" class="MapTile is-empty">
 							<Panel id="mv-shot-24" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-24" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v24}" hittest="false" />
-							<Label id="mv-votes-24" class="MapVotes stratum-bold-tf" text="{s:v24}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-24" class="MapVotes stratum-bold-tf" text="{s:v24}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n24}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-25" class="MapTile is-empty">
 							<Panel id="mv-shot-25" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-25" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v25}" hittest="false" />
-							<Label id="mv-votes-25" class="MapVotes stratum-bold-tf" text="{s:v25}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-25" class="MapVotes stratum-bold-tf" text="{s:v25}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n25}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-26" class="MapTile is-empty">
 							<Panel id="mv-shot-26" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-26" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v26}" hittest="false" />
-							<Label id="mv-votes-26" class="MapVotes stratum-bold-tf" text="{s:v26}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-26" class="MapVotes stratum-bold-tf" text="{s:v26}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n26}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-27" class="MapTile is-empty">
 							<Panel id="mv-shot-27" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-27" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v27}" hittest="false" />
-							<Label id="mv-votes-27" class="MapVotes stratum-bold-tf" text="{s:v27}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-27" class="MapVotes stratum-bold-tf" text="{s:v27}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n27}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-28" class="MapTile is-empty">
 							<Panel id="mv-shot-28" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-28" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v28}" hittest="false" />
-							<Label id="mv-votes-28" class="MapVotes stratum-bold-tf" text="{s:v28}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-28" class="MapVotes stratum-bold-tf" text="{s:v28}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n28}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-29" class="MapTile is-empty">
 							<Panel id="mv-shot-29" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-29" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v29}" hittest="false" />
-							<Label id="mv-votes-29" class="MapVotes stratum-bold-tf" text="{s:v29}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-29" class="MapVotes stratum-bold-tf" text="{s:v29}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n29}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-30" class="MapTile is-empty">
 							<Panel id="mv-shot-30" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-30" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v30}" hittest="false" />
-							<Label id="mv-votes-30" class="MapVotes stratum-bold-tf" text="{s:v30}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-30" class="MapVotes stratum-bold-tf" text="{s:v30}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n30}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-31" class="MapTile is-empty">
 							<Panel id="mv-shot-31" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-31" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v31}" hittest="false" />
-							<Label id="mv-votes-31" class="MapVotes stratum-bold-tf" text="{s:v31}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-31" class="MapVotes stratum-bold-tf" text="{s:v31}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n31}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-32" class="MapTile is-empty">
 							<Panel id="mv-shot-32" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-32" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v32}" hittest="false" />
-							<Label id="mv-votes-32" class="MapVotes stratum-bold-tf" text="{s:v32}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-32" class="MapVotes stratum-bold-tf" text="{s:v32}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n32}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-33" class="MapTile is-empty">
 							<Panel id="mv-shot-33" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-33" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v33}" hittest="false" />
-							<Label id="mv-votes-33" class="MapVotes stratum-bold-tf" text="{s:v33}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-33" class="MapVotes stratum-bold-tf" text="{s:v33}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n33}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-34" class="MapTile is-empty">
 							<Panel id="mv-shot-34" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-34" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v34}" hittest="false" />
-							<Label id="mv-votes-34" class="MapVotes stratum-bold-tf" text="{s:v34}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-34" class="MapVotes stratum-bold-tf" text="{s:v34}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n34}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-35" class="MapTile is-empty">
 							<Panel id="mv-shot-35" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-35" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v35}" hittest="false" />
-							<Label id="mv-votes-35" class="MapVotes stratum-bold-tf" text="{s:v35}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-35" class="MapVotes stratum-bold-tf" text="{s:v35}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n35}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-36" class="MapTile is-empty">
 							<Panel id="mv-shot-36" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-36" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v36}" hittest="false" />
-							<Label id="mv-votes-36" class="MapVotes stratum-bold-tf" text="{s:v36}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-36" class="MapVotes stratum-bold-tf" text="{s:v36}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n36}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-37" class="MapTile is-empty">
 							<Panel id="mv-shot-37" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-37" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v37}" hittest="false" />
-							<Label id="mv-votes-37" class="MapVotes stratum-bold-tf" text="{s:v37}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-37" class="MapVotes stratum-bold-tf" text="{s:v37}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n37}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-38" class="MapTile is-empty">
 							<Panel id="mv-shot-38" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-38" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v38}" hittest="false" />
-							<Label id="mv-votes-38" class="MapVotes stratum-bold-tf" text="{s:v38}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-38" class="MapVotes stratum-bold-tf" text="{s:v38}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n38}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-39" class="MapTile is-empty">
 							<Panel id="mv-shot-39" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-39" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v39}" hittest="false" />
-							<Label id="mv-votes-39" class="MapVotes stratum-bold-tf" text="{s:v39}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-39" class="MapVotes stratum-bold-tf" text="{s:v39}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n39}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-40" class="MapTile is-empty">
 							<Panel id="mv-shot-40" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-40" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v40}" hittest="false" />
-							<Label id="mv-votes-40" class="MapVotes stratum-bold-tf" text="{s:v40}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-40" class="MapVotes stratum-bold-tf" text="{s:v40}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n40}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-41" class="MapTile is-empty">
 							<Panel id="mv-shot-41" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-41" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v41}" hittest="false" />
-							<Label id="mv-votes-41" class="MapVotes stratum-bold-tf" text="{s:v41}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-41" class="MapVotes stratum-bold-tf" text="{s:v41}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n41}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-42" class="MapTile is-empty">
 							<Panel id="mv-shot-42" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-42" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v42}" hittest="false" />
-							<Label id="mv-votes-42" class="MapVotes stratum-bold-tf" text="{s:v42}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-42" class="MapVotes stratum-bold-tf" text="{s:v42}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n42}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-43" class="MapTile is-empty">
 							<Panel id="mv-shot-43" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-43" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v43}" hittest="false" />
-							<Label id="mv-votes-43" class="MapVotes stratum-bold-tf" text="{s:v43}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-43" class="MapVotes stratum-bold-tf" text="{s:v43}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n43}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-44" class="MapTile is-empty">
 							<Panel id="mv-shot-44" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-44" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v44}" hittest="false" />
-							<Label id="mv-votes-44" class="MapVotes stratum-bold-tf" text="{s:v44}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-44" class="MapVotes stratum-bold-tf" text="{s:v44}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n44}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-45" class="MapTile is-empty">
 							<Panel id="mv-shot-45" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-45" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v45}" hittest="false" />
-							<Label id="mv-votes-45" class="MapVotes stratum-bold-tf" text="{s:v45}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-45" class="MapVotes stratum-bold-tf" text="{s:v45}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n45}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-46" class="MapTile is-empty">
 							<Panel id="mv-shot-46" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-46" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v46}" hittest="false" />
-							<Label id="mv-votes-46" class="MapVotes stratum-bold-tf" text="{s:v46}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-46" class="MapVotes stratum-bold-tf" text="{s:v46}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n46}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-47" class="MapTile is-empty">
 							<Panel id="mv-shot-47" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-47" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v47}" hittest="false" />
-							<Label id="mv-votes-47" class="MapVotes stratum-bold-tf" text="{s:v47}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-47" class="MapVotes stratum-bold-tf" text="{s:v47}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n47}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-48" class="MapTile is-empty">
 							<Panel id="mv-shot-48" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-48" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v48}" hittest="false" />
-							<Label id="mv-votes-48" class="MapVotes stratum-bold-tf" text="{s:v48}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-48" class="MapVotes stratum-bold-tf" text="{s:v48}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n48}" hittest="false" />
+							</Panel>
 						</Button>
 						<Button id="mv-49" class="MapTile is-empty">
 							<Panel id="mv-shot-49" class="MapShot mv-map-default" hittest="false" />
-							<Label id="mv-votes-back-49" class="MapVotes MapVotesBack stratum-bold-tf" text="{s:v49}" hittest="false" />
-							<Label id="mv-votes-49" class="MapVotes stratum-bold-tf" text="{s:v49}" hittest="false" />
+							<Panel class="MapCaption" hittest="false">
+								<Label id="mv-votes-49" class="MapVotes stratum-bold-tf" text="{s:v49}" hittest="false" />
+								<Label class="MapName stratum-bold-tf" text="{s:n49}" hittest="false" />
+							</Panel>
 						</Button>
 				</Panel>
 				<Panel id="mv-winner" class="Winner is-empty" hittest="false">
 					<Panel class="WinnerFrame" hittest="false">
 						<Panel id="mv-winner-shot" class="WinnerShot mv-map-default" hittest="false" />
-						<Label id="mv-winner-votes-back" class="WinnerVotes MapVotesBack stratum-bold-tf" text="{s:winner_votes}" hittest="false" />
 						<Label id="mv-winner-votes" class="WinnerVotes stratum-bold-tf" text="{s:winner_votes}" hittest="false" />
 					</Panel>
 					<Label id="mv-winner-name" class="WinnerName stratum-bold-tf" text="{s:winner_name}" hittest="false" />

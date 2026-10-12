@@ -19,9 +19,7 @@ namespace MapVote
         private VoteSession? _session;
         private VoteTiming _timing;
         private CssTimer? _openTimer;
-        private CssTimer? _tickTimer;
         private CssTimer? _revealTimer;
-        private DateTime _voteStartedUtc;
         private bool _voteActive;
         private bool _revealActive;
         private string? _pendingWinner;

@@ -36,8 +36,6 @@ namespace MapVote.Huds
 
         public static void WriteDefaults(CCSPlayerController player)
         {
-            CustomHud.SetText(player, Panel, "title", string.Empty);
-            CustomHud.SetText(player, Panel, "timer", string.Empty);
             CustomHud.SetText(player, Panel, "winner_name", string.Empty);
             CustomHud.SetText(player, Panel, "winner_votes", string.Empty);
             CustomHud.SetHasClass(player, Panel, "is-reveal", false);
@@ -52,7 +50,7 @@ namespace MapVote.Huds
             }
         }
 
-        public static void OpenFor(CCSPlayerController player, string title)
+        public static void OpenFor(CCSPlayerController player)
         {
             if (_session is null || !Players.IsHumanViewer(player))
             {
@@ -60,16 +58,9 @@ namespace MapVote.Huds
             }
 
             WriteDefaults(player);
-            CustomHud.SetText(player, Panel, "title", title);
             Paint(player);
             HudMenu.Open(player, new HudMenuOpenOptions { OnButton = OnButton });
         }
-
-        public static void SetTimer(CCSPlayerController player, int secondsRemaining) =>
-            CustomHud.SetText(player, Panel, "timer", Math.Max(0, secondsRemaining).ToString());
-
-        public static void SetTimerAll(int secondsRemaining) =>
-            ForEachOpen(player => SetTimer(player, secondsRemaining));
 
         public static void PaintAll()
         {
@@ -78,9 +69,10 @@ namespace MapVote.Huds
                 return;
             }
 
-            PrepareStripBump(_session.VotedOrder());
-            ForEachOpen(PaintPrepared);
-            CommitStripSnapshot(_session.VotedOrder());
+            IReadOnlyList<string> strip = _session.VotedOrder();
+            PrepareStripBump(strip);
+            ForEachOpen(player => PaintPrepared(player, strip));
+            CommitStripSnapshot(strip);
         }
 
         public static void Paint(CCSPlayerController player)
@@ -92,7 +84,7 @@ namespace MapVote.Huds
 
             IReadOnlyList<string> strip = _session.VotedOrder();
             PrepareStripBump(strip);
-            PaintPrepared(player);
+            PaintPrepared(player, strip);
             CommitStripSnapshot(strip);
         }
 
@@ -110,7 +102,6 @@ namespace MapVote.Huds
                 CustomHud.SetMapImage(player, "mv-winner-shot", winner);
                 CustomHud.SetText(player, Panel, "winner_name", winner);
                 CustomHud.SetText(player, Panel, "winner_votes", votes.ToString());
-                CustomHud.SetText(player, Panel, "timer", string.Empty);
             });
         }
 
@@ -163,22 +154,20 @@ namespace MapVote.Huds
             });
         }
 
-        private static void PaintPrepared(CCSPlayerController player)
+        private static void PaintPrepared(CCSPlayerController player, IReadOnlyList<string> strip)
         {
             if (_session is null || !Players.IsHumanViewer(player))
             {
                 return;
             }
 
-            IReadOnlyList<string> strip = _session.VotedOrder();
-            IReadOnlyList<string> grid = _session.GridOrder();
             string? mine = player.AuthorizedSteamID is { } steam
                 ? _session.VoteOf(steam.SteamId64)
                 : null;
 
             CustomHud.SetHasClass(player, "mv-voted-row", "is-empty", strip.Count == 0);
             PaintPool(player, Pool.Voted, strip, mine, useBump: true);
-            PaintPool(player, Pool.Grid, grid, mine, useBump: false);
+            PaintPool(player, Pool.Grid, _session.GridOrder(), mine, useBump: false);
         }
 
         private static void PaintPool(
@@ -197,8 +186,7 @@ namespace MapVote.Huds
                 }
 
                 string map = order[i];
-                int votes = _session!.CountOf(map);
-                PaintTile(player, pool, i, map, votes, mine, bump: useBump && StripBump[i]);
+                PaintTile(player, pool, i, map, _session!.CountOf(map), mine, bump: useBump && StripBump[i]);
             }
         }
 
@@ -217,7 +205,8 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, tileId, "is-mine", mine == map);
             CustomHud.SetHasClass(player, tileId, "bump-a", bump && _bumpSide);
             CustomHud.SetHasClass(player, tileId, "bump-b", bump && !_bumpSide);
-            CustomHud.SetText(player, Panel, VarName(pool, index), votes > 0 ? votes.ToString() : string.Empty);
+            CustomHud.SetText(player, Panel, VoteVar(pool, index), votes > 0 ? votes.ToString() : string.Empty);
+            CustomHud.SetText(player, Panel, NameVar(pool, index), map);
             CustomHud.SetMapImage(player, ShotId(pool, index), map);
         }
 
@@ -229,14 +218,14 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, tileId, "is-mine", false);
             CustomHud.SetHasClass(player, tileId, "bump-a", false);
             CustomHud.SetHasClass(player, tileId, "bump-b", false);
-            CustomHud.SetText(player, Panel, VarName(pool, index), string.Empty);
+            CustomHud.SetText(player, Panel, VoteVar(pool, index), string.Empty);
+            CustomHud.SetText(player, Panel, NameVar(pool, index), string.Empty);
             CustomHud.SetMapImage(player, ShotId(pool, index), null);
         }
 
         private static void SetWinnerVisible(CCSPlayerController player, bool show)
         {
             CustomHud.SetHasClass(player, "mv-winner", "is-empty", !show);
-            CustomHud.SetHasClass(player, "mv-winner", "is-show", show);
             CustomHud.SetHasClass(player, "mv-winner", "tick-a", false);
             CustomHud.SetHasClass(player, "mv-winner", "tick-b", false);
         }
@@ -290,8 +279,11 @@ namespace MapVote.Huds
         private static string ShotId(Pool pool, int index) =>
             pool == Pool.Voted ? $"mv-voted-shot-{index}" : $"mv-shot-{index}";
 
-        private static string VarName(Pool pool, int index) =>
+        private static string VoteVar(Pool pool, int index) =>
             pool == Pool.Voted ? $"vv{index}" : $"v{index}";
+
+        private static string NameVar(Pool pool, int index) =>
+            pool == Pool.Voted ? $"vn{index}" : $"n{index}";
 
         private static bool TryParseButton(string buttonId, out Pool pool, out int index)
         {

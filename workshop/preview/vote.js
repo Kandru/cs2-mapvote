@@ -39,7 +39,6 @@
     votes: Object.fromEntries(MAPS.map((m) => [m, 0])),
     firstVote: [],
     mine: null,
-    timer: 45,
     reveal: false,
     bumpSide: false,
     lastStrip: [],
@@ -51,17 +50,18 @@
     });
   };
 
-  const clearTile = (tileId, shotId, varName) => {
+  const clearTile = (tileId, shotId, voteVar, nameVar) => {
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     tile.classList.add("is-empty");
     tile.classList.remove("is-voted", "is-mine", "bump-a", "bump-b");
     shot.className = "MapShot mv-map-default";
-    setVar(varName, "");
+    setVar(voteVar, "");
+    setVar(nameVar, "");
   };
 
-  const paintTile = (tileId, shotId, varName, map, mine, bump) => {
+  const paintTile = (tileId, shotId, voteVar, nameVar, map, mine, bump) => {
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
@@ -72,7 +72,8 @@
     tile.classList.toggle("bump-a", !!bump && state.bumpSide);
     tile.classList.toggle("bump-b", !!bump && !state.bumpSide);
     shot.className = `MapShot ${mapClass(map)}`;
-    setVar(varName, count > 0 ? String(count) : "");
+    setVar(voteVar, count > 0 ? String(count) : "");
+    setVar(nameVar, map);
   };
 
   const votedOrder = () => {
@@ -98,17 +99,16 @@
 
     for (let i = 0; i < SLOT; i++) {
       if (i < voted.length) {
-        paintTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, voted[i], state.mine, bumps[i]);
+        paintTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`, voted[i], state.mine, bumps[i]);
       } else {
-        clearTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`);
+        clearTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`);
       }
 
-      if (i < grid.length) paintTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, grid[i], state.mine, false);
-      else clearTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`);
+      if (i < grid.length) paintTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`, grid[i], state.mine, false);
+      else clearTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`);
     }
 
     state.lastStrip = voted.map((m) => ({ map: m, votes: state.votes[m] || 0 }));
-    setVar("timer", state.reveal ? "" : String(state.timer));
   };
 
   const cast = (map) => {
@@ -169,7 +169,6 @@
     if (shot) shot.className = `WinnerShot ${mapClass(top)}`;
     setVar("winner_name", top);
     setVar("winner_votes", String(state.votes[top] || 0));
-    setVar("timer", "");
     paint();
   };
 
@@ -178,24 +177,21 @@
     state.firstVote = [];
     state.lastStrip = [];
     state.mine = null;
-    state.timer = 45;
     state.reveal = false;
     document.getElementById("Vote")?.classList.remove("is-reveal");
     document.getElementById("mv-winner")?.classList.add("is-empty");
-    setVar("title", "Map Vote");
     setVar("winner_name", "");
     setVar("winner_votes", "");
     seedVotes();
     paint();
   };
 
-  // Controls
   const bar = document.createElement("div");
   bar.className = "pv-bar";
   bar.innerHTML = `
     <button type="button" data-act="reset">Reset demo</button>
     <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-note">Synced from vote.xml + hud.vcss. Strip = votes sorted; grid keeps all maps with the same vote overlay.</span>
+    <span class="pv-note">Synced from vote.xml + hud.vcss. CS2 163×286 cards, 48px gap; voted strip h-scroll only.</span>
   `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {
@@ -204,12 +200,6 @@
     if (act === "reveal") reveal();
   });
 
-  setVar("title", "Map Vote");
   seedVotes();
   paint();
-  setInterval(() => {
-    if (state.reveal || state.timer <= 0) return;
-    state.timer -= 1;
-    setVar("timer", String(state.timer));
-  }, 1000);
 })();

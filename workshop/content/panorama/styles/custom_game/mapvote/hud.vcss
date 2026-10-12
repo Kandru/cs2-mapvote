@@ -46,7 +46,8 @@
 	height: 100%;
 }
 
-.VoteRoot
+.VoteRoot,
+.VoteRoot.ph-fs
 {
 	width: 100%;
 	height: 100%;
@@ -54,17 +55,9 @@
 	vertical-align: middle;
 }
 
-.VoteRoot.ph-fs
-{
-	width: 100%;
-	height: 100%;
-}
-
 .VoteRoot.ph-card
 {
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #0d1118ee ), to( #121820f2 ) );
-	border: 1px solid #ffffff14;
-	box-shadow: #000000aa 0px 18px 48px 0px;
+	background-color: #00000000;
 	overflow: noclip;
 }
 
@@ -88,104 +81,81 @@
 {
 	width: 100%;
 	height: 100%;
-	background-color: #070a10cc;
-	background-image: url( "s2r://panorama/images/backgrounds/bluedots_large_png.vtex" );
-	background-size: auto auto;
-	background-img-opacity: 0.04;
-	wash-color: #7aa2ff;
-	saturation: 0.35;
+	background-color: #0a101844;
 	world-blur: hologram;
 	ignore-parent-flow: true;
 }
 
+/* Stage fits ten 163px cards with 48px gaps: 10×163 + 9×48 = 2062. */
 .VoteBody
 {
 	width: 100%;
+	max-width: 2062px;
 	height: 100%;
+	horizontal-align: center;
 	flow-children: down;
-	padding: 36px 40px 36px 40px;
 }
 
-.VoteHeader
+/* Width-relative lead-in so the first card row tracks Valve's thumb band. */
+.ThumbLead
 {
 	width: 100%;
-	flow-children: right;
-	margin-bottom: 16px;
+	height: width-percentage( 4.7% );
 }
 
-.VoteTitle
-{
-	font-size: 42;
-	color: #f2f5ff;
-	text-shadow: #000000aa 0px 2px 10px 0px;
-	horizontal-align: left;
-	vertical-align: middle;
-}
-
-.VoteTimer
-{
-	font-size: 36;
-	color: #9eb6ff;
-	text-shadow: #000000aa 0px 2px 10px 0px;
-	horizontal-align: right;
-	vertical-align: middle;
-	width: fill-parent-flow( 1.0 );
-	text-align: right;
-}
-
-/* Top strip: maps with votes, sorted by count. Horizontal scroll when >5. */
+/* Voted maps only: one row, horizontal scroll when more than fit. */
 .VotedRow
 {
 	width: 100%;
 	height: fit-children;
 	flow-children: right;
-	overflow: scroll noclip;
-	margin-bottom: 14px;
-	padding-bottom: 6px;
+	overflow: scroll clip;
 }
 
 .VotedRow.is-empty
 {
 	visibility: collapse;
-	height: 0px;
-	margin-bottom: 0px;
-	padding-bottom: 0px;
 }
 
-/* Full catalog. Vertical scroll + wrap, five columns. */
+/* Full catalog: wrap + vertical scroll only (no horizontal bar). */
 .MapGrid
 {
 	width: 100%;
 	height: fill-parent-flow( 1.0 );
 	flow-children: right-wrap;
-	overflow: squish scroll;
+	overflow: clip scroll;
 	horizontal-align: center;
-	padding-top: 4px;
 }
 
+.VoteRoot.is-reveal .ThumbLead,
 .VoteRoot.is-reveal .VotedRow,
 .VoteRoot.is-reveal .MapGrid
 {
 	visibility: collapse;
 }
 
-/* Five per row: padding replaces margin so 5×20% = 100%. */
+/* CS2 map-vote card size and gap. */
 .MapTile
 {
-	width: 20%;
-	height: width-percentage( 56.25% );
-	padding: 8px;
-	background-color: #00000000;
+	width: 163px;
+	height: 286px;
+	margin-right: 48px;
+	margin-bottom: 48px;
 	transition-property: transform, box-shadow;
 	transition-duration: 0.12s;
 	transition-timing-function: ease-out;
 	overflow: noclip;
 }
 
+.VotedRow .MapTile
+{
+	margin-bottom: 0px;
+}
+
 .MapTile:hover
 {
-	transform: scale3d( 1.02, 1.02, 1.0 );
-	box-shadow: #00000088 0px 10px 28px 0px;
+	transform: scale3d( 1.03, 1.03, 1.0 );
+	box-shadow: #00000088 0px 8px 22px 0px;
 }
 
 .MapTile:active
@@ -202,7 +172,7 @@
 
 .MapTile.is-mine
 {
-	box-shadow: #f0c85a55 0px 0px 18px 0px;
+	box-shadow: #f0c85a55 0px 0px 16px 0px;
 }
 
 .MapTile.bump-a,
@@ -218,51 +188,61 @@
 {
 	width: 100%;
 	height: 100%;
-	background-color: #1a2430;
+	background-color: #10141caa;
 	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
-	border: 2px solid #ffffff18;
-	saturation: 0.0;
+	border: 1px solid #e4e7eeaa;
 }
 
-.MapTile:hover .MapShot
-{
-	border: 2px solid #9eb6ffaa;
-	saturation: 1.0;
-}
-
+.MapTile:hover .MapShot,
 .MapTile.is-voted .MapShot
 {
-	border: 2px solid #9eb6ff88;
-	saturation: 1.0;
-	blur: gaussian( 2.5 );
+	border: 1px solid #9eb6ffcc;
 }
 
 .MapTile.is-mine .MapShot
 {
-	border: 2px solid #f0c85a;
-	saturation: 1.0;
+	border: 3px solid #f0c85a;
+	border-top: 1px solid #f0c85a;
+	border-right: 1px solid #f0c85a;
+}
+
+.MapCaption
+{
+	width: 100%;
+	height: fit-children;
+	horizontal-align: center;
+	vertical-align: bottom;
+	flow-children: down;
+	padding: 18px 6px 8px 6px;
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #00000000 ), to( #000000cc ) );
+}
+
+.MapVotes,
+.MapName
+{
+	horizontal-align: center;
+	text-align: center;
+	width: 100%;
+	color: #ffffff;
+	text-shadow: #000000 0px 0px 3px 0px,
+		#000000 1px 1px 0px 0px,
+		#000000 -1px -1px 0px 0px,
+		#000000 1px -1px 0px 0px,
+		#000000 -1px 1px 0px 0px;
 }
 
 .MapVotes
 {
-	horizontal-align: right;
-	vertical-align: bottom;
-	margin: 0px 18px 16px 0px;
-	font-size: 28;
-	color: #ffffff;
-	text-shadow: #000000cc 0px 2px 6px 0px;
+	font-size: 22;
 }
 
-.MapVotesBack
+.MapName
 {
-	color: #000000;
-	text-shadow: #000000 1px 1px 0px 0px,
-		#000000 -1px -1px 0px 0px,
-		#000000 1px -1px 0px 0px,
-		#000000 -1px 1px 0px 0px;
-	z-index: -1;
+	font-size: 14;
+	color: #e8ecf4;
+	margin-top: 2px;
 }
 
 .Winner
@@ -291,9 +271,11 @@
 {
 	width: 720px;
 	height: 405px;
-	border: 3px solid #f0c85a;
+	border: 2px solid #f0c85a;
+	border-left: 4px solid #f0c85a;
+	border-bottom: 4px solid #f0c85a;
 	box-shadow: #f0c85a66 0px 0px 28px 0px;
-	background-color: #1a2430;
+	background-color: #10141ccc;
 	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
@@ -315,7 +297,11 @@
 	margin: 0px 16px 12px 0px;
 	font-size: 36;
 	color: #ffffff;
-	text-shadow: #000000cc 0px 2px 6px 0px;
+	text-shadow: #000000 0px 0px 3px 0px,
+		#000000 1px 1px 0px 0px,
+		#000000 -1px -1px 0px 0px,
+		#000000 1px -1px 0px 0px,
+		#000000 -1px 1px 0px 0px;
 }
 
 .Winner.tick-a .WinnerShot

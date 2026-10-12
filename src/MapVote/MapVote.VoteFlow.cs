@@ -4,7 +4,6 @@ using MapVote.Huds;
 using MapVote.Maps;
 using MapVote.Utils;
 using MapVote.Voting;
-using TimerFlags = CounterStrikeSharp.API.Modules.Timers.TimerFlags;
 
 namespace MapVote
 {
@@ -41,16 +40,14 @@ namespace MapVote
             _voteActive = true;
             _revealActive = false;
             _pendingWinner = null;
-            _voteStartedUtc = DateTime.UtcNow;
 
-            string title = Localizer["vote.title"];
             foreach (CCSPlayerController player in Players.GetHumans())
             {
-                VoteHud.OpenFor(player, title);
-                VoteHud.SetTimer(player, _timing.OpenSeconds);
+                VoteHud.OpenFor(player);
             }
 
-            StartOpenTimers(origins);
+            _openTimer?.Kill();
+            _openTimer = AddTimer(_timing.OpenSeconds, () => BeginReveal(origins));
             PluginLog.Info($"vote started: {maps.Count} maps, open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s.");
         }
 
@@ -75,24 +72,6 @@ namespace MapVote
             }
 
             return maps;
-        }
-
-        private void StartOpenTimers(Dictionary<string, MapOrigin> origins)
-        {
-            _tickTimer?.Kill();
-            _tickTimer = AddTimer(1.0f, () =>
-            {
-                if (!_voteActive || _revealActive || _session is null)
-                {
-                    return;
-                }
-
-                int remaining = Math.Max(0, _timing.OpenSeconds - (int)(DateTime.UtcNow - _voteStartedUtc).TotalSeconds);
-                VoteHud.SetTimerAll(remaining);
-            }, TimerFlags.REPEAT);
-
-            _openTimer?.Kill();
-            _openTimer = AddTimer(_timing.OpenSeconds, () => BeginReveal(origins));
         }
 
         private void BeginReveal(Dictionary<string, MapOrigin> origins)
@@ -149,8 +128,6 @@ namespace MapVote
         {
             _openTimer?.Kill();
             _openTimer = null;
-            _tickTimer?.Kill();
-            _tickTimer = null;
         }
     }
 }

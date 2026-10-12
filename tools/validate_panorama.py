@@ -163,13 +163,10 @@ def collect_errors() -> list[str]:
         root_panel,
         "mv-grid",
         "mv-voted-row",
-        "mv-title",
-        "mv-timer",
         "mv-winner",
         "mv-winner-shot",
         "mv-winner-name",
         "mv-winner-votes",
-        "mv-winner-votes-back",
     }
     for i in range(slot_count):
         expected_ids.update(
@@ -177,18 +174,18 @@ def collect_errors() -> list[str]:
                 f"mv-{i}",
                 f"mv-shot-{i}",
                 f"mv-votes-{i}",
-                f"mv-votes-back-{i}",
                 f"mv-voted-{i}",
                 f"mv-voted-shot-{i}",
                 f"mv-voted-votes-{i}",
-                f"mv-voted-votes-back-{i}",
             }
         )
 
     expected_vars = (
-        {"title", "timer", "winner_name", "winner_votes"}
+        {"winner_name", "winner_votes"}
         | {f"v{i}" for i in range(slot_count)}
         | {f"vv{i}" for i in range(slot_count)}
+        | {f"n{i}" for i in range(slot_count)}
+        | {f"vn{i}" for i in range(slot_count)}
     )
 
     if not HUD_VCSS.is_file():

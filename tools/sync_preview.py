@@ -168,9 +168,10 @@ SHELL_CSS = """
 html, body { height: 100%; }
 body {
   min-height: 100vh;
-  background: #12161c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='%23161b22'/%3E%3Cpath d='M0 0h20v20H0zM20 20h20v20H20z' fill='%23181e26'/%3E%3C/svg%3E");
+  background: #0a0c10;
   font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   color: #f2f5ff;
+  overflow: hidden;
 }
 button {
   background: none;
@@ -180,12 +181,24 @@ button {
   text-align: inherit;
   position: relative;
 }
-.HudScreen {
+/* Plate: top-anchored 16:10 end-match shot, width-scaled up to 1920px. */
+.pv-plate {
   position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100vw, 1920px);
+  height: 100vh;
+  background: #0a0c10 url("endmatch.jpg") top center / 100% auto no-repeat;
+  overflow: hidden;
+}
+.HudScreen {
+  position: absolute;
   inset: 0;
 }
 .VoteRoot {
   position: relative;
+  height: 100%;
 }
 .VoteRoot.ph-off {
   /* Preview forces the card visible; game starts closed. */
@@ -196,10 +209,18 @@ button {
   position: relative;
   z-index: 1;
   height: 100%;
+  max-width: 2062px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ThumbLead {
+  flex: 0 0 auto;
+  width: 100%;
 }
 .VotedRow {
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
+  flex: 0 0 auto;
 }
 .MapGrid {
   overflow-y: auto;
@@ -210,6 +231,8 @@ button {
   position: relative;
   flex: 0 0 auto;
   box-sizing: border-box;
+  width: 163px;
+  height: 286px;
 }
 .WinnerFrame {
   position: relative;
@@ -225,15 +248,24 @@ button {
   position: absolute;
   inset: 0;
 }
-.MapVotes, .WinnerVotes {
+.MapCaption {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  z-index: 2;
+  pointer-events: none;
+}
+.MapVotes, .MapName {
+  display: block;
+  pointer-events: none;
+}
+.WinnerVotes {
   position: absolute;
   right: 18px;
   bottom: 16px;
   z-index: 2;
   pointer-events: none;
-}
-.MapVotesBack, .WinnerVotes.MapVotesBack {
-  z-index: 1;
 }
 .WinnerName {
   position: relative;
@@ -263,17 +295,18 @@ button {
 .pv-bar button:hover { background: #ffffff1c; }
 .pv-bar .pv-note { opacity: 0.85; }
 .is-empty { display: none !important; }
+.VoteRoot.is-reveal .ThumbLead,
 .VoteRoot.is-reveal .VotedRow,
 .VoteRoot.is-reveal .MapGrid { display: none !important; }
-/* Compose filters the way Panorama stacks saturation + blur. */
-.MapShot { filter: saturate(0); }
-.MapTile:hover .MapShot,
-.MapTile.is-voted .MapShot,
-.MapTile.is-mine .MapShot { filter: saturate(1); }
-.MapTile.is-voted .MapShot { filter: saturate(1) blur(2.5px); }
 .Winner.tick-a .WinnerShot { filter: brightness(1.08); }
 .Winner.tick-b .WinnerShot { filter: brightness(0.92); }
-.mv-bg { opacity: 1; } /* ignore background-img-opacity→opacity translation */
+/* Preview: keep the end-match plate sharp so card registration is checkable. */
+.mv-bg {
+  opacity: 1;
+  background-color: #0a101828 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 """
 
 VOTE_JS = r"""(() => {
@@ -317,7 +350,6 @@ VOTE_JS = r"""(() => {
     votes: Object.fromEntries(MAPS.map((m) => [m, 0])),
     firstVote: [],
     mine: null,
-    timer: 45,
     reveal: false,
     bumpSide: false,
     lastStrip: [],
@@ -329,17 +361,18 @@ VOTE_JS = r"""(() => {
     });
   };
 
-  const clearTile = (tileId, shotId, varName) => {
+  const clearTile = (tileId, shotId, voteVar, nameVar) => {
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     tile.classList.add("is-empty");
     tile.classList.remove("is-voted", "is-mine", "bump-a", "bump-b");
     shot.className = "MapShot mv-map-default";
-    setVar(varName, "");
+    setVar(voteVar, "");
+    setVar(nameVar, "");
   };
 
-  const paintTile = (tileId, shotId, varName, map, mine, bump) => {
+  const paintTile = (tileId, shotId, voteVar, nameVar, map, mine, bump) => {
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
@@ -350,7 +383,8 @@ VOTE_JS = r"""(() => {
     tile.classList.toggle("bump-a", !!bump && state.bumpSide);
     tile.classList.toggle("bump-b", !!bump && !state.bumpSide);
     shot.className = `MapShot ${mapClass(map)}`;
-    setVar(varName, count > 0 ? String(count) : "");
+    setVar(voteVar, count > 0 ? String(count) : "");
+    setVar(nameVar, map);
   };
 
   const votedOrder = () => {
@@ -376,17 +410,16 @@ VOTE_JS = r"""(() => {
 
     for (let i = 0; i < SLOT; i++) {
       if (i < voted.length) {
-        paintTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, voted[i], state.mine, bumps[i]);
+        paintTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`, voted[i], state.mine, bumps[i]);
       } else {
-        clearTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`);
+        clearTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`);
       }
 
-      if (i < grid.length) paintTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, grid[i], state.mine, false);
-      else clearTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`);
+      if (i < grid.length) paintTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`, grid[i], state.mine, false);
+      else clearTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`);
     }
 
     state.lastStrip = voted.map((m) => ({ map: m, votes: state.votes[m] || 0 }));
-    setVar("timer", state.reveal ? "" : String(state.timer));
   };
 
   const cast = (map) => {
@@ -447,7 +480,6 @@ VOTE_JS = r"""(() => {
     if (shot) shot.className = `WinnerShot ${mapClass(top)}`;
     setVar("winner_name", top);
     setVar("winner_votes", String(state.votes[top] || 0));
-    setVar("timer", "");
     paint();
   };
 
@@ -456,24 +488,21 @@ VOTE_JS = r"""(() => {
     state.firstVote = [];
     state.lastStrip = [];
     state.mine = null;
-    state.timer = 45;
     state.reveal = false;
     document.getElementById("Vote")?.classList.remove("is-reveal");
     document.getElementById("mv-winner")?.classList.add("is-empty");
-    setVar("title", "Map Vote");
     setVar("winner_name", "");
     setVar("winner_votes", "");
     seedVotes();
     paint();
   };
 
-  // Controls
   const bar = document.createElement("div");
   bar.className = "pv-bar";
   bar.innerHTML = `
     <button type="button" data-act="reset">Reset demo</button>
     <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-note">Synced from vote.xml + hud.vcss. Strip = votes sorted; grid keeps all maps with the same vote overlay.</span>
+    <span class="pv-note">Synced from vote.xml + hud.vcss. CS2 163×286 cards, 48px gap; voted strip h-scroll only.</span>
   `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {
@@ -482,14 +511,8 @@ VOTE_JS = r"""(() => {
     if (act === "reveal") reveal();
   });
 
-  setVar("title", "Map Vote");
   seedVotes();
   paint();
-  setInterval(() => {
-    if (state.reveal || state.timer <= 0) return;
-    state.timer -= 1;
-    setVar("timer", String(state.timer));
-  }, 1000);
 })();
 """
 
@@ -538,7 +561,9 @@ def sync() -> list[str]:
         '<link rel="stylesheet" href="hud.preview.css" />\n'
         "</head>\n"
         "<body>\n"
+        '<div class="pv-plate">\n'
         f"{''.join(body_parts)}\n"
+        "</div>\n"
         '<script src="vote.js"></script>\n'
         "</body>\n"
         "</html>\n",

@@ -27,24 +27,24 @@ No panel creation, no width/colour/image path from C#. Map images are a CSS clas
 
 | Layout | Root card id | Routed ids |
 | --- | --- | --- |
-| `vote.xml` | `Vote` | `Vote`, `mv-voted-row`, `mv-voted-0`…`mv-voted-49`, `mv-grid`, `mv-0`…`mv-49`, shots/votes twins, `mv-winner`, `mv-title`, `mv-timer` |
+| `vote.xml` | `Vote` | `Vote`, `mv-voted-row`, `mv-voted-0`…`mv-voted-49`, `mv-grid`, `mv-0`…`mv-49`, shots/votes/names, `mv-winner` |
 
 `tools/validate_panorama.py` (`make panorama`) checks that the ids and `{s:…}` variables match what C# writes, that every `.mv-map-*` class has a matching PNG + VTEX, and regenerates the browser preview under [`preview/`](preview/).
 
 ### Vote overlay ([`VoteHud`](../src/MapVote/Huds/VoteHud.cs))
 
-Fullscreen glass (`.mv-bg` + `world-blur`). Title + timer, then a horizontal voted strip (`VotedRow`, `{s:vvN}`) and a wrap grid of the full catalog (`MapGrid`, `{s:vN}`). Up to `SlotCount = 50` maps total (`MapCatalog.MaxMaps` must match).
+Fullscreen milky glass (`.mv-bg` + `world-blur`, transparent `.ph-card`). No title or overlay countdown (game clock stays visible). Stage is `max-width: 2062px` (ten CS2 cards). Voted strip (`VotedRow`, `{s:vvN}` / `{s:vnN}`) then the catalog grid (`MapGrid`, `{s:vN}` / `{s:nN}`). Up to `SlotCount = 50` maps (`MapCatalog.MaxMaps` must match).
 
 - Empty slots / empty voted strip: `is-empty` → `visibility: collapse`.
-- Map art: class swap on `mv-shot-N` / `mv-voted-shot-N` (`mv-map-<sanitized>` or `mv-map-default`).
-- Greyscale: `saturation: 0` on `.MapShot`. Colour on `:hover` and `.is-voted`.
-- Vote count: sibling Labels (white + black twin outline). Image gets `blur` when voted — same overlay on strip and grid tiles.
-- Player's own choice: `is-mine` on the tile.
-- Voted strip: maps with votes, sorted by count (first-vote order breaks ties); horizontal scroll past five. Strip slots pulse via `bump-a` / `bump-b` when count or order changes.
-- Grid: full catalog order, five fluid columns (`width: 20%` + `height: width-percentage(56.25%)`), vertical scroll. Voted maps stay here too so players can find them.
-- Reveal: strip + grid collapse, `#mv-winner` shows for the last 5 seconds. Clicks ignored; input capture off. Pulse via `tick-a` / `tick-b`.
+- Map art: class swap on `mv-shot-N` / `mv-voted-shot-N` (`mv-map-<sanitized>` or `mv-map-default`), stretched with `background-size: 100% 100%`.
+- Cards match Valve map-vote size: **163×286** with **48px** gaps. `.ThumbLead` is `width-percentage` so the first row tracks the thumb band across 16:9 / 16:10.
+- Cards: milky panel + light border; `.is-mine` uses gold left/bottom accents.
+- Caption: vote count + map id at the bottom of each tile.
+- Voted strip: one row, sorted by count; **horizontal scroll only here** when there are too many voted maps. Pulse via `bump-a` / `bump-b`.
+- Grid: full catalog, wrap + **vertical scroll only**. Voted maps stay in the grid too.
+- Reveal: lead + strip + grid collapse, `#mv-winner` for the last 5 seconds. Pulse via `tick-a` / `tick-b`.
 
-Browser mock: open [`preview/vote.html`](preview/vote.html) (synced from `vote.xml` + `hud.vcss` on every `make panorama`).
+Browser mock: open [`preview/vote.html`](preview/vote.html) (synced from `vote.xml` + `hud.vcss` on every `make panorama`). Preview uses [`preview/endmatch.jpg`](preview/endmatch.jpg) as a top-anchored 16:10 plate.
 
 Mouse capture via `HudMenu` so `:hover` works. Clicks arrive as `Listeners.OnCustomHudClicked` → `HudMenu` → `VoteHud.OnButton`.
 

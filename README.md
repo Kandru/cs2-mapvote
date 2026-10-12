@@ -2,7 +2,7 @@
 
 Fullscreen Panorama end-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/).
 
-Players see a glass overlay with greyscale map tiles. Hover and votes restore colour; the vote count sits on a lightly blurred image. Voted maps stay in first-vote order at the front of the grid. During the last five seconds of the end-match window, voting locks and the winner is revealed before the plugin changes the map.
+Players see a milky-glass overlay over the end-match scene using CS2-sized map cards (163×286, 48px gaps), with vote counts and map names on each card. Voted maps also appear in a strip above the grid (the only place that scrolls horizontally). The game clock is left alone — this overlay does not draw its own countdown. During the last five seconds of the end-match window, voting locks and the winner is revealed before the plugin changes the map.
 
 ## Requirements
 

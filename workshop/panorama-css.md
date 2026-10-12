@@ -36,7 +36,7 @@ Composition colour (inherits to children): `saturation` (0 = greyscale), `bright
 
 ## MapVote classes
 
-`.mv-bg` fullscreen glass · `.VotedRow` horizontal voted strip · `.MapGrid` wrap flow · `.MapTile` (five-across via `width: 20%`) / `.MapShot` / `.MapVotes` / `.MapVotesBack` · `.is-empty` / `.is-voted` / `.is-mine` · `bump-a` / `bump-b` strip pulse · `.Winner` reveal card · `tick-a` / `tick-b` pulse · `.mv-map-*` image palette · `.ph-card` / `.ph-fading` / `.ph-off`. Browser preview: [`preview/vote.html`](preview/vote.html) (synced by `make panorama`).
+`.mv-bg` milky fullscreen glass · `.VoteBody` stage (`max-width: 2062px`) · `.ThumbLead` width-relative thumb lead-in · `.VotedRow` one-row strip (h-scroll) · `.MapGrid` wrap + v-scroll only · `.MapTile` (CS2 **163×286**, **48px** gap) / `.MapShot` / `.MapCaption` / `.MapVotes` / `.MapName` · `.is-empty` / `.is-voted` / `.is-mine` · `bump-a` / `bump-b` · `.Winner` · `tick-a` / `tick-b` · `.mv-map-*` · `.ph-card` / `.ph-fading` / `.ph-off`. Preview: [`preview/vote.html`](preview/vote.html) (`endmatch.jpg` plate).
 
 Hide empty slots with `is-empty` → `visibility: collapse`. Do not name a class `hidden` / `Hidden`.
 
