@@ -419,7 +419,7 @@ button {
   pointer-events: none;
 }
 
-/* Labels inside tiles / chips never capture clicks. */
+/* Labels / tile chrome never capture clicks (Panorama: hittest=false). */
 .MapName,
 .MapVotes,
 .VotedHint,
@@ -433,6 +433,11 @@ button {
 .MapShot,
 .FavIcon {
   pointer-events: none;
+}
+
+.MapSlot > .FavBtn {
+  position: relative;
+  z-index: 4;
 }
 
 /*
@@ -652,29 +657,50 @@ VOTE_JS = r"""(() => {
     return maps;
   };
 
+  const typeHasMaps = (type) =>
+    state.maps.some((m) => matchesType(m, type));
+
+  const sortEnabled = (sort) =>
+    sort.id !== "favorites" || state.favorites.size > 0;
+
   const paintFilters = () => {
     const bar = document.getElementById("mv-filters");
     if (bar) bar.classList.remove("is-off");
+
+    // Drop a type selection that no longer has maps (mirrors C# PaintFilterBar).
+    if (state.type > 0 && state.type < TYPES.length && !typeHasMaps(TYPES[state.type])) {
+      state.type = 0;
+    }
+    if (state.sort >= 0 && state.sort < SORTS.length && !sortEnabled(SORTS[state.sort])) {
+      state.sort = -1;
+    }
+
     for (let i = 0; i < 8; i++) {
       const chip = document.getElementById(`mv-ft-${i}`);
       if (!chip) continue;
       if (i < TYPES.length) {
+        const disabled = i > 0 && !typeHasMaps(TYPES[i]);
         chip.classList.remove("is-off");
+        chip.classList.toggle("is-disabled", disabled);
         chip.classList.toggle("is-active", state.type === i);
         setVar(`ft${i}`, TYPES[i].label);
       } else {
         chip.classList.add("is-off");
+        chip.classList.remove("is-disabled", "is-active");
       }
     }
     for (let i = 0; i < 4; i++) {
       const chip = document.getElementById(`mv-fs-${i}`);
       if (!chip) continue;
       if (i < SORTS.length) {
+        const disabled = !sortEnabled(SORTS[i]);
         chip.classList.remove("is-off");
+        chip.classList.toggle("is-disabled", disabled);
         chip.classList.toggle("is-active", state.sort === i);
         setVar(`fs${i}`, SORTS[i].label);
       } else {
         chip.classList.add("is-off");
+        chip.classList.remove("is-disabled", "is-active");
       }
     }
   };
@@ -845,11 +871,13 @@ VOTE_JS = r"""(() => {
       return;
     }
     if (hit.type !== undefined) {
+      if (hit.type > 0 && !typeHasMaps(TYPES[hit.type])) return;
       state.type = hit.type;
       paint();
       return;
     }
     if (hit.sort !== undefined) {
+      if (!sortEnabled(SORTS[hit.sort])) return;
       state.sort = state.sort === hit.sort ? -1 : hit.sort;
       paint();
       return;

@@ -313,17 +313,30 @@
 	visibility: collapse;
 }
 
-.FilterChip:hover
+.FilterChip.is-disabled
+{
+	opacity: 0.35;
+}
+
+.FilterChip:not(.is-disabled):hover
 {
 	background-color: #ffffff1c;
 	sound: "UIPanorama.generic_button_rollover";
 }
 
-.FilterChip:active
+.FilterChip:not(.is-disabled):active
 {
 	background-color: #ffffff2e;
 	brightness: 0.9;
 	sound: "UIPanorama.generic_button_press";
+}
+
+.FilterChip.is-disabled:hover,
+.FilterChip.is-disabled:active
+{
+	background-color: #ffffff0d;
+	brightness: 1.0;
+	sound: "";
 }
 
 .FilterChip.is-active
@@ -332,7 +345,7 @@
 	border: 1px solid #ff9a1a;
 }
 
-.FilterChip.is-active:hover
+.FilterChip.is-active:not(.is-disabled):hover
 {
 	background-color: #ff9a1a44;
 }
@@ -389,24 +402,6 @@
 .MapEmpty.is-off
 {
 	visibility: collapse;
-}
-
-.MapGridFadeTop
-{
-	width: 100%;
-	height: 64px;
-	vertical-align: top;
-	z-index: 5;
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000f2 ), color-stop( 0.45, #00000099 ), to( #00000000 ) );
-}
-
-.MapGridFadeBottom
-{
-	width: 100%;
-	height: 48px;
-	vertical-align: bottom;
-	z-index: 5;
-	background-color: gradient( linear, 0% 100%, 0% 0%, from( #000000e6 ), color-stop( 0.5, #00000066 ), to( #00000000 ) );
 }
 
 .MapCatalog
@@ -578,6 +573,7 @@
 	/* MapTile is 193px centered in 213px MapSlot → 10px top gap; +4px inset. */
 	margin-top: 14px;
 	margin-right: 4px;
+	/* Above MapTile / MapFade (z 0–3). */
 	z-index: 4;
 	flow-children: none;
 	wash-color: none;

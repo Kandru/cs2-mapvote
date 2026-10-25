@@ -1285,8 +1285,6 @@
 								</Panel>
 							</Panel>
 						</Panel>
-						<Panel class="MapGridFadeTop" hittest="false" />
-						<Panel class="MapGridFadeBottom" hittest="false" />
 					</Panel>
 				</Panel>
 				<Panel class="CreditBar" hittest="false">

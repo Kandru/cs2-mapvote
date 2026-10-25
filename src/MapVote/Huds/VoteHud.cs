@@ -115,6 +115,7 @@ namespace MapVote.Huds
             {
                 CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-off", true);
                 CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-active", false);
+                CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-disabled", false);
                 CustomHud.SetText(player, Panel, VoteIds.TypeVars[i], string.Empty);
             }
 
@@ -122,6 +123,7 @@ namespace MapVote.Huds
             {
                 CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-off", true);
                 CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-active", false);
+                CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-disabled", false);
                 CustomHud.SetText(player, Panel, VoteIds.SortVars[i], string.Empty);
             }
 
@@ -308,7 +310,7 @@ namespace MapVote.Huds
             SetVotedWidth(player, voted.Count);
             PaintPool(player, Pool.Voted, voted, mine, favorites);
 
-            PaintFilterBar(player);
+            PaintFilterBar(player, favorites);
 
             IReadOnlyList<string> grid = FilteredGrid(player, favorites);
             bool empty = grid.Count == 0;
@@ -323,7 +325,7 @@ namespace MapVote.Huds
             PaintPool(player, Pool.Grid, grid, mine, favorites);
         }
 
-        private static void PaintFilterBar(CCSPlayerController player)
+        private static void PaintFilterBar(CCSPlayerController player, HashSet<string> favorites)
         {
             bool show = _filters.Enabled
                 && (_filters.Types.Count > 0 || _filters.Sorts.Count > 0);
@@ -340,14 +342,25 @@ namespace MapVote.Huds
             // Slot 0 = All when any type is configured.
             if (hasTypes)
             {
+                if (activeType > 0
+                    && activeType <= typeCount
+                    && !TypeHasMaps(_filters.Types[activeType - 1]))
+                {
+                    activeType = 0;
+                    TypeSelection[player.Slot] = 0;
+                }
+
                 CustomHud.SetHasClass(player, VoteIds.TypeChipIds[0], "is-off", false);
+                CustomHud.SetHasClass(player, VoteIds.TypeChipIds[0], "is-disabled", false);
                 CustomHud.SetHasClass(player, VoteIds.TypeChipIds[0], "is-active", activeType == 0);
                 CustomHud.SetText(player, Panel, VoteIds.TypeVars[0], T(player, "filter.all"));
                 for (int i = 0; i < typeCount; i++)
                 {
                     int chip = i + 1;
                     FilterTypeConfig type = _filters.Types[i];
+                    bool disabled = !TypeHasMaps(type);
                     CustomHud.SetHasClass(player, VoteIds.TypeChipIds[chip], "is-off", false);
+                    CustomHud.SetHasClass(player, VoteIds.TypeChipIds[chip], "is-disabled", disabled);
                     CustomHud.SetHasClass(player, VoteIds.TypeChipIds[chip], "is-active", activeType == chip);
                     CustomHud.SetText(player, Panel, VoteIds.TypeVars[chip], T(player, $"filter.{type.Id}"));
                 }
@@ -356,6 +369,7 @@ namespace MapVote.Huds
                 {
                     CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-off", true);
                     CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-active", false);
+                    CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-disabled", false);
                 }
             }
             else
@@ -364,26 +378,64 @@ namespace MapVote.Huds
                 {
                     CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-off", true);
                     CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-active", false);
+                    CustomHud.SetHasClass(player, VoteIds.TypeChipIds[i], "is-disabled", false);
                 }
             }
 
             int sortCount = Math.Min(_filters.Sorts.Count, FilterSortSlots);
             int activeSort = SortSelection[player.Slot];
+            if (activeSort >= 0
+                && activeSort < sortCount
+                && !SortChipEnabled(_filters.Sorts[activeSort], favorites))
+            {
+                activeSort = -1;
+                SortSelection[player.Slot] = -1;
+            }
+
             for (int i = 0; i < FilterSortSlots; i++)
             {
                 if (i >= sortCount)
                 {
                     CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-off", true);
                     CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-active", false);
+                    CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-disabled", false);
                     continue;
                 }
 
                 string sortId = _filters.Sorts[i];
+                bool disabled = !SortChipEnabled(sortId, favorites);
                 CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-off", false);
+                CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-disabled", disabled);
                 CustomHud.SetHasClass(player, VoteIds.SortChipIds[i], "is-active", activeSort == i);
                 CustomHud.SetText(player, Panel, VoteIds.SortVars[i], T(player, $"sort.{sortId}"));
             }
         }
+
+        private static bool TypeHasMaps(FilterTypeConfig type)
+        {
+            if (_session is null)
+            {
+                return false;
+            }
+
+            IReadOnlyList<string> source = _session.GridOrder();
+            for (int i = 0; i < source.Count; i++)
+            {
+                if (MatchesType(source[i], type, _filters.Types))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool SortChipEnabled(string sortId, HashSet<string> favorites) =>
+            sortId switch
+            {
+                "favorites" => favorites.Count > 0,
+                _ => true,
+            };
 
         private static IReadOnlyList<string> FilteredGrid(CCSPlayerController player, HashSet<string> favorites)
         {
@@ -490,11 +542,22 @@ namespace MapVote.Huds
                     return;
                 }
 
+                // Slot 0 = All (always enabled). Other slots follow catalog contents.
+                if (chipIndex > 0 && !TypeHasMaps(_filters.Types[chipIndex - 1]))
+                {
+                    return;
+                }
+
                 TypeSelection[player.Slot] = chipIndex;
             }
             else
             {
                 if (chipIndex >= _filters.Sorts.Count || chipIndex >= FilterSortSlots)
+                {
+                    return;
+                }
+
+                if (!SortChipEnabled(_filters.Sorts[chipIndex], FavoritesOf(player)))
                 {
                     return;
                 }

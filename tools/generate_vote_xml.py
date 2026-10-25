@@ -138,8 +138,6 @@ def build() -> str:
         [
             "\t\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t\t</Panel>",
-            '\t\t\t\t\t\t<Panel class="MapGridFadeTop" hittest="false" />',
-            '\t\t\t\t\t\t<Panel class="MapGridFadeBottom" hittest="false" />',
             "\t\t\t\t\t</Panel>",
             "\t\t\t\t</Panel>",
             '\t\t\t\t<Panel class="CreditBar" hittest="false">',

@@ -138,7 +138,7 @@ button {
   pointer-events: none;
 }
 
-/* Labels inside tiles / chips never capture clicks. */
+/* Labels / tile chrome never capture clicks (Panorama: hittest=false). */
 .MapName,
 .MapVotes,
 .VotedHint,
@@ -152,6 +152,11 @@ button {
 .MapShot,
 .FavIcon {
   pointer-events: none;
+}
+
+.MapSlot > .FavBtn {
+  position: relative;
+  z-index: 4;
 }
 
 /*
@@ -545,16 +550,29 @@ button {
 	display: none;
 }
 
-.FilterChip:hover
+.FilterChip.is-disabled
+{
+	opacity: 0.35;
+}
+
+.FilterChip:not(.is-disabled):hover
 {
 	background-color: #ffffff1c;
 	
 }
 
-.FilterChip:active
+.FilterChip:not(.is-disabled):active
 {
 	background-color: #ffffff2e;
 	filter: brightness(0.9); /* brightness */
+	
+}
+
+.FilterChip.is-disabled:hover,
+.FilterChip.is-disabled:active
+{
+	background-color: #ffffff0d;
+	filter: brightness(1.0); /* brightness */
 	
 }
 
@@ -564,7 +582,7 @@ button {
 	border: 1px solid #ff9a1a;
 }
 
-.FilterChip.is-active:hover
+.FilterChip.is-active:not(.is-disabled):hover
 {
 	background-color: #ff9a1a44;
 }
@@ -621,24 +639,6 @@ button {
 .MapEmpty.is-off
 {
 	display: none;
-}
-
-.MapGridFadeTop
-{
-	width: 100%;
-	height: 64px;
-	align-self: start;
-	z-index: 5;
-	background-image: linear-gradient(to bottom, #000000f2, #00000099 45%, #00000000);
-}
-
-.MapGridFadeBottom
-{
-	width: 100%;
-	height: 48px;
-	align-self: end;
-	z-index: 5;
-	background-image: linear-gradient(to top, #000000e6, #00000066 50%, #00000000);
 }
 
 .MapCatalog
@@ -810,6 +810,7 @@ button {
 	/* MapTile is 193px centered in 213px MapSlot → 10px top gap; +4px inset. */
 	margin-top: 14px;
 	margin-right: 4px;
+	/* Above MapTile / MapFade (z 0–3). */
 	z-index: 4;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
 	

@@ -266,7 +266,6 @@ def collect_errors() -> list[str]:
             ".CreditBar",
             ".CreditLabel",
             ".MapGridHost",
-            ".MapGridFadeTop",
             ".MapCatalog",
             ".CatalogRow",
             ".is-self",
