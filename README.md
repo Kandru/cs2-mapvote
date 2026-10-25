@@ -1,14 +1,26 @@
-# CS2 MapVote
+# CounterstrikeSharp - MapVote
 
-Fullscreen Panorama end-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/).
+[![Discord Support](https://img.shields.io/discord/289448144335536138?label=Discord%20Support&color=darkgreen)](https://discord.gg/NtHCk5PWEt)
+[![GitHub release](https://img.shields.io/github/release/Kandru/cs2-mapvote?include_prereleases=&sort=semver&color=blue)](https://github.com/Kandru/cs2-mapvote/releases/)
+[![License](https://img.shields.io/badge/License-GPLv3-blue)](#license)
+[![issues - cs2-mapvote](https://img.shields.io/github/issues/Kandru/cs2-mapvote?color=darkgreen)](https://github.com/Kandru/cs2-mapvote/issues)
+[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=C2AVYKGVP9TRG)
 
-Players see a fullscreen CS2 end-of-match map vote: Valve portrait cards (110×193px, ~10 across), a top row of maps that already have votes (sorted by count), then a scrollable catalog in rows of 10. Unused slots stay collapsed. The overlay is transparent with a light frost. The game clock is left alone. On lock, the winning tile shows a green check, then the plugin changes the map.
+![Map vote](example.png)
 
-## Requirements
+Fullscreen Panorama end-of-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/). Players get Valve-style portrait cards, a top row of maps that already have votes, a scrollable catalog with type and sort filters, and `!rtv`. On lock the winning tile shows a green check, then the plugin changes the map. The game clock is left alone.
 
-- CounterStrikeSharp on a CS2 dedicated server (`.NET 10`)
-- Non-empty `rcon_password` (map lists are loaded via localhost RCON)
-- Workshop addon with the Panorama content under `workshop/content` published to clients
+> [!TIP]
+> Please consider a [donation](https://www.paypal.com/donate/?hosted_button_id=C2AVYKGVP9TRG) when you're using this plugin - it took a long time to build and improve - it only costs you a few dollars and would help me very much!
+
+## Installation
+
+1. Install [Metamod:Source](https://www.metamodsource.net/downloads.php?branch=dev).
+2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and configure it to load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (Panorama HUD), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`.
+3. Install [CounterStrikeSharp](https://docs.cssharp.dev/).
+4. Download the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-mapvote/releases/) and copy the `MapVote` folder into `/game/csgo/addons/counterstrikesharp/plugins/`.
+5. Set a non-empty `rcon_password` (map lists are loaded via localhost RCON).
+6. Restart the server. Config is created at `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`.
 
 ## Build
 
@@ -63,3 +75,11 @@ Copy `workshop/content/` into your `csgo_addons/<addon>/` tree. Layout/style sou
 ## Commands
 
 - `!rtv` / `css_rtv` — rock the vote (forces the match to end so this overlay can run)
+
+## License
+
+Released under [GPLv3](/LICENSE) by [@Kandru](https://github.com/Kandru).
+
+## Authors
+
+- [@derkalle4](https://www.github.com/derkalle4)
