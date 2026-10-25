@@ -166,8 +166,11 @@ def collect_errors() -> list[str]:
 
     expected_ids = {
         root_panel,
+        "mv-minimize",
         "mv-grid",
+        "mv-voted-section",
         "mv-voted-row",
+        "mv-voted-hint",
         "mv-voted-strip",
         "mv-catalog",
     }
@@ -190,6 +193,7 @@ def collect_errors() -> list[str]:
         | {f"n{i}" for i in range(slot_count)}
         | {f"vv{i}" for i in range(slot_count)}
         | {f"vn{i}" for i in range(slot_count)}
+        | {"mv_title", "mv_hint"}
     )
 
     if GENERATE_XML.is_file():
@@ -237,8 +241,11 @@ def collect_errors() -> list[str]:
             ".MapShot",
             ".MapFade",
             ".MapGrid",
+            ".VotedSection",
             ".VotedRow",
             ".VotedStrip",
+            ".MapGridHost",
+            ".MapGridFadeTop",
             ".MapCatalog",
             ".CatalogRow",
             ".is-self",

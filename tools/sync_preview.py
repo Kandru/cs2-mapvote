@@ -110,16 +110,29 @@ def translate_css(text: str) -> str:
         lambda m: "flex: 1 1 auto; min-height: 0;" if m.group(1) == "height" else "flex: 1 1 auto;",
         t,
     )
-    t = OVERFLOW_RE.sub(
-        lambda m: (
-            "overflow: auto;"
-            if "scroll" in m.group(1)
-            else "overflow: visible;"
-            if "noclip" in m.group(1)
-            else f"overflow: {m.group(1)};"
-        ),
-        t,
-    )
+    def _overflow_css(raw: str) -> str:
+        parts = raw.strip().split()
+
+        def axis(token: str) -> str:
+            if token == "scroll":
+                return "auto"
+            if token == "noclip":
+                return "visible"
+            if token in ("clip", "squish"):
+                return "hidden"
+            return token
+
+        if len(parts) == 2:
+            return f"overflow-x: {axis(parts[0])}; overflow-y: {axis(parts[1])};"
+        if len(parts) == 1 and parts[0] == "scroll":
+            return "overflow: auto;"
+        if len(parts) == 1 and parts[0] == "noclip":
+            return "overflow: visible;"
+        if len(parts) == 1 and parts[0] in ("clip", "squish"):
+            return "overflow: hidden;"
+        return f"overflow: {raw};"
+
+    t = OVERFLOW_RE.sub(lambda m: _overflow_css(m.group(1)), t)
     t = VERT_MIDDLE_RE.sub("align-self: center;", t)
     t = VERT_BOTTOM_RE.sub("align-self: flex-end;", t)
     t = VERT_TOP_RE.sub("align-self: flex-start;", t)
@@ -175,7 +188,7 @@ html, body { height: 100%; }
 body {
   min-height: 100vh;
   background: #0a0c10;
-  font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  font-family: "Stratum2 Condensed", "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   color: #f2f5ff;
   overflow: hidden;
 }
@@ -187,15 +200,13 @@ button {
   text-align: inherit;
   position: relative;
 }
-/* Plate: top-anchored 16:10 end-match shot, width-scaled up to 1920px. */
+/* Plate: true fullscreen — fills the viewport at any aspect (no letterbox bars). */
 .pv-plate {
   position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(100vw, 1920px);
+  inset: 0;
+  width: 100vw;
   height: 100vh;
-  background: #0a0c10 url("endmatch.jpg") top center / 100% auto no-repeat;
+  background: #0a0c10 url("endmatch.jpg") center center / cover no-repeat;
   overflow: hidden;
 }
 .HudScreen {
@@ -216,6 +227,70 @@ button {
   z-index: 1;
   height: 100%;
 }
+.VoteTopBar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 48px;
+}
+.VoteTitle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: "Stratum2 Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #ffffff;
+  pointer-events: none;
+}
+.MinimizeBtn {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 108px;
+  height: 32px;
+  background: #00000099;
+  border: 1px solid #ffffff33 !important;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+}
+.MinimizeBtn:hover { background: #ffffff22; }
+.MinimizeLabel {
+  width: 100%;
+  line-height: 32px;
+  text-align: center;
+  font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #fff;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.VoteRoot.is-minimized .mv-glass,
+.VoteRoot.is-minimized .mv-scrim-top,
+.VoteRoot.is-minimized .mv-scrim-bottom,
+.VoteRoot.is-minimized .VoteBody,
+.VoteRoot.is-minimized .VoteTitle {
+  display: none !important;
+}
+.VoteRoot.is-minimized .MinimizeBtn {
+  background: #000000cc;
+  border-color: #ff9a1a !important;
+}
+.VoteRoot.is-minimized .MinimizeLabel {
+  color: #ff9a1a;
+}
 .VoteBody {
   position: relative;
   z-index: 1;
@@ -223,16 +298,34 @@ button {
   flex: 1 1 auto;
   min-height: 0;
 }
-.MapCatalog {
-  max-width: 1420px;
-  margin-left: auto;
-  margin-right: auto;
+.VotedSection {
+  flex: 0 0 auto;
+  width: 100%;
+  background: linear-gradient(to bottom, #000000b3, #00000066);
+  border-bottom: 1px solid #ffffff22;
+  padding: 8px 0 12px;
 }
+.VotedSection.has-votes { border-bottom: 2px solid #ff9a1a; }
 .VotedRow {
+  position: relative;
   overflow-x: auto;
   overflow-y: hidden;
   flex: 0 0 auto;
+  height: 213px;
   scrollbar-width: thin;
+}
+.VotedHint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a3acb6;
+  z-index: 1;
+  pointer-events: none;
 }
 .VotedStrip {
   display: flex;
@@ -240,24 +333,53 @@ button {
   flex-wrap: nowrap;
   margin-left: auto;
   margin-right: auto;
+  height: 213px;
+}
+.MapGridHost {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
 }
 .MapGrid {
   overflow-y: auto;
   overflow-x: hidden;
-  flex: 1 1 auto;
-  min-height: 0;
+  height: 100%;
+}
+.MapGridFadeTop,
+.MapGridFadeBottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.MapGridFadeTop {
+  top: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, #000000f2, #00000000);
+}
+.MapGridFadeBottom {
+  bottom: 0;
+  height: 48px;
+  background: linear-gradient(to top, #000000e6, #00000000);
 }
 .MapCatalog {
+  width: 100%;
   display: flex;
   flex-direction: column;
   margin-left: auto;
   margin-right: auto;
+  padding-left: 12px;
+  padding-right: 12px;
+  box-sizing: border-box;
 }
 .CatalogRow {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  justify-content: center;
+  justify-content: stretch;
+  width: 100%;
 }
 .MapTile {
   position: relative;
@@ -266,6 +388,11 @@ button {
   width: 110px;
   height: 193px;
   overflow: hidden;
+}
+.CatalogRow .MapTile {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
 }
 .MapShot,
 .MapFade {
@@ -298,6 +425,7 @@ button {
 .MapVotes {
   bottom: 40px;
   color: #ff9a1a !important;
+  font-family: Stratum2, "Barlow Condensed", "Arial Narrow", sans-serif !important;
   font-weight: 700 !important;
   font-size: 26px !important;
 }
@@ -314,8 +442,11 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: "Stratum2 Medium Condensed", "Barlow Condensed", "Arial Narrow", sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 16px !important;
 }
-/* Preview stand-in for Valve vote_check.vsvg (opacity from hud.vcss). */
+/* Preview stand-in for Valve vote_check.vsvg — match #id-map-selection-btn__winner. */
 .MapWinnerCheck {
   position: absolute;
   left: 50%;
@@ -325,7 +456,31 @@ button {
   margin: -25px 0 0 -25px;
   z-index: 3;
   pointer-events: none;
+  opacity: 0 !important;
+  transform: scale(2) !important;
+  transform-origin: center center;
   background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232bff00' d='M9.2 17.2 4.8 12.8l1.4-1.4 3 3 8-8 1.4 1.4z'/%3E%3C/svg%3E");
+  transition: transform 0.1s ease-in-out 0.35s, opacity 0.1s ease-in-out 0.35s;
+}
+.MapTile.is-done .MapWinnerCheck {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+.MapTile.is-lost {
+  filter: brightness(0.45);
+  border-color: transparent !important;
+  box-shadow: none !important;
+  transition: filter 0.5s ease-in-out;
+}
+.MapTile.is-done {
+  border: 2px solid #fff !important;
+  box-shadow: #ffffff 0px 0px 6px 0px !important;
+  animation: pv-winner-pulse 0.5s ease-in-out 1;
+}
+@keyframes pv-winner-pulse {
+  0% { border-color: #ffffff00; }
+  50% { border-width: 5px; border-color: #ffff00; }
+  100% { border-width: 2px; border-color: #ffffff; }
 }
 .pv-var { min-width: 0.5ch; }
 .pv-bar {
@@ -350,7 +505,18 @@ button {
   cursor: pointer;
 }
 .pv-bar button:hover { background: #ffffff1c; }
+.pv-bar button.is-active {
+  border-color: #ff9a1a88;
+  background: #ff9a1a22;
+  color: #ffd27a;
+}
 .pv-bar .pv-note { opacity: 0.85; }
+.pv-bar .pv-sep {
+  width: 1px;
+  height: 18px;
+  background: #ffffff22;
+  margin: 0 2px;
+}
 .is-off { display: none !important; }
 .VoteRoot.is-off { display: block !important; }
 """
@@ -398,9 +564,14 @@ VOTE_JS = r"""(() => {
     votes: Object.fromEntries(MAPS.map((m) => [m, 0])),
     firstVote: [],
     mine: null,
+    mineSet: new Set(),
+    mode: "single", // single = CS2 one-vote; multi = toggle many maps
     reveal: false,
     winner: null,
   };
+
+  const isMine = (map) =>
+    state.mode === "multi" ? state.mineSet.has(map) : state.mine === map;
 
   const setVar = (name, value) => {
     document.querySelectorAll(`[data-var="${name}"]`).forEach((el) => {
@@ -416,7 +587,7 @@ VOTE_JS = r"""(() => {
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     tile.classList.add("is-off");
-    tile.classList.remove("is-self", "is-done");
+    tile.classList.remove("is-self", "is-done", "is-lost");
     shot.className = "MapShot";
     shot.style.backgroundImage = "";
     setVar(voteVar, "");
@@ -428,9 +599,12 @@ VOTE_JS = r"""(() => {
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     const count = state.votes[map] || 0;
+    const isWinner = state.winner === map;
+    const isLost = state.reveal && state.winner && !isWinner;
     tile.classList.remove("is-off");
-    tile.classList.toggle("is-self", state.mine === map);
-    tile.classList.toggle("is-done", state.winner === map);
+    tile.classList.toggle("is-self", !state.reveal && isMine(map));
+    tile.classList.toggle("is-done", isWinner);
+    tile.classList.toggle("is-lost", !!isLost);
     applyShot(shot, map);
     setVar(voteVar, String(count));
     setVar(nameVar, map);
@@ -451,8 +625,12 @@ VOTE_JS = r"""(() => {
 
   const paint = () => {
     const voted = votedOrder();
-    const row = document.getElementById("mv-voted-row");
-    if (row) row.classList.toggle("is-off", voted.length === 0);
+    const section = document.getElementById("mv-voted-section");
+    const hint = document.getElementById("mv-voted-hint");
+    if (section) section.classList.toggle("has-votes", voted.length > 0);
+    if (hint) hint.classList.toggle("is-off", voted.length > 0 || state.reveal);
+    setVar("mv_title", state.reveal ? "Winning map" : "Vote for the next map");
+    setVar("mv_hint", "Cast the first vote");
     setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
 
     const rowCount = state.maps.length === 0 ? 0 : Math.ceil(state.maps.length / COLS);
@@ -477,50 +655,114 @@ VOTE_JS = r"""(() => {
     }
   };
 
-  const cast = (map) => {
-    if (state.reveal || !map) return;
+  const bump = (map, delta) => {
+    const next = Math.max(0, (state.votes[map] || 0) + delta);
+    state.votes[map] = next;
+    if (delta > 0 && next === delta && !state.firstVote.includes(map)) {
+      state.firstVote.push(map);
+    }
+    if (next === 0) {
+      state.firstVote = state.firstVote.filter((m) => m !== map);
+    }
+  };
+
+  const castSingle = (map) => {
     const prev = state.mine;
     if (prev === map) return;
-    if (prev) {
-      state.votes[prev] = Math.max(0, (state.votes[prev] || 0) - 1);
-      if (state.votes[prev] === 0) {
-        state.firstVote = state.firstVote.filter((m) => m !== prev);
-      }
-    }
+    if (prev) bump(prev, -1);
     state.mine = map;
-    const next = (state.votes[map] || 0) + 1;
-    state.votes[map] = next;
-    if (next === 1) state.firstVote.push(map);
+    state.mineSet = new Set([map]);
+    bump(map, 1);
+  };
+
+  const castMulti = (map, fromVoted) => {
+    bump(map, fromVoted ? -1 : 1);
+    if ((state.votes[map] || 0) > 0) state.mineSet.add(map);
+    else state.mineSet.delete(map);
+    state.mine = state.mineSet.size ? [...state.mineSet][0] : null;
+  };
+
+  const cast = (map, fromVoted) => {
+    if (state.reveal || !map) return;
+    if (state.mode === "multi") castMulti(map, fromVoted);
+    else castSingle(map);
     paint();
   };
 
   const parseButton = (id) => {
     if (!id) return null;
     if (id.startsWith("mv-voted-")) {
-      const i = Number(id.slice("mv-voted-".length));
+      const rest = id.slice("mv-voted-".length);
+      if (!/^\d+$/.test(rest)) return null;
+      const i = Number(rest);
       const order = votedOrder();
-      return Number.isInteger(i) && i >= 0 && i < order.length ? order[i] : null;
+      if (!(Number.isInteger(i) && i >= 0 && i < order.length)) return null;
+      return { map: order[i], fromVoted: true };
     }
     if (/^mv-\d+$/.test(id)) {
       const i = Number(id.slice(3));
-      return Number.isInteger(i) && i >= 0 && i < state.maps.length ? state.maps[i] : null;
+      if (!(Number.isInteger(i) && i >= 0 && i < state.maps.length)) return null;
+      return { map: state.maps[i], fromVoted: false };
     }
     return null;
+  };
+
+  const toggleMinimized = () => {
+    document.getElementById("Vote")?.classList.toggle("is-minimized");
   };
 
   document.getElementById("Vote")?.addEventListener("click", (ev) => {
     const btn = ev.target.closest("button[id]");
     if (!btn) return;
-    cast(parseButton(btn.id));
+    if (btn.id === "mv-minimize") {
+      toggleMinimized();
+      return;
+    }
+    const hit = parseButton(btn.id);
+    if (hit) cast(hit.map, hit.fromVoted);
   });
 
+  const clearVotes = () => {
+    state.votes = Object.fromEntries(state.maps.map((m) => [m, 0]));
+    state.firstVote = [];
+    state.mine = null;
+    state.mineSet = new Set();
+    state.reveal = false;
+    state.winner = null;
+    paint();
+  };
+
   const seedVotes = () => {
+    clearVotes();
     ["de_dust2", "de_mirage", "de_inferno", "de_nuke", "cs_office"].forEach((m, idx) => {
       if (!state.maps.includes(m)) return;
       state.votes[m] = idx === 0 ? 3 : idx === 1 ? 2 : 1;
       state.firstVote.push(m);
     });
     state.mine = "de_dust2";
+    state.mineSet = new Set(["de_dust2"]);
+    paint();
+  };
+
+  const randomize = () => {
+    clearVotes();
+    const picks = state.maps.slice().sort(() => Math.random() - 0.5);
+    const n = 4 + Math.floor(Math.random() * 8);
+    for (let i = 0; i < n && i < picks.length; i++) {
+      const m = picks[i];
+      const c = 1 + Math.floor(Math.random() * 6);
+      state.votes[m] = c;
+      state.firstVote.push(m);
+    }
+    if (state.mode === "multi") {
+      const mineN = 1 + Math.floor(Math.random() * 3);
+      state.mineSet = new Set(votedOrder().slice(0, mineN));
+      state.mine = [...state.mineSet][0] || null;
+    } else {
+      state.mine = votedOrder()[0] || null;
+      state.mineSet = state.mine ? new Set([state.mine]) : new Set();
+    }
+    paint();
   };
 
   const topMap = () => votedOrder()[0] || state.maps[0];
@@ -531,32 +773,66 @@ VOTE_JS = r"""(() => {
     paint();
   };
 
-  const reset = () => {
-    state.votes = Object.fromEntries(state.maps.map((m) => [m, 0]));
-    state.firstVote = [];
-    state.mine = null;
+  const setMode = (mode) => {
+    if (mode !== "single" && mode !== "multi") return;
+    state.mode = mode;
     state.reveal = false;
     state.winner = null;
-    seedVotes();
+    if (mode === "single" && state.mineSet.size > 1) {
+      // Keep highest-voted selected map as the single vote; drop the rest from mineSet only.
+      const keep = votedOrder().find((m) => state.mineSet.has(m)) || [...state.mineSet][0];
+      for (const m of [...state.mineSet]) {
+        if (m !== keep) {
+          bump(m, -1);
+          state.mineSet.delete(m);
+        }
+      }
+      state.mine = keep || null;
+    }
+    syncModeButtons();
     paint();
+  };
+
+  const syncModeButtons = () => {
+    bar.querySelectorAll("[data-mode]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.getAttribute("data-mode") === state.mode);
+    });
+    const note = bar.querySelector(".pv-note");
+    if (note) {
+      note.textContent =
+        state.mode === "multi"
+          ? "Multi: catalog +1 · voted strip −1"
+          : "Single: one personal vote (CS2 default)";
+    }
   };
 
   const bar = document.createElement("div");
   bar.className = "pv-bar";
   bar.innerHTML = `
-    <button type="button" data-act="reset">Reset demo</button>
+    <button type="button" data-act="clear">Clear votes</button>
+    <button type="button" data-act="randomize">Randomize</button>
+    <button type="button" data-act="seed">Seed demo</button>
     <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-note">CS2 vote cards · voted strip + catalog rows · maps/*.webp</span>
+    <span class="pv-sep" aria-hidden="true"></span>
+    <button type="button" data-mode="single">Single vote</button>
+    <button type="button" data-mode="multi">Multi select</button>
+    <span class="pv-note"></span>
   `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {
-    const act = ev.target.getAttribute("data-act");
-    if (act === "reset") reset();
+    const t = ev.target;
+    if (!(t instanceof HTMLElement)) return;
+    const act = t.getAttribute("data-act");
+    const mode = t.getAttribute("data-mode");
+    if (act === "clear") clearVotes();
+    if (act === "randomize") randomize();
+    if (act === "seed") seedVotes();
     if (act === "reveal") reveal();
+    if (mode) setMode(mode);
   });
 
   seedVotes();
-  paint();
+  syncModeButtons();
 })();
 """
 

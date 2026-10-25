@@ -29,7 +29,7 @@ def tile(pool: str, index: int, vote_var: str, name_var: str, indent: str) -> st
             f'{indent}\t<Panel id="{shot_id}" class="MapShot mv-map-default" hittest="false" />',
             f'{indent}\t<Panel class="MapFade" hittest="false" />',
             f'{indent}\t<Label class="MapName stratum-medium-condensed" text="{{s:{name_var}}}" hittest="false" />',
-            f'{indent}\t<Label id="{votes_id}" class="MapVotes stratum-bold-tf" text="{{s:{vote_var}}}" hittest="false" />',
+            f'{indent}\t<Label id="{votes_id}" class="MapVotes stratum-bold" text="{{s:{vote_var}}}" hittest="false" />',
             f'{indent}\t<Panel class="MapWinnerCheck" hittest="false" />',
             f"{indent}</Button>",
         ]
@@ -53,38 +53,50 @@ def build() -> str:
         '\t\t\t<Panel class="mv-scrim-top" hittest="false" />',
         '\t\t\t<Panel class="mv-scrim-bottom" hittest="false" />',
         '\t\t\t<Panel class="VoteColumn" hittest="false">',
-        '\t\t\t\t<Panel class="VoteTopSpacer" hittest="false" />',
+        '\t\t\t\t<Panel class="VoteTopBar" hittest="false">',
+        '\t\t\t\t\t<Label class="VoteTitle stratum-regular-condensed" text="{s:mv_title}" hittest="false" />',
+        '\t\t\t\t\t<Button id="mv-minimize" class="MinimizeBtn">',
+        '\t\t\t\t\t\t<Label class="MinimizeLabel stratum-bold-condensed" text="MAP VOTE" hittest="false" />',
+        "\t\t\t\t\t</Button>",
+        "\t\t\t\t</Panel>",
         '\t\t\t\t<Panel class="VoteBody" hittest="false">',
-        '\t\t\t\t\t<Panel id="mv-voted-row" class="VotedRow is-off" hittest="false">',
-        '\t\t\t\t\t\t<Panel id="mv-voted-strip" class="VotedStrip vw-0" hittest="false">',
+        '\t\t\t\t\t<Panel id="mv-voted-section" class="VotedSection" hittest="false">',
+        '\t\t\t\t\t\t<Panel id="mv-voted-row" class="VotedRow" hittest="false">',
+        '\t\t\t\t\t\t\t<Label id="mv-voted-hint" class="VotedHint stratum-regular-condensed" text="{s:mv_hint}" hittest="false" />',
+        '\t\t\t\t\t\t\t<Panel id="mv-voted-strip" class="VotedStrip vw-0" hittest="false">',
     ]
 
     for i in range(SLOT_COUNT):
-        lines.append(tile("voted", i, f"vv{i}", f"vn{i}", "\t\t\t\t\t\t\t"))
+        lines.append(tile("voted", i, f"vv{i}", f"vn{i}", "\t\t\t\t\t\t\t\t"))
 
     lines.extend(
         [
+            "\t\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t</Panel>",
-            '\t\t\t\t\t<Panel id="mv-grid" class="MapGrid" hittest="false">',
-            '\t\t\t\t\t\t<Panel id="mv-catalog" class="MapCatalog rows-0" hittest="false">',
+            '\t\t\t\t\t<Panel class="MapGridHost" hittest="false">',
+            '\t\t\t\t\t\t<Panel id="mv-grid" class="MapGrid" hittest="false">',
+            '\t\t\t\t\t\t\t<Panel id="mv-catalog" class="MapCatalog rows-0" hittest="false">',
         ]
     )
 
     for row in range(ROW_COUNT):
         # Default: all catalog rows start is-off; painter enables rows that have maps.
         lines.append(
-            f'\t\t\t\t\t\t\t<Panel id="mv-crow-{row}" class="CatalogRow is-off" hittest="false">'
+            f'\t\t\t\t\t\t\t\t<Panel id="mv-crow-{row}" class="CatalogRow is-off" hittest="false">'
         )
         start = row * COLS
         end = min(start + COLS, SLOT_COUNT)
         for i in range(start, end):
-            lines.append(tile("grid", i, f"v{i}", f"n{i}", "\t\t\t\t\t\t\t\t"))
-        lines.append("\t\t\t\t\t\t\t</Panel>")
+            lines.append(tile("grid", i, f"v{i}", f"n{i}", "\t\t\t\t\t\t\t\t\t"))
+        lines.append("\t\t\t\t\t\t\t\t</Panel>")
 
     lines.extend(
         [
+            "\t\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t\t</Panel>",
+            '\t\t\t\t\t\t<Panel class="MapGridFadeTop" hittest="false" />',
+            '\t\t\t\t\t\t<Panel class="MapGridFadeBottom" hittest="false" />',
             "\t\t\t\t\t</Panel>",
             "\t\t\t\t</Panel>",
             "\t\t\t</Panel>",

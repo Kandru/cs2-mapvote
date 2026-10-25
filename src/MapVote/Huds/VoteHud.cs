@@ -11,11 +11,14 @@ namespace MapVote.Huds
         public const int CatalogCols = 10;
         public const int CatalogRowCount = 5; // ceil(SlotCount / CatalogCols)
 
+        private const string MinimizeButtonId = "mv-minimize";
+
         private static VoteSession? _session;
         private static bool _revealing;
         private static string? _winner;
         private static readonly int[] LastVotedWidth = new int[65];
         private static readonly int[] LastCatalogRows = new int[65];
+        private static readonly bool[] Minimized = new bool[65];
 
         public static void Bind(VoteSession session)
         {
@@ -24,6 +27,7 @@ namespace MapVote.Huds
             _winner = null;
             Array.Fill(LastVotedWidth, -1);
             Array.Fill(LastCatalogRows, -1);
+            Array.Fill(Minimized, false);
         }
 
         public static void Clear()
@@ -33,6 +37,7 @@ namespace MapVote.Huds
             _winner = null;
             Array.Fill(LastVotedWidth, -1);
             Array.Fill(LastCatalogRows, -1);
+            Array.Fill(Minimized, false);
         }
 
         public static void WriteDefaults(CCSPlayerController player)
@@ -41,9 +46,14 @@ namespace MapVote.Huds
             {
                 LastVotedWidth[player.Slot] = -1;
                 LastCatalogRows[player.Slot] = -1;
+                Minimized[player.Slot] = false;
             }
 
-            CustomHud.SetHasClass(player, "mv-voted-row", "is-off", true);
+            CustomHud.SetText(player, Panel, "mv_title", "Vote for the next map");
+            CustomHud.SetText(player, Panel, "mv_hint", "Cast the first vote");
+            CustomHud.SetHasClass(player, Panel, "is-minimized", false);
+            CustomHud.SetHasClass(player, "mv-voted-section", "has-votes", false);
+            CustomHud.SetHasClass(player, "mv-voted-hint", "is-off", false);
             SetVotedWidth(player, 0);
             SetCatalogRows(player, 0);
             for (int r = 0; r < CatalogRowCount; r++)
@@ -92,7 +102,14 @@ namespace MapVote.Huds
                 : null;
 
             IReadOnlyList<string> voted = _session.VotedOrder();
-            CustomHud.SetHasClass(player, "mv-voted-row", "is-off", voted.Count == 0);
+            CustomHud.SetText(
+                player,
+                Panel,
+                "mv_title",
+                _revealing ? "Winning map" : "Vote for the next map");
+            CustomHud.SetText(player, Panel, "mv_hint", "Cast the first vote");
+            CustomHud.SetHasClass(player, "mv-voted-section", "has-votes", voted.Count > 0);
+            CustomHud.SetHasClass(player, "mv-voted-hint", "is-off", voted.Count > 0 || _revealing);
             SetVotedWidth(player, voted.Count);
             PaintPool(player, Pool.Voted, voted, mine);
 
@@ -132,9 +149,25 @@ namespace MapVote.Huds
 
         public static void OnButton(CCSPlayerController player, string buttonId)
         {
-            if (_session is null || !_session.IsOpen || _revealing
+            if (_session is null || !_session.IsOpen)
+            {
+                return;
+            }
+
+            if (buttonId == MinimizeButtonId)
+            {
+                ToggleMinimized(player);
+                return;
+            }
+
+            if (_revealing
                 || !TryParseButton(buttonId, out Pool pool, out int index)
                 || player.AuthorizedSteamID is null)
+            {
+                return;
+            }
+
+            if (player.Slot is >= 0 and < Minimized.Length && Minimized[player.Slot])
             {
                 return;
             }
@@ -151,6 +184,18 @@ namespace MapVote.Huds
             {
                 PaintAll();
             }
+        }
+
+        private static void ToggleMinimized(CCSPlayerController player)
+        {
+            if (player.Slot is < 0 or >= Minimized.Length)
+            {
+                return;
+            }
+
+            bool next = !Minimized[player.Slot];
+            Minimized[player.Slot] = next;
+            CustomHud.SetHasClass(player, Panel, "is-minimized", next);
         }
 
         public static void OnTick()
@@ -223,9 +268,12 @@ namespace MapVote.Huds
             string? mine)
         {
             string tileId = TileId(pool, index);
+            bool isWinner = _winner is not null && _winner == map;
+            bool isLost = _revealing && _winner is not null && !isWinner;
             CustomHud.SetHasClass(player, tileId, "is-off", false);
-            CustomHud.SetHasClass(player, tileId, "is-self", mine == map);
-            CustomHud.SetHasClass(player, tileId, "is-done", _winner == map);
+            CustomHud.SetHasClass(player, tileId, "is-self", !_revealing && mine == map);
+            CustomHud.SetHasClass(player, tileId, "is-done", isWinner);
+            CustomHud.SetHasClass(player, tileId, "is-lost", isLost);
             CustomHud.SetText(player, Panel, VoteVar(pool, index), votes.ToString());
             CustomHud.SetText(player, Panel, NameVar(pool, index), map);
             CustomHud.SetMapImage(player, ShotId(pool, index), map);
@@ -237,6 +285,7 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, tileId, "is-off", true);
             CustomHud.SetHasClass(player, tileId, "is-self", false);
             CustomHud.SetHasClass(player, tileId, "is-done", false);
+            CustomHud.SetHasClass(player, tileId, "is-lost", false);
             CustomHud.SetText(player, Panel, VoteVar(pool, index), string.Empty);
             CustomHud.SetText(player, Panel, NameVar(pool, index), string.Empty);
             CustomHud.SetMapImage(player, ShotId(pool, index), null);

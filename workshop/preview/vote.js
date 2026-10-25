@@ -41,9 +41,14 @@
     votes: Object.fromEntries(MAPS.map((m) => [m, 0])),
     firstVote: [],
     mine: null,
+    mineSet: new Set(),
+    mode: "single", // single = CS2 one-vote; multi = toggle many maps
     reveal: false,
     winner: null,
   };
+
+  const isMine = (map) =>
+    state.mode === "multi" ? state.mineSet.has(map) : state.mine === map;
 
   const setVar = (name, value) => {
     document.querySelectorAll(`[data-var="${name}"]`).forEach((el) => {
@@ -59,7 +64,7 @@
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     tile.classList.add("is-off");
-    tile.classList.remove("is-self", "is-done");
+    tile.classList.remove("is-self", "is-done", "is-lost");
     shot.className = "MapShot";
     shot.style.backgroundImage = "";
     setVar(voteVar, "");
@@ -71,9 +76,12 @@
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     const count = state.votes[map] || 0;
+    const isWinner = state.winner === map;
+    const isLost = state.reveal && state.winner && !isWinner;
     tile.classList.remove("is-off");
-    tile.classList.toggle("is-self", state.mine === map);
-    tile.classList.toggle("is-done", state.winner === map);
+    tile.classList.toggle("is-self", !state.reveal && isMine(map));
+    tile.classList.toggle("is-done", isWinner);
+    tile.classList.toggle("is-lost", !!isLost);
     applyShot(shot, map);
     setVar(voteVar, String(count));
     setVar(nameVar, map);
@@ -94,8 +102,12 @@
 
   const paint = () => {
     const voted = votedOrder();
-    const row = document.getElementById("mv-voted-row");
-    if (row) row.classList.toggle("is-off", voted.length === 0);
+    const section = document.getElementById("mv-voted-section");
+    const hint = document.getElementById("mv-voted-hint");
+    if (section) section.classList.toggle("has-votes", voted.length > 0);
+    if (hint) hint.classList.toggle("is-off", voted.length > 0 || state.reveal);
+    setVar("mv_title", state.reveal ? "Winning map" : "Vote for the next map");
+    setVar("mv_hint", "Cast the first vote");
     setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
 
     const rowCount = state.maps.length === 0 ? 0 : Math.ceil(state.maps.length / COLS);
@@ -120,50 +132,114 @@
     }
   };
 
-  const cast = (map) => {
-    if (state.reveal || !map) return;
+  const bump = (map, delta) => {
+    const next = Math.max(0, (state.votes[map] || 0) + delta);
+    state.votes[map] = next;
+    if (delta > 0 && next === delta && !state.firstVote.includes(map)) {
+      state.firstVote.push(map);
+    }
+    if (next === 0) {
+      state.firstVote = state.firstVote.filter((m) => m !== map);
+    }
+  };
+
+  const castSingle = (map) => {
     const prev = state.mine;
     if (prev === map) return;
-    if (prev) {
-      state.votes[prev] = Math.max(0, (state.votes[prev] || 0) - 1);
-      if (state.votes[prev] === 0) {
-        state.firstVote = state.firstVote.filter((m) => m !== prev);
-      }
-    }
+    if (prev) bump(prev, -1);
     state.mine = map;
-    const next = (state.votes[map] || 0) + 1;
-    state.votes[map] = next;
-    if (next === 1) state.firstVote.push(map);
+    state.mineSet = new Set([map]);
+    bump(map, 1);
+  };
+
+  const castMulti = (map, fromVoted) => {
+    bump(map, fromVoted ? -1 : 1);
+    if ((state.votes[map] || 0) > 0) state.mineSet.add(map);
+    else state.mineSet.delete(map);
+    state.mine = state.mineSet.size ? [...state.mineSet][0] : null;
+  };
+
+  const cast = (map, fromVoted) => {
+    if (state.reveal || !map) return;
+    if (state.mode === "multi") castMulti(map, fromVoted);
+    else castSingle(map);
     paint();
   };
 
   const parseButton = (id) => {
     if (!id) return null;
     if (id.startsWith("mv-voted-")) {
-      const i = Number(id.slice("mv-voted-".length));
+      const rest = id.slice("mv-voted-".length);
+      if (!/^\d+$/.test(rest)) return null;
+      const i = Number(rest);
       const order = votedOrder();
-      return Number.isInteger(i) && i >= 0 && i < order.length ? order[i] : null;
+      if (!(Number.isInteger(i) && i >= 0 && i < order.length)) return null;
+      return { map: order[i], fromVoted: true };
     }
     if (/^mv-\d+$/.test(id)) {
       const i = Number(id.slice(3));
-      return Number.isInteger(i) && i >= 0 && i < state.maps.length ? state.maps[i] : null;
+      if (!(Number.isInteger(i) && i >= 0 && i < state.maps.length)) return null;
+      return { map: state.maps[i], fromVoted: false };
     }
     return null;
+  };
+
+  const toggleMinimized = () => {
+    document.getElementById("Vote")?.classList.toggle("is-minimized");
   };
 
   document.getElementById("Vote")?.addEventListener("click", (ev) => {
     const btn = ev.target.closest("button[id]");
     if (!btn) return;
-    cast(parseButton(btn.id));
+    if (btn.id === "mv-minimize") {
+      toggleMinimized();
+      return;
+    }
+    const hit = parseButton(btn.id);
+    if (hit) cast(hit.map, hit.fromVoted);
   });
 
+  const clearVotes = () => {
+    state.votes = Object.fromEntries(state.maps.map((m) => [m, 0]));
+    state.firstVote = [];
+    state.mine = null;
+    state.mineSet = new Set();
+    state.reveal = false;
+    state.winner = null;
+    paint();
+  };
+
   const seedVotes = () => {
+    clearVotes();
     ["de_dust2", "de_mirage", "de_inferno", "de_nuke", "cs_office"].forEach((m, idx) => {
       if (!state.maps.includes(m)) return;
       state.votes[m] = idx === 0 ? 3 : idx === 1 ? 2 : 1;
       state.firstVote.push(m);
     });
     state.mine = "de_dust2";
+    state.mineSet = new Set(["de_dust2"]);
+    paint();
+  };
+
+  const randomize = () => {
+    clearVotes();
+    const picks = state.maps.slice().sort(() => Math.random() - 0.5);
+    const n = 4 + Math.floor(Math.random() * 8);
+    for (let i = 0; i < n && i < picks.length; i++) {
+      const m = picks[i];
+      const c = 1 + Math.floor(Math.random() * 6);
+      state.votes[m] = c;
+      state.firstVote.push(m);
+    }
+    if (state.mode === "multi") {
+      const mineN = 1 + Math.floor(Math.random() * 3);
+      state.mineSet = new Set(votedOrder().slice(0, mineN));
+      state.mine = [...state.mineSet][0] || null;
+    } else {
+      state.mine = votedOrder()[0] || null;
+      state.mineSet = state.mine ? new Set([state.mine]) : new Set();
+    }
+    paint();
   };
 
   const topMap = () => votedOrder()[0] || state.maps[0];
@@ -174,30 +250,64 @@
     paint();
   };
 
-  const reset = () => {
-    state.votes = Object.fromEntries(state.maps.map((m) => [m, 0]));
-    state.firstVote = [];
-    state.mine = null;
+  const setMode = (mode) => {
+    if (mode !== "single" && mode !== "multi") return;
+    state.mode = mode;
     state.reveal = false;
     state.winner = null;
-    seedVotes();
+    if (mode === "single" && state.mineSet.size > 1) {
+      // Keep highest-voted selected map as the single vote; drop the rest from mineSet only.
+      const keep = votedOrder().find((m) => state.mineSet.has(m)) || [...state.mineSet][0];
+      for (const m of [...state.mineSet]) {
+        if (m !== keep) {
+          bump(m, -1);
+          state.mineSet.delete(m);
+        }
+      }
+      state.mine = keep || null;
+    }
+    syncModeButtons();
     paint();
+  };
+
+  const syncModeButtons = () => {
+    bar.querySelectorAll("[data-mode]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.getAttribute("data-mode") === state.mode);
+    });
+    const note = bar.querySelector(".pv-note");
+    if (note) {
+      note.textContent =
+        state.mode === "multi"
+          ? "Multi: catalog +1 · voted strip −1"
+          : "Single: one personal vote (CS2 default)";
+    }
   };
 
   const bar = document.createElement("div");
   bar.className = "pv-bar";
   bar.innerHTML = `
-    <button type="button" data-act="reset">Reset demo</button>
+    <button type="button" data-act="clear">Clear votes</button>
+    <button type="button" data-act="randomize">Randomize</button>
+    <button type="button" data-act="seed">Seed demo</button>
     <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-note">CS2 vote cards · voted strip + catalog rows · maps/*.webp</span>
+    <span class="pv-sep" aria-hidden="true"></span>
+    <button type="button" data-mode="single">Single vote</button>
+    <button type="button" data-mode="multi">Multi select</button>
+    <span class="pv-note"></span>
   `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {
-    const act = ev.target.getAttribute("data-act");
-    if (act === "reset") reset();
+    const t = ev.target;
+    if (!(t instanceof HTMLElement)) return;
+    const act = t.getAttribute("data-act");
+    const mode = t.getAttribute("data-mode");
+    if (act === "clear") clearVotes();
+    if (act === "randomize") randomize();
+    if (act === "seed") seedVotes();
     if (act === "reveal") reveal();
+    if (mode) setMode(mode);
   });
 
   seedVotes();
-  paint();
+  syncModeButtons();
 })();

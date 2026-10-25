@@ -5,7 +5,7 @@ html, body { height: 100%; }
 body {
   min-height: 100vh;
   background: #0a0c10;
-  font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  font-family: "Stratum2 Condensed", "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   color: #f2f5ff;
   overflow: hidden;
 }
@@ -17,15 +17,13 @@ button {
   text-align: inherit;
   position: relative;
 }
-/* Plate: top-anchored 16:10 end-match shot, width-scaled up to 1920px. */
+/* Plate: true fullscreen — fills the viewport at any aspect (no letterbox bars). */
 .pv-plate {
   position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(100vw, 1920px);
+  inset: 0;
+  width: 100vw;
   height: 100vh;
-  background: #0a0c10 url("endmatch.jpg") top center / 100% auto no-repeat;
+  background: #0a0c10 url("endmatch.jpg") center center / cover no-repeat;
   overflow: hidden;
 }
 .HudScreen {
@@ -46,6 +44,70 @@ button {
   z-index: 1;
   height: 100%;
 }
+.VoteTopBar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 48px;
+}
+.VoteTitle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: "Stratum2 Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #ffffff;
+  pointer-events: none;
+}
+.MinimizeBtn {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 108px;
+  height: 32px;
+  background: #00000099;
+  border: 1px solid #ffffff33 !important;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+}
+.MinimizeBtn:hover { background: #ffffff22; }
+.MinimizeLabel {
+  width: 100%;
+  line-height: 32px;
+  text-align: center;
+  font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #fff;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.VoteRoot.is-minimized .mv-glass,
+.VoteRoot.is-minimized .mv-scrim-top,
+.VoteRoot.is-minimized .mv-scrim-bottom,
+.VoteRoot.is-minimized .VoteBody,
+.VoteRoot.is-minimized .VoteTitle {
+  display: none !important;
+}
+.VoteRoot.is-minimized .MinimizeBtn {
+  background: #000000cc;
+  border-color: #ff9a1a !important;
+}
+.VoteRoot.is-minimized .MinimizeLabel {
+  color: #ff9a1a;
+}
 .VoteBody {
   position: relative;
   z-index: 1;
@@ -53,16 +115,34 @@ button {
   flex: 1 1 auto;
   min-height: 0;
 }
-.MapCatalog {
-  max-width: 1420px;
-  margin-left: auto;
-  margin-right: auto;
+.VotedSection {
+  flex: 0 0 auto;
+  width: 100%;
+  background: linear-gradient(to bottom, #000000b3, #00000066);
+  border-bottom: 1px solid #ffffff22;
+  padding: 8px 0 12px;
 }
+.VotedSection.has-votes { border-bottom: 2px solid #ff9a1a; }
 .VotedRow {
+  position: relative;
   overflow-x: auto;
   overflow-y: hidden;
   flex: 0 0 auto;
+  height: 213px;
   scrollbar-width: thin;
+}
+.VotedHint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #a3acb6;
+  z-index: 1;
+  pointer-events: none;
 }
 .VotedStrip {
   display: flex;
@@ -70,24 +150,53 @@ button {
   flex-wrap: nowrap;
   margin-left: auto;
   margin-right: auto;
+  height: 213px;
+}
+.MapGridHost {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
 }
 .MapGrid {
   overflow-y: auto;
   overflow-x: hidden;
-  flex: 1 1 auto;
-  min-height: 0;
+  height: 100%;
+}
+.MapGridFadeTop,
+.MapGridFadeBottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.MapGridFadeTop {
+  top: 0;
+  height: 64px;
+  background: linear-gradient(to bottom, #000000f2, #00000000);
+}
+.MapGridFadeBottom {
+  bottom: 0;
+  height: 48px;
+  background: linear-gradient(to top, #000000e6, #00000000);
 }
 .MapCatalog {
+  width: 100%;
   display: flex;
   flex-direction: column;
   margin-left: auto;
   margin-right: auto;
+  padding-left: 12px;
+  padding-right: 12px;
+  box-sizing: border-box;
 }
 .CatalogRow {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  justify-content: center;
+  justify-content: stretch;
+  width: 100%;
 }
 .MapTile {
   position: relative;
@@ -96,6 +205,11 @@ button {
   width: 110px;
   height: 193px;
   overflow: hidden;
+}
+.CatalogRow .MapTile {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
 }
 .MapShot,
 .MapFade {
@@ -128,6 +242,7 @@ button {
 .MapVotes {
   bottom: 40px;
   color: #ff9a1a !important;
+  font-family: Stratum2, "Barlow Condensed", "Arial Narrow", sans-serif !important;
   font-weight: 700 !important;
   font-size: 26px !important;
 }
@@ -144,8 +259,11 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: "Stratum2 Medium Condensed", "Barlow Condensed", "Arial Narrow", sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 16px !important;
 }
-/* Preview stand-in for Valve vote_check.vsvg (opacity from hud.vcss). */
+/* Preview stand-in for Valve vote_check.vsvg — match #id-map-selection-btn__winner. */
 .MapWinnerCheck {
   position: absolute;
   left: 50%;
@@ -155,7 +273,31 @@ button {
   margin: -25px 0 0 -25px;
   z-index: 3;
   pointer-events: none;
+  opacity: 0 !important;
+  transform: scale(2) !important;
+  transform-origin: center center;
   background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232bff00' d='M9.2 17.2 4.8 12.8l1.4-1.4 3 3 8-8 1.4 1.4z'/%3E%3C/svg%3E");
+  transition: transform 0.1s ease-in-out 0.35s, opacity 0.1s ease-in-out 0.35s;
+}
+.MapTile.is-done .MapWinnerCheck {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+.MapTile.is-lost {
+  filter: brightness(0.45);
+  border-color: transparent !important;
+  box-shadow: none !important;
+  transition: filter 0.5s ease-in-out;
+}
+.MapTile.is-done {
+  border: 2px solid #fff !important;
+  box-shadow: #ffffff 0px 0px 6px 0px !important;
+  animation: pv-winner-pulse 0.5s ease-in-out 1;
+}
+@keyframes pv-winner-pulse {
+  0% { border-color: #ffffff00; }
+  50% { border-width: 5px; border-color: #ffff00; }
+  100% { border-width: 2px; border-color: #ffffff; }
 }
 .pv-var { min-width: 0.5ch; }
 .pv-bar {
@@ -180,7 +322,18 @@ button {
   cursor: pointer;
 }
 .pv-bar button:hover { background: #ffffff1c; }
+.pv-bar button.is-active {
+  border-color: #ff9a1a88;
+  background: #ff9a1a22;
+  color: #ffd27a;
+}
 .pv-bar .pv-note { opacity: 0.85; }
+.pv-bar .pv-sep {
+  width: 1px;
+  height: 18px;
+  background: #ffffff22;
+  margin: 0 2px;
+}
 .is-off { display: none !important; }
 .VoteRoot.is-off { display: block !important; }
 
@@ -255,11 +408,93 @@ button {
 	display: flex; flex-direction: column;
 }
 
-/* #id-eom-layout margin-top: 48px */
-.VoteTopSpacer
+/* Top chrome: title centered in the old spacer band, minimize top-right. */
+.VoteTopBar
 {
 	width: 100%;
 	height: 48px;
+	flow-children: none;
+}
+
+/* Valve directive: stratum-regular-condensed + fontSize-l (20). */
+.VoteTitle
+{
+	width: 100%;
+	height: 100%;
+	margin-left: auto; margin-right: auto;
+	align-self: center;
+	text-align: center;
+	font-family: Stratum2 Condensed;
+	font-weight: normal;
+	font-size: 20px;
+	letter-spacing: 1.6px;
+	text-transform: uppercase;
+	color: #ffffff;
+}
+
+/* CS2-ish chip: toggles the vote stage; stays visible when minimized. */
+.MinimizeBtn
+{
+	width: 108px;
+	height: 32px;
+	margin-left: auto;
+	align-self: center;
+	margin-right: 16px;
+	background-color: #00000099;
+	border: 1px solid #ffffff33;
+	border-radius: 3px;
+	flow-children: none;
+	transition-property: background-color, brightness;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-in-out;
+}
+
+.MinimizeBtn:hover
+{
+	background-color: #ffffff22;
+	filter: brightness(1.1); /* brightness */
+	
+}
+
+.MinimizeBtn:active
+{
+	filter: brightness(0.85); /* brightness */
+	
+}
+
+/* Button label: width 100%, vertical-align middle, no height 100% (ruleset §5.3). */
+.MinimizeLabel
+{
+	width: 100%;
+	margin-left: auto; margin-right: auto;
+	align-self: center;
+	text-align: center;
+	font-family: Stratum2 Bold Condensed;
+	font-size: 14px;
+	letter-spacing: 1.2px;
+	text-transform: uppercase;
+	color: #ffffff;
+	white-space: nowrap;
+}
+
+.VoteRoot.is-minimized .mv-glass,
+.VoteRoot.is-minimized .mv-scrim-top,
+.VoteRoot.is-minimized .mv-scrim-bottom,
+.VoteRoot.is-minimized .VoteBody,
+.VoteRoot.is-minimized .VoteTitle
+{
+	display: none;
+}
+
+.VoteRoot.is-minimized .MinimizeBtn
+{
+	background-color: #000000cc;
+	border: 1px solid #ff9a1a;
+}
+
+.VoteRoot.is-minimized .MinimizeLabel
+{
+	color: #ff9a1a;
 }
 
 /* Full-bleed stage — scrollbar on screen edge; cards centered. */
@@ -272,17 +507,49 @@ button {
 	padding-top: 12px;
 }
 
-/* Row 1: voted maps (Valve list is one right-flow row). */
+/* Leading / voted strip — always present (CS2 vote stage energy). */
+.VotedSection
+{
+	width: 100%;
+	display: flex; flex-direction: column;
+	padding-top: 8px;
+	padding-bottom: 12px;
+	background-color: linear-gradient(to bottom, #000000b3, #00000066);
+	border-bottom: 1px solid #ffffff22;
+}
+
+.VotedSection.has-votes
+{
+	border-bottom: 2px solid #ff9a1a;
+}
+
 .VotedRow
 {
 	width: 100%;
 	height: 213px;
-	overflow: auto;
+	/* Horizontal strip only — never a vertical scrollbar. */
+	overflow-x: auto; overflow-y: hidden;
+	flow-children: none;
 	margin-left: auto; margin-right: auto;
-	margin-bottom: 8px;
 }
 
-.VotedRow.is-off
+.VotedHint
+{
+	width: 100%;
+	margin-left: auto; margin-right: auto;
+	align-self: center;
+	text-align: center;
+	font-family: Stratum2 Condensed;
+	font-weight: normal;
+	font-size: 14px;
+	color: #a3acb6;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	position: absolute; inset: 0;
+	z-index: 1;
+}
+
+.VotedHint.is-off
 {
 	display: none;
 }
@@ -291,77 +558,108 @@ button {
 {
 	height: 213px;
 	display: flex; flex-direction: row; flex-wrap: nowrap;
-	overflow: visible;
+	overflow-x: visible; overflow-y: visible;
 	margin-left: auto; margin-right: auto;
+	align-self: center;
 }
 
+/* Slot pitch = 110px tile + 8px + 8px margin = 126px */
 .VotedStrip.vw-0 { width: 0px; }
-.VotedStrip.vw-1 { width: 142px; }
-.VotedStrip.vw-2 { width: 284px; }
-.VotedStrip.vw-3 { width: 426px; }
-.VotedStrip.vw-4 { width: 568px; }
-.VotedStrip.vw-5 { width: 710px; }
-.VotedStrip.vw-6 { width: 852px; }
-.VotedStrip.vw-7 { width: 994px; }
-.VotedStrip.vw-8 { width: 1136px; }
-.VotedStrip.vw-9 { width: 1278px; }
-.VotedStrip.vw-10 { width: 1420px; }
-.VotedStrip.vw-11 { width: 1562px; }
-.VotedStrip.vw-12 { width: 1704px; }
-.VotedStrip.vw-13 { width: 1846px; }
-.VotedStrip.vw-14 { width: 1988px; }
-.VotedStrip.vw-15 { width: 2130px; }
-.VotedStrip.vw-16 { width: 2272px; }
-.VotedStrip.vw-17 { width: 2414px; }
-.VotedStrip.vw-18 { width: 2556px; }
-.VotedStrip.vw-19 { width: 2698px; }
-.VotedStrip.vw-20 { width: 2840px; }
-.VotedStrip.vw-21 { width: 2982px; }
-.VotedStrip.vw-22 { width: 3124px; }
-.VotedStrip.vw-23 { width: 3266px; }
-.VotedStrip.vw-24 { width: 3408px; }
-.VotedStrip.vw-25 { width: 3550px; }
-.VotedStrip.vw-26 { width: 3692px; }
-.VotedStrip.vw-27 { width: 3834px; }
-.VotedStrip.vw-28 { width: 3976px; }
-.VotedStrip.vw-29 { width: 4118px; }
-.VotedStrip.vw-30 { width: 4260px; }
-.VotedStrip.vw-31 { width: 4402px; }
-.VotedStrip.vw-32 { width: 4544px; }
-.VotedStrip.vw-33 { width: 4686px; }
-.VotedStrip.vw-34 { width: 4828px; }
-.VotedStrip.vw-35 { width: 4970px; }
-.VotedStrip.vw-36 { width: 5112px; }
-.VotedStrip.vw-37 { width: 5254px; }
-.VotedStrip.vw-38 { width: 5396px; }
-.VotedStrip.vw-39 { width: 5538px; }
-.VotedStrip.vw-40 { width: 5680px; }
-.VotedStrip.vw-41 { width: 5822px; }
-.VotedStrip.vw-42 { width: 5964px; }
-.VotedStrip.vw-43 { width: 6106px; }
-.VotedStrip.vw-44 { width: 6248px; }
-.VotedStrip.vw-45 { width: 6390px; }
-.VotedStrip.vw-46 { width: 6532px; }
-.VotedStrip.vw-47 { width: 6674px; }
-.VotedStrip.vw-48 { width: 6816px; }
-.VotedStrip.vw-49 { width: 6958px; }
-.VotedStrip.vw-50 { width: 7100px; }
+.VotedStrip.vw-1 { width: 126px; }
+.VotedStrip.vw-2 { width: 252px; }
+.VotedStrip.vw-3 { width: 378px; }
+.VotedStrip.vw-4 { width: 504px; }
+.VotedStrip.vw-5 { width: 630px; }
+.VotedStrip.vw-6 { width: 756px; }
+.VotedStrip.vw-7 { width: 882px; }
+.VotedStrip.vw-8 { width: 1008px; }
+.VotedStrip.vw-9 { width: 1134px; }
+.VotedStrip.vw-10 { width: 1260px; }
+.VotedStrip.vw-11 { width: 1386px; }
+.VotedStrip.vw-12 { width: 1512px; }
+.VotedStrip.vw-13 { width: 1638px; }
+.VotedStrip.vw-14 { width: 1764px; }
+.VotedStrip.vw-15 { width: 1890px; }
+.VotedStrip.vw-16 { width: 2016px; }
+.VotedStrip.vw-17 { width: 2142px; }
+.VotedStrip.vw-18 { width: 2268px; }
+.VotedStrip.vw-19 { width: 2394px; }
+.VotedStrip.vw-20 { width: 2520px; }
+.VotedStrip.vw-21 { width: 2646px; }
+.VotedStrip.vw-22 { width: 2772px; }
+.VotedStrip.vw-23 { width: 2898px; }
+.VotedStrip.vw-24 { width: 3024px; }
+.VotedStrip.vw-25 { width: 3150px; }
+.VotedStrip.vw-26 { width: 3276px; }
+.VotedStrip.vw-27 { width: 3402px; }
+.VotedStrip.vw-28 { width: 3528px; }
+.VotedStrip.vw-29 { width: 3654px; }
+.VotedStrip.vw-30 { width: 3780px; }
+.VotedStrip.vw-31 { width: 3906px; }
+.VotedStrip.vw-32 { width: 4032px; }
+.VotedStrip.vw-33 { width: 4158px; }
+.VotedStrip.vw-34 { width: 4284px; }
+.VotedStrip.vw-35 { width: 4410px; }
+.VotedStrip.vw-36 { width: 4536px; }
+.VotedStrip.vw-37 { width: 4662px; }
+.VotedStrip.vw-38 { width: 4788px; }
+.VotedStrip.vw-39 { width: 4914px; }
+.VotedStrip.vw-40 { width: 5040px; }
+.VotedStrip.vw-41 { width: 5166px; }
+.VotedStrip.vw-42 { width: 5292px; }
+.VotedStrip.vw-43 { width: 5418px; }
+.VotedStrip.vw-44 { width: 5544px; }
+.VotedStrip.vw-45 { width: 5670px; }
+.VotedStrip.vw-46 { width: 5796px; }
+.VotedStrip.vw-47 { width: 5922px; }
+.VotedStrip.vw-48 { width: 6048px; }
+.VotedStrip.vw-49 { width: 6174px; }
+.VotedStrip.vw-50 { width: 6300px; }
 
-/* Extra maps beyond Valve's single row — full-width scroll. */
-.MapGrid
+/* Catalog host: full-width scroll + soft edge fades (no hard clip). */
+.MapGridHost
 {
 	width: 100%;
 	flex: 1 1 auto; min-height: 0;
-	overflow: auto;
+	flow-children: none;
+}
+
+.MapGrid
+{
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden; overflow-y: auto;
+}
+
+.MapGridFadeTop
+{
+	width: 100%;
+	height: 64px;
+	align-self: flex-start;
+	position: absolute; inset: 0;
+	z-index: 5;
+	background-color: linear-gradient(to bottom, #000000f2, #00000099, #00000000);
+}
+
+.MapGridFadeBottom
+{
+	width: 100%;
+	height: 48px;
+	align-self: flex-end;
+	position: absolute; inset: 0;
+	z-index: 5;
+	background-color: linear-gradient(to bottom, #000000e6, #00000066, #00000000);
 }
 
 .MapCatalog
 {
+	/* Full stage width — tiles flex so every aspect fills edge-to-edge (no side bars). */
 	width: 100%;
-	max-width: 1420px;
 	display: flex; flex-direction: column;
-	overflow: visible;
+	overflow-x: visible; overflow-y: visible;
 	margin-left: auto; margin-right: auto;
+	padding-left: 12px;
+	padding-right: 12px;
 }
 
 .MapCatalog.rows-0 { height: 0px; }
@@ -387,21 +685,27 @@ button {
 /* ---- .map-selection-btn + .map-selection-btn--vote ---- */
 .MapTile
 {
-	/* --vote: 110 × 175% (ruleset: no width-percentage → 193px) */
+	/* Voted strip keeps Valve 110×193; catalog overrides width below. */
 	width: 110px;
 	height: 193px;
 	margin-left: auto; margin-right: auto;
-	margin: 10px 16px 10px 16px;
+	margin: 10px 8px 10px 8px;
 	/* base .map-selection-btn border, then --vote clears shadow */
 	border: 0px solid #cacaca1a;
 	box-shadow: none;
 	
-	overflow: clip;
+	overflow: hidden;
 	flow-children: none;
 	/* base transition (box-shadow omitted — ruleset) */
 	transition-property: border, brightness, opacity;
 	transition-duration: 0.25s;
 	transition-timing-function: ease-in-out;
+}
+
+/* 10-across catalog: equal share of the full row at any resolution / aspect. */
+.CatalogRow .MapTile
+{
+	flex: 1 1 auto;
 }
 
 .MapTile.is-off
@@ -416,6 +720,18 @@ button {
 	box-shadow: 0px 0px 6px 0px #ffffff;
 }
 
+/* .map-selection-btn--vote--rndm — non-winners darken when the vote locks. */
+.MapTile.is-lost
+{
+	
+	filter: brightness(0.55); /* brightness */
+	border: 0px solid #cacaca1a;
+	box-shadow: none;
+	transition-property: wash-color, brightness, border, opacity;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-in-out;
+}
+
 .MapTile:hover
 {
 	
@@ -426,7 +742,13 @@ button {
 	
 }
 
-/* .map-selection-btn__screenshot — fill tile; 16:9 at full height, centered (no stretch). */
+.MapTile.is-lost:hover .MapShot,
+.MapTile.is-done:hover .MapShot
+{
+	transform: scale3d( 1.0, 1.0, 1.0 );
+}
+
+/* .map-selection-btn__screenshot — 16:9 at tile height, centered; sides crop as width flexes. */
 .MapShot
 {
 	width: 100%;
@@ -465,8 +787,7 @@ button {
 	background-color: linear-gradient(to bottom, #00000000, #00000040, #000000cc, #000000ff);
 }
 
-/* Vote count — CS2 html count is amber; CSS fallback #ff9a1a.
-   Bold Stratum2, 26px (Label.map-selection-item-count). */
+/* Label.map-selection-item-count — Stratum2 bold 26; amber from CS2 HTML count. */
 .MapVotes
 {
 	width: 100%;
@@ -476,14 +797,14 @@ button {
 	margin-left: auto; margin-right: auto;
 	margin: 0px;
 	margin-bottom: 40px;
-	font-family: Stratum2 Bold;
+	font-family: Stratum2;
 	font-weight: bold;
 	font-size: 26px;
 	color: #ff9a1a;
 	text-align: center;
 }
 
-/* RadioButton.map-selection-btn--vote Label + .map-selection-info__map-name */
+/* MapGroupName: stratum-medium-condensed; --vote Label size 16. */
 .MapName
 {
 	width: 90%;
@@ -494,13 +815,52 @@ button {
 	align-self: flex-end;
 	margin-left: auto; margin-right: auto;
 	text-align: center;
+	font-family: Stratum2 Medium Condensed;
 	font-size: 16px;
 	color: #ffffff;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-/* #id-map-selection-btn__winner */
+/* Valve pulse-random (map-selection-btn__gradient--whiteout) — winner flash. */
+@keyframes 'mv-winner-pulse'
+{
+	0%
+	{
+		border: 2px solid #ffffff00;
+	}
+
+	50%
+	{
+		border: 5px solid #ffff00;
+	}
+
+	100%
+	{
+		border: 2px solid #ffffff;
+	}
+}
+
+/* Winner tile = selected chrome + one-shot yellow pulse, then white border. */
+.MapTile.is-done
+{
+	
+	filter: brightness(1.0); /* brightness */
+	border: 2px solid #ffffff;
+	box-shadow: 0px 0px 6px 0px #ffffff;
+	animation-name: 'mv-winner-pulse';
+	animation-duration: 0.5s;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: 1;
+}
+
+/* Winner shot stays zoomed like :selected. */
+.MapTile.is-done .MapShot
+{
+	transform: scale3d( 1.2, 1.2, 1.0 );
+}
+
+/* #id-map-selection-btn__winner — resting (hidden, scaled up). */
 .MapWinnerCheck
 {
 	width: 50px;
@@ -521,11 +881,32 @@ button {
 	transition-timing-function: ease-in-out;
 }
 
+@keyframes 'mv-check-appear'
+{
+	0%
+	{
+		opacity: 0.0;
+		transform: scale3d( 2.0, 2.0, 1.0 );
+	}
+
+	100%
+	{
+		opacity: 1.0;
+		transform: scale3d( 1.0, 1.0, 1.0 );
+	}
+}
+
 /* #id-map-selection-btn__winner.appear */
 .MapTile.is-done .MapWinnerCheck
 {
 	opacity: 1.0;
 	transform: scale3d( 1.0, 1.0, 1.0 );
+	animation-name: 'mv-check-appear';
+	animation-duration: 0.1s;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: 1;
+	animation-delay: 0.35s;
+	animation-fill-mode: backwards;
 }
 
 /* BEGIN mv-map-palette */

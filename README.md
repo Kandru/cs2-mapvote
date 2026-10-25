@@ -49,7 +49,7 @@ Vote duration is `floor(mp_endmatch_votenextleveltime) - reveal_seconds`, with f
 
 ## Workshop layout
 
-Copy `workshop/content/` into your `csgo_addons/<addon>/` tree. Rename `vote.xml` → `vote_v2.vxml` to match `PanoramaVersion` in `Version.cs`, and point the stylesheet include at the versioned name if you version styles as well. Panorama binding rules live in `stuff/PANORAMA_RULESET.md`.
+Copy `workshop/content/` into your `csgo_addons/<addon>/` tree. Rename `vote.xml` → `vote_v4.vxml` to match `PanoramaVersion` in `Version.cs`, and point the stylesheet include at the versioned name if you version styles as well. Panorama binding rules live in `stuff/PANORAMA_RULESET.md`.
 
 ## Commands
 
