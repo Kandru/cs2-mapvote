@@ -1,4 +1,4 @@
-/* AUTO-GENERATED from hud.vcss — do not edit. Run: make panorama */
+/* AUTO-GENERATED from hud_v1.vcss — do not edit. Run: make panorama */
 
 /* Browser host only. Visual layout comes from the translated hud.vcss below. */
 @import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap");
@@ -243,9 +243,9 @@ button {
   margin: 0 2px;
 }
 
-/* ---- hud.vcss (translated) ---- */
+/* ---- hud_v1.vcss (translated) ---- */
 /* MapVote HUD — CS2 end-of-match vote (ruleset-safe).
-   Contract: vote.xml / VoteIds.cs  Palette: surface #12171ee8→#0b0f14f2, accent #ff9a1a
+   Contract: vote_v1.xml / VoteIds.cs  Palette: surface #12171ee8→#0b0f14f2, accent #ff9a1a
    Deviation: background-position 50% 50% on .MapShot only — centers the 343×193 cover crop (§5.1). */
 
 .HudScreen

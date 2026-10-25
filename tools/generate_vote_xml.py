@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate workshop/content/.../vote.xml from fixed pool sizes."""
+"""Generate workshop/content/.../vote_vN.xml from fixed pool sizes."""
 from __future__ import annotations
 
 import argparse
@@ -73,7 +73,7 @@ def chip(kind: str, index: int, var: str, indent: str) -> str:
 
 
 def rewrite_hud_ladders() -> None:
-    """Keep vw-* / rows-* ladders in hud.vcss aligned with SLOT_COUNT / ROW_COUNT."""
+    """Keep vw-* / rows-* ladders in the versioned hud VCSS aligned with SLOT_COUNT / ROW_COUNT."""
     if not HUD_VCSS.is_file():
         return
     text = HUD_VCSS.read_text(encoding="utf-8")

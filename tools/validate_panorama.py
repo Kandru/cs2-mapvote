@@ -246,7 +246,7 @@ def collect_errors() -> list[str]:
             text=True,
         )
         if check.returncode != 0:
-            msg = (check.stderr or check.stdout or "vote.xml out of date").strip()
+            msg = (check.stderr or check.stdout or f"{VOTE_XML_NAME} out of date").strip()
             errors.append(msg)
 
     if not HUD_VCSS.is_file():
@@ -255,23 +255,23 @@ def collect_errors() -> list[str]:
         css_raw = HUD_VCSS.read_text(encoding="utf-8")
         css = re.sub(r"/\*.*?\*/", "", css_raw, flags=re.S)
         if HIDDEN_CLASS.search(css):
-            errors.append("hud.vcss uses forbidden class name hidden/Hidden")
+            errors.append(f"{HUD_VCSS_NAME} uses forbidden class name hidden/Hidden")
         if BAD_CSS.search(css):
             for m in BAD_CSS.finditer(css):
                 line = css.count("\n", 0, m.start()) + 1
-                errors.append(f"hud.vcss:~{line}: forbidden CSS near {m.group(0)!r}")
+                errors.append(f"{HUD_VCSS_NAME}:~{line}: forbidden CSS near {m.group(0)!r}")
         if css.count("{") != css.count("}"):
-            errors.append("hud.vcss: unbalanced braces")
+            errors.append(f"{HUD_VCSS_NAME}: unbalanced braces")
         for prop in PROPERTY_RE.findall(css):
             if prop not in KNOWN_PROPS:
-                errors.append(f"hud.vcss: unknown/unsupported property {prop!r}")
+                errors.append(f"{HUD_VCSS_NAME}: unknown/unsupported property {prop!r}")
         for m in KEYFRAMES_RE.finditer(css):
             name = m.group(1)
             if not (name.startswith("'") and name.endswith("'")) and not (
                 name.startswith('"') and name.endswith('"')
             ):
                 line = css.count("\n", 0, m.start()) + 1
-                errors.append(f"hud.vcss:~{line}: @keyframes name must be quoted ({name!r})")
+                errors.append(f"{HUD_VCSS_NAME}:~{line}: @keyframes name must be quoted ({name!r})")
 
         for req in (
             ".is-off",
@@ -302,19 +302,19 @@ def collect_errors() -> list[str]:
             ".rows-0",
         ):
             if req not in css_raw:
-                errors.append(f"hud.vcss: missing required selector/class {req}")
+                errors.append(f"{HUD_VCSS_NAME}: missing required selector/class {req}")
 
         if not HUD_CSS.is_file():
-            errors.append("hud.css missing (must be symlink to hud.vcss)")
+            errors.append(f"{HUD_CSS_NAME} missing (must be symlink to {HUD_VCSS_NAME})")
         elif not HUD_CSS.is_symlink() or HUD_CSS.resolve() != HUD_VCSS.resolve():
-            errors.append("hud.css must be a symlink to hud.vcss")
+            errors.append(f"{HUD_CSS_NAME} must be a symlink to {HUD_VCSS_NAME}")
 
         stock_block = STOCK_BLOCK_RE.search(css_raw)
         palette_block = PALETTE_BLOCK_RE.search(css_raw)
         if stock_block is None:
-            errors.append("hud.vcss: missing /* BEGIN mv-map-stock */ … /* END mv-map-stock */ block")
+            errors.append(f"{HUD_VCSS_NAME}: missing /* BEGIN mv-map-stock */ … /* END mv-map-stock */ block")
         if palette_block is None:
-            errors.append("hud.vcss: missing /* BEGIN mv-map-palette */ … /* END mv-map-palette */ block")
+            errors.append(f"{HUD_VCSS_NAME}: missing /* BEGIN mv-map-palette */ … /* END mv-map-palette */ block")
 
         for stem, body in MV_MAP_STOCK_CLASS_RE.findall(stock_block.group(1) if stock_block else ""):
             if "background-image" not in body:
@@ -353,7 +353,7 @@ def collect_errors() -> list[str]:
     try:
         tree = ET.parse(VOTE_XML)
     except ET.ParseError as ex:
-        errors.append(f"vote.xml: parse error: {ex}")
+        errors.append(f"{VOTE_XML_NAME}: parse error: {ex}")
         return errors
 
     root = tree.getroot()
@@ -364,24 +364,24 @@ def collect_errors() -> list[str]:
     for el in root.iter():
         tag = el.tag
         if tag not in ALLOWED_TAGS:
-            errors.append(f"vote.xml: forbidden tag <{tag}>")
+            errors.append(f"{VOTE_XML_NAME}: forbidden tag <{tag}>")
         for attr, value in el.attrib.items():
             if attr not in ALLOWED_ATTRS:
-                errors.append(f"vote.xml: rejected attr {attr!r} on <{tag}>")
+                errors.append(f"{VOTE_XML_NAME}: rejected attr {attr!r} on <{tag}>")
             if attr in REJECTED_ATTRS:
-                errors.append(f"vote.xml: rejected attr {attr!r}")
+                errors.append(f"{VOTE_XML_NAME}: rejected attr {attr!r}")
         if tag == "Button" and "hittest" in el.attrib:
-            errors.append("vote.xml: do not set hittest on Button")
+            errors.append(f"{VOTE_XML_NAME}: do not set hittest on Button")
         if tag == "Panel" and el.attrib.get("hittest") != "false":
             # Only panels that exist in the tree; Buttons are separate.
             if "id" in el.attrib or "class" in el.attrib:
                 errors.append(
-                    f"vote.xml: Panel must have hittest=\"false\" "
+                    f"{VOTE_XML_NAME}: Panel must have hittest=\"false\" "
                     f"(id={el.attrib.get('id')!r})"
                 )
         if tag == "Label" and el.attrib.get("hittest") != "false":
             errors.append(
-                f"vote.xml: Label must have hittest=\"false\" "
+                f"{VOTE_XML_NAME}: Label must have hittest=\"false\" "
                 f"(id={el.attrib.get('id')!r})"
             )
         if tag == "include":
@@ -397,16 +397,16 @@ def collect_errors() -> list[str]:
         if tag == "Label" and text:
             if not VAR_RE.fullmatch(text.strip()) and text != CREDIT_TEXT:
                 errors.append(
-                    f"vote.xml: Label text must be {{s:…}} or the credit sentence "
+                    f"{VOTE_XML_NAME}: Label text must be {{s:…}} or the credit sentence "
                     f"(got {text!r})"
                 )
 
     if CREDIT_TEXT not in VOTE_XML.read_text(encoding="utf-8"):
-        errors.append(f"vote.xml: missing credit footer text {CREDIT_TEXT!r}")
+        errors.append(f"{VOTE_XML_NAME}: missing credit footer text {CREDIT_TEXT!r}")
 
     for child in list(root):
         if child.tag == "Panel" and "id" in child.attrib:
-            errors.append("vote.xml: outermost Panel must have no id")
+            errors.append(f"{VOTE_XML_NAME}: outermost Panel must have no id")
 
     card = None
     for el in root.iter("Panel"):
@@ -414,28 +414,28 @@ def collect_errors() -> list[str]:
             card = el
             break
     if card is None:
-        errors.append(f"vote.xml: missing root card id={root_panel!r}")
+        errors.append(f"{VOTE_XML_NAME}: missing root card id={root_panel!r}")
     else:
         classes = card.attrib.get("class", "").split()
         if "is-off" not in classes:
-            errors.append(f"vote.xml: #{root_panel} must start with is-off")
+            errors.append(f"{VOTE_XML_NAME}: #{root_panel} must start with is-off")
 
-    if "hud.vcss" not in includes:
-        errors.append("vote.xml: must include mapvote/hud.vcss")
+    if HUD_VCSS_NAME not in includes:
+        errors.append(f"{VOTE_XML_NAME}: must include mapvote/{HUD_VCSS_NAME}")
 
     missing_ids = expected_ids - found_ids
     extra_ids = found_ids - expected_ids
     if missing_ids:
-        errors.append(f"vote.xml: missing ids: {sorted(missing_ids)}")
+        errors.append(f"{VOTE_XML_NAME}: missing ids: {sorted(missing_ids)}")
     if extra_ids:
-        errors.append(f"vote.xml: unexpected ids: {sorted(extra_ids)}")
+        errors.append(f"{VOTE_XML_NAME}: unexpected ids: {sorted(extra_ids)}")
 
     missing_vars = expected_vars - found_vars
     extra_vars = found_vars - expected_vars
     if missing_vars:
-        errors.append(f"vote.xml: missing dialog vars: {sorted(missing_vars)}")
+        errors.append(f"{VOTE_XML_NAME}: missing dialog vars: {sorted(missing_vars)}")
     if extra_vars:
-        errors.append(f"vote.xml: unexpected dialog vars: {sorted(extra_vars)}")
+        errors.append(f"{VOTE_XML_NAME}: unexpected dialog vars: {sorted(extra_vars)}")
 
     if not (IMAGES / "default.png").is_file() or not (IMAGES / "default.vtex").is_file():
         errors.append("default.png / default.vtex required under images/.../maps/")
@@ -463,7 +463,7 @@ def main() -> int:
         return 1
 
     print(
-        "Panorama validation OK (vote.xml + hud.vcss + map images); "
+        f"Panorama validation OK ({VOTE_XML_NAME} + {HUD_VCSS_NAME} + map images); "
         f"preview synced → {PREVIEW_HTML.relative_to(ROOT)}"
     )
     return 0

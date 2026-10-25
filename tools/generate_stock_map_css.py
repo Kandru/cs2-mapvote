@@ -83,7 +83,7 @@ def rewrite_hud_stock_css(stems: list[str] | None = None) -> int:
     else:
         palette = "/* BEGIN mv-map-palette */"
         if palette not in text:
-            raise SystemExit("hud.vcss missing mv-map-palette markers")
+            raise SystemExit(f"{HUD_VCSS_NAME} missing mv-map-palette markers")
         text = text.replace(palette, block + "\n\n" + palette)
 
     HUD_VCSS.write_text(text, encoding="utf-8")

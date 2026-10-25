@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Generate workshop/preview from vote.xml + hud.vcss so the browser mock stays in sync."""
+"""Generate workshop/preview from versioned vote XML + hud VCSS so the browser mock stays in sync."""
 from __future__ import annotations
 
 import html
 import re
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from mapvote_layout import HUD_VCSS_NAME, VOTE_XML_NAME
+
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "workshop" / "content" / "panorama"
-VOTE_XML = CONTENT / "layout" / "custom_game" / "mapvote" / "vote.xml"
-HUD_VCSS = CONTENT / "styles" / "custom_game" / "mapvote" / "hud.vcss"
+VOTE_XML = CONTENT / "layout" / "custom_game" / "mapvote" / VOTE_XML_NAME
+HUD_VCSS = CONTENT / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
 PREVIEW = ROOT / "workshop" / "preview"
 OUT_HTML = PREVIEW / "vote.html"
 OUT_CSS = PREVIEW / "hud.preview.css"
@@ -1026,7 +1031,7 @@ def sync() -> list[str]:
     try:
         tree = ET.parse(VOTE_XML)
     except ET.ParseError as ex:
-        return [f"vote.xml: parse error: {ex}"]
+        return [f"{VOTE_XML_NAME}: parse error: {ex}"]
 
     root = tree.getroot()
     body_parts: list[str] = []
@@ -1036,9 +1041,9 @@ def sync() -> list[str]:
 
     css = translate_css(HUD_VCSS.read_text(encoding="utf-8"))
     OUT_CSS.write_text(
-        "/* AUTO-GENERATED from hud.vcss — do not edit. Run: make panorama */\n"
+        f"/* AUTO-GENERATED from {HUD_VCSS_NAME} — do not edit. Run: make panorama */\n"
         + SHELL_CSS
-        + "\n/* ---- hud.vcss (translated) ---- */\n"
+        + f"\n/* ---- {HUD_VCSS_NAME} (translated) ---- */\n"
         + css
         + "\n",
         encoding="utf-8",
