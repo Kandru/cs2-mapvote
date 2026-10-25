@@ -52,6 +52,7 @@ namespace MapVote
             _rtvVoters.Clear();
             _rtvPassed = true;
             Server.PrintToChatAll(Chat(Localizer["rtv.success"]));
+            ArmEngineVote();
             PluginLog.Debug($"rtv success → {Config.Rtv.SuccessCommand}");
             Server.ExecuteCommand(Config.Rtv.SuccessCommand);
         }

@@ -67,8 +67,6 @@ Requires Pillow. Republish the workshop addon after extracting new workshop maps
 | `filters.types` | bomb/hostage/… | Prefix (or glob) groups for type chips |
 | `filters.sorts` | most/least/favorites | Sort chips: `id`, `by` (`plays`/`name`/`favorite`), `order` (`asc`/`desc`), optional `only` |
 
-On map start the plugin refreshes local (`maps *`) and workshop (`print_mapgroup_sv`) maps via RCON. At intermission it disables the native map vote and opens our overlay when the catalog has candidates; otherwise it enables the native CS2 vote for `endmatch.vote_seconds`. For the custom overlay, `mp_match_restart_delay` / `mp_endmatch_votenextleveltime` are set to `vote_seconds + winner_reveal_seconds + 1` so the plugin can changelevel before the engine ends the intermission. Player favorites and map play counts stay in memory during the map and are written on map end.
-
 ## Workshop layout
 
 Copy `workshop/content/` into your `csgo_addons/<addon>/` tree. Layout/style sources are already versioned (`vote_v1.xml`, `hud_v1.vcss`) to match `PanoramaVersion` in `Version.cs`; publish compiles them to `vote_v1.vxml_c` / `hud_v1.vcss_c`. Panorama binding rules live in `stuff/PANORAMA_RULESET.md`.

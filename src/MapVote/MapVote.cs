@@ -33,6 +33,7 @@ namespace MapVote
         private MapOrigin _pendingOrigin;
         private readonly HashSet<ulong> _rtvVoters = [];
         private bool _rtvPassed;
+        private bool _nativeVoteArmed;
         private readonly Dictionary<int, ulong> _steamBySlot = [];
 
         public void OnConfigParsed(PluginConfig config)
@@ -62,6 +63,10 @@ namespace MapVote
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
 
             _catalog.RequestRefresh();
+            if (hotReload)
+            {
+                ArmEngineVote();
+            }
         }
 
         public override void Unload(bool hotReload)
@@ -77,7 +82,21 @@ namespace MapVote
             RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
         }
 
-        private void OnTick() => CustomHud.OnTick();
+        private void OnTick()
+        {
+            CustomHud.OnTick();
+            // Only the empty-catalog → native transition is polled; custom is armed
+            // at map start / RTV / BeginVote.
+            if (!_nativeVoteArmed && !VoteBusy && !_catalog.IsLoading && _catalog.Maps.Count == 0)
+            {
+                ArmEngineVote();
+            }
+
+            if (_voteActive || _revealActive)
+            {
+                EngineVotePrep.ClearNativeVoteSlots();
+            }
+        }
 
         private void LoadPersistence()
         {

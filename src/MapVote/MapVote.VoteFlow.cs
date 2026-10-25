@@ -17,6 +17,31 @@ namespace MapVote
 
         private bool VoteBusy => _voteActive || _revealActive || _catalogWaitTimer is not null;
 
+        /// <summary>
+        /// Snapshot end-match cvars before intermission. Prefer our overlay unless the
+        /// catalog is known empty (then enable the Valve vote).
+        /// </summary>
+        private void ArmEngineVote()
+        {
+            VoteTiming timing = VoteClock.Resolve(Config.Endmatch);
+            if (_catalog.IsLoading || _catalog.Maps.Count > 0)
+            {
+                EngineVotePrep.PrepareCustomVote(timing.EngineHoldSeconds);
+                _nativeVoteArmed = false;
+                PluginLog.Debug($"engine vote: custom hold={timing.EngineHoldSeconds}s");
+                return;
+            }
+
+            if (_nativeVoteArmed)
+            {
+                return;
+            }
+
+            EngineVotePrep.PrepareNativeVote(timing.OpenSeconds);
+            _nativeVoteArmed = true;
+            PluginLog.Info($"catalog empty; enabling Valve end-match vote ({timing.OpenSeconds}s)");
+        }
+
         private void StartVote()
         {
             if (VoteBusy)
@@ -71,9 +96,10 @@ namespace MapVote
         private void EnableNativeVote(string reason)
         {
             KillCatalogWaitTimer();
-            int voteSeconds = VoteClock.Resolve(Config.Endmatch).OpenSeconds;
-            PluginLog.Info($"vote skipped: {reason}; enabling Valve end-match vote ({voteSeconds}s)");
-            EngineVotePrep.PrepareNativeVote(voteSeconds);
+            VoteTiming timing = VoteClock.Resolve(Config.Endmatch);
+            PluginLog.Info($"vote skipped: {reason}; enabling Valve end-match vote ({timing.OpenSeconds}s)");
+            EngineVotePrep.PrepareNativeVote(timing.OpenSeconds);
+            _nativeVoteArmed = true;
         }
 
         private void BeginVote(List<MapEntry> maps)
@@ -86,7 +112,8 @@ namespace MapVote
             KillCatalogWaitTimer();
 
             _timing = VoteClock.Resolve(Config.Endmatch);
-            EngineVotePrep.PrepareCustomVote(_timing.EngineHoldSeconds);
+            ArmEngineVote();
+            EngineVotePrep.ClearNativeVoteSlots();
 
             _session = new VoteSession(maps.Select(static m => m.Name).ToList());
             Dictionary<string, MapOrigin> origins = maps.ToDictionary(

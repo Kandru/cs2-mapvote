@@ -11,10 +11,12 @@ namespace MapVote
         {
             _rtvVoters.Clear();
             _rtvPassed = false;
+            _nativeVoteArmed = false;
             _steamBySlot.Clear();
             EndVoteUi();
             CustomHud.ResetRound();
             LoadPersistence();
+            ArmEngineVote();
             _catalog.RequestRefresh();
             PluginLog.Debug($"map start {mapName}");
         }
