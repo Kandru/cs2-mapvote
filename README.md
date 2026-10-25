@@ -30,7 +30,7 @@ make images WORKSHOP_DIR=/path/to/workshop/content/730
 # Override binary: make images WORKSHOP_DIR=... SOURCE2VIEWER_CLI=/path/to/Source2Viewer-CLI
 ```
 
-The script opens each VPK directory, picks the largest suitable screenshot (`map_icons/screenshots/1080p` → `720p` → `360p`, else radar), decompiles `vtex_c` to PNG, center-crops to 16:9, resizes to **350×197**, writes a companion `.vtex`, and updates the `mv-map-*` CSS palette. Fallback art is `default.png` (`mv-map-default`). Requires Pillow. Republish the workshop addon after extracting new maps.
+The script opens each VPK directory and tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, images that are too dark (mean luma under 40), and images that are much taller than they are wide, then takes the next candidate. The chosen PNG is center-cropped to 16:9, resized to **350×197**, written with a companion `.vtex`, and added to the `mv-map-*` CSS palette. Maps with no usable screenshot keep `default.png` (`mv-map-default`). Requires Pillow. Republish the workshop addon after extracting new maps.
 
 ## Config
 

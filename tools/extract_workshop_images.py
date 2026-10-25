@@ -24,6 +24,10 @@ CSS_END = "/* END mv-map-palette */"
 TARGET_WIDTH = 350
 TARGET_HEIGHT = 197  # round(350 * 9 / 16)
 DEFAULT_STEM = "default"
+# Radar/overhead art is mostly black. Night screenshots still sit above this.
+MIN_MEAN_LUMA = 40.0  # 0–255
+# Reject strips that are much taller than they are wide (width/height).
+MIN_ASPECT = 0.55
 
 ENTRY_FMT = struct.Struct("<IHHIIH")
 assert ENTRY_FMT.size == 18
@@ -174,30 +178,52 @@ def is_denied(path: str) -> bool:
     return any(part in name for part in DENIED_NAME_PARTS)
 
 
-def pick_image(entries: list[VpkEntry], map_name: str) -> VpkEntry | None:
+def _named_shots(candidates: list[VpkEntry], map_name: str, prefix: str) -> list[VpkEntry]:
+    shots = [
+        e
+        for e in candidates
+        if e.path.replace("\\", "/").lower().startswith(prefix)
+        and map_name in Path(e.path).name.lower()
+        and "radar" not in e.path.lower()
+        and "overhead" not in e.path.lower()
+    ]
+    return sorted(shots, key=lambda e: e.length, reverse=True)
+
+
+def image_candidates(entries: list[VpkEntry], map_name: str) -> list[VpkEntry]:
+    """Screenshots first (1080p, then 720p, then 360p), largest file first within each tier."""
     candidates = [e for e in entries if e.path.lower().endswith(".vtex_c") and not is_denied(e.path)]
-    if not candidates:
-        return None
-
-    def under(prefix: str) -> list[VpkEntry]:
-        return [
-            e
-            for e in candidates
-            if e.path.replace("\\", "/").lower().startswith(prefix)
-            and map_name in Path(e.path).name.lower()
-        ]
-
+    ordered: list[VpkEntry] = []
+    seen: set[str] = set()
     for res in ("1080p", "720p", "360p"):
-        shots = under(f"panorama/images/map_icons/screenshots/{res}/")
-        if shots:
-            return max(shots, key=lambda e: e.length)
+        for entry in _named_shots(candidates, map_name, f"panorama/images/map_icons/screenshots/{res}/"):
+            if entry.path not in seen:
+                seen.add(entry.path)
+                ordered.append(entry)
+    return ordered
 
-    radars = under("panorama/images/overheadmaps/")
-    radars = [e for e in radars if "radar" in e.path.lower()]
-    if radars:
-        normal = [e for e in radars if "spectate" not in e.path.lower()]
-        pool = normal or radars
-        return max(pool, key=lambda e: e.length)
+
+def image_reject_reason(png_path: Path) -> str | None:
+    """Return why this decoded image should not be used, or None if it is fine."""
+    try:
+        from PIL import Image, ImageStat
+    except ImportError as ex:
+        raise SystemExit("Pillow is required for image resize (pip install Pillow)") from ex
+
+    with Image.open(png_path) as img:
+        rgb = img.convert("RGB")
+        width, height = rgb.size
+        if width <= 0 or height <= 0:
+            return "empty image"
+        aspect = width / height
+        if aspect < MIN_ASPECT:
+            return f"too tall ({width}x{height})"
+        # Sample so a 4K shot does not dominate the check.
+        sample = rgb.resize((64, max(1, round(64 / aspect))), Image.Resampling.BOX)
+        luma = sample.convert("L")
+        mean = ImageStat.Stat(luma).mean[0]
+        if mean < MIN_MEAN_LUMA:
+            return f"too dark (mean luma {mean:.0f})"
     return None
 
 
@@ -329,7 +355,6 @@ def decompile_vtex(cli: Path, vtex_c: Path, png_out: Path) -> None:
     best = max(pngs, key=lambda p: p.stat().st_size)
     png_out.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(best, png_out)
-    resize_to_tile(png_out)
 
 
 def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
@@ -347,18 +372,39 @@ def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
         return
 
     for map_name in sorted(maps):
-        entry = pick_image(entries, map_name)
-        if entry is None:
-            print(f"[images]  {map_name}: no screenshot/radar")
+        candidates = image_candidates(entries, map_name)
+        if not candidates:
+            print(f"[images]  {map_name}: no screenshot")
             continue
+        chosen: VpkEntry | None = None
         with tempfile.TemporaryDirectory(prefix="mapvote-extract-") as tmp:
-            vtex_c = Path(tmp) / Path(entry.path).name
-            extract_entry(vpk, ver, tree_size, entry, vtex_c)
+            tmp_path = Path(tmp)
             png = IMAGES / f"{map_name}.png"
-            decompile_vtex(cli, vtex_c, png)
-            write_vtex(map_name)
-            written[map_name] = png
-            print(f"[images]  {map_name} ← {entry.path} ({entry.length} bytes)")
+            for index, entry in enumerate(candidates):
+                work = tmp_path / str(index)
+                work.mkdir()
+                vtex_c = work / Path(entry.path).name
+                try:
+                    extract_entry(vpk, ver, tree_size, entry, vtex_c)
+                    decoded = work / f"{map_name}.png"
+                    decompile_vtex(cli, vtex_c, decoded)
+                    reason = image_reject_reason(decoded)
+                except Exception as ex:
+                    print(f"[images]  {map_name}: skip {entry.path} ({ex})")
+                    continue
+                if reason:
+                    print(f"[images]  {map_name}: skip {entry.path} ({reason})")
+                    continue
+                shutil.copy2(decoded, png)
+                resize_to_tile(png)
+                chosen = entry
+                break
+        if chosen is None:
+            print(f"[images]  {map_name}: no usable screenshot")
+            continue
+        write_vtex(map_name)
+        written[map_name] = png
+        print(f"[images]  {map_name} ← {chosen.path} ({chosen.length} bytes)")
 
 
 def main() -> int:
