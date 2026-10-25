@@ -163,10 +163,6 @@ def collect_errors() -> list[str]:
         root_panel,
         "mv-grid",
         "mv-voted-row",
-        "mv-winner",
-        "mv-winner-shot",
-        "mv-winner-name",
-        "mv-winner-votes",
     }
     for i in range(slot_count):
         expected_ids.update(
@@ -181,10 +177,9 @@ def collect_errors() -> list[str]:
         )
 
     expected_vars = (
-        {"winner_name", "winner_votes"}
-        | {f"v{i}" for i in range(slot_count)}
-        | {f"vv{i}" for i in range(slot_count)}
+        {f"v{i}" for i in range(slot_count)}
         | {f"n{i}" for i in range(slot_count)}
+        | {f"vv{i}" for i in range(slot_count)}
         | {f"vn{i}" for i in range(slot_count)}
     )
 
@@ -210,11 +205,12 @@ def collect_errors() -> list[str]:
             ".mv-bg",
             ".MapTile",
             ".MapShot",
-            ".VotedRow",
+            ".MapFade",
             ".MapGrid",
+            ".VotedRow",
             ".is-empty",
-            ".is-voted",
             ".is-mine",
+            ".is-winner",
             ".mv-map-default",
         ):
             if req not in css_raw:

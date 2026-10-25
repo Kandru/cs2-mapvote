@@ -16,6 +16,6 @@ Read and follow these before editing HUD or image tooling:
 
 - [workshop/AGENTS.md](workshop/AGENTS.md) — server can only dialog vars + SetHasClass; image class palettes; layout table
 - [workshop/panorama-css.md](workshop/panorama-css.md) — CSS subset and layout traps
-- [stuff/panorama-skills/SKILL.md](stuff/panorama-skills/SKILL.md) — engine skill pack
+- [stuff/PANORAMA_RULESET.md](stuff/PANORAMA_RULESET.md) — engine binding ruleset
 
 Run `make panorama` after XML/CSS changes. Layout edits require a workshop addon republish.

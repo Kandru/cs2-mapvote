@@ -2,7 +2,7 @@
 
 Fullscreen Panorama end-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/).
 
-Players see a milky-glass overlay over the end-match scene using CS2-sized map cards (163×286, 48px gaps), with vote counts and map names on each card. Voted maps also appear in a strip above the grid (the only place that scrolls horizontally). The game clock is left alone — this overlay does not draw its own countdown. During the last five seconds of the end-match window, voting locks and the winner is revealed before the plugin changes the map.
+Players see a fullscreen CS2 end-of-match map vote: Valve portrait cards (110×175%, ~10 across), a top row of maps that already have votes, then a wrapping catalog that scrolls when needed. Vote counts are orange (count only). Unused slots stay collapsed. The game clock is left alone. On lock, the winning tile shows a green check, then the plugin changes the map.
 
 ## Requirements
 
@@ -41,7 +41,7 @@ The script opens each VPK directory, picks the largest suitable screenshot (`map
 | `enabled` | `true` | Master switch |
 | `exclude_current_map` | `true` | Hide the map just played |
 | `fallback_vote_seconds` | `15` | Used when end-match cvars are missing/too short |
-| `reveal_seconds` | `5` | Winner animation window |
+| `reveal_seconds` | `5` | Locked-winner display window |
 | `rtv.enabled` | `true` | `!rtv` / `css_rtv` |
 | `rtv.ratio` | `0.6` | Fraction of humans required |
 

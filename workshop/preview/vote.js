@@ -8,30 +8,32 @@
     return n || 50;
   })();
 
+  // Prefer maps that have screenshots under preview/maps/*.webp
   const MAPS = [
     "de_dust2","de_mirage","de_inferno","de_nuke","de_overpass","de_ancient","de_anubis","de_vertigo",
     "cs_office","cs_italy","ar_baggage","ar_shoots","de_cache","de_train","cs_agency","cs_assault",
-    "cs_militia","de_basalt","de_boyard","de_edin","de_palacio","de_whistle","de_brewery","de_dogtown",
-    "de_graffiti","de_jura","de_golden","de_seaside","gd_cbble",
-    "de_dust2_x","de_mirage_x","de_inferno_x","de_nuke_x","de_overpass_x","de_ancient_x","de_anubis_x",
-    "de_vertigo_x","cs_office_x","cs_italy_x","ar_baggage_x","ar_shoots_x","de_cache_x","de_train_x",
-    "cs_agency_x","cs_assault_x","cs_militia_x","de_basalt_x","de_boyard_x","de_edin_x","de_palacio_x"
+    "cs_militia","de_basalt","de_brewery","de_edin","de_palacio","de_whistle","de_dogtown",
+    "de_jura","de_golden","de_palais","de_thera","de_mills","de_assembly","de_boulder",
+    "de_canals","de_lake","de_safehouse","de_shortdust","de_tuscan","de_cbble","cs_alpine",
+    "cs_shelter","ar_pool_day","de_debris","de_eldorado","de_fachwerk","de_grail","de_memento",
+    "de_poseidon","de_rooftop","de_sanctum","de_stronghold","de_sugarcane","de_transit"
   ].slice(0, SLOT);
 
   const stem = (map) => map.replace(/[^a-z0-9_]/gi, "_").toLowerCase();
 
-  const hasMapClass = (s) => {
-    const probe = document.createElement("div");
-    probe.className = `mv-map-${s}`;
-    document.body.appendChild(probe);
-    const bg = getComputedStyle(probe).backgroundImage;
-    probe.remove();
-    return bg && bg !== "none";
-  };
-
-  const mapClass = (map) => {
+  const applyShot = (el, map) => {
     const s = stem(map);
-    return hasMapClass(s) ? `mv-map-${s}` : "mv-map-default";
+    el.className = "MapShot";
+    el.style.backgroundImage = `url("maps/${s}.webp")`;
+    el.style.backgroundSize = "100% 100%";
+    el.style.backgroundPosition = "50% 50%";
+    el.style.backgroundRepeat = "no-repeat";
+    // Fallback if the webp 404s
+    const probe = new Image();
+    probe.onerror = () => {
+      el.style.backgroundImage = 'url("maps/default.webp")';
+    };
+    probe.src = `maps/${s}.webp`;
   };
 
   const state = {
@@ -40,8 +42,7 @@
     firstVote: [],
     mine: null,
     reveal: false,
-    bumpSide: false,
-    lastStrip: [],
+    winner: null,
   };
 
   const setVar = (name, value) => {
@@ -55,24 +56,23 @@
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     tile.classList.add("is-empty");
-    tile.classList.remove("is-voted", "is-mine", "bump-a", "bump-b");
-    shot.className = "MapShot mv-map-default";
+    tile.classList.remove("is-mine", "is-winner");
+    shot.className = "MapShot";
+    shot.style.backgroundImage = "";
     setVar(voteVar, "");
     setVar(nameVar, "");
   };
 
-  const paintTile = (tileId, shotId, voteVar, nameVar, map, mine, bump) => {
+  const paintTile = (tileId, shotId, voteVar, nameVar, map) => {
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     const count = state.votes[map] || 0;
     tile.classList.remove("is-empty");
-    tile.classList.toggle("is-voted", count > 0);
-    tile.classList.toggle("is-mine", mine === map);
-    tile.classList.toggle("bump-a", !!bump && state.bumpSide);
-    tile.classList.toggle("bump-b", !!bump && !state.bumpSide);
-    shot.className = `MapShot ${mapClass(map)}`;
-    setVar(voteVar, count > 0 ? String(count) : "");
+    tile.classList.toggle("is-mine", state.mine === map);
+    tile.classList.toggle("is-winner", state.winner === map);
+    applyShot(shot, map);
+    setVar(voteVar, String(count));
     setVar(nameVar, map);
   };
 
@@ -83,32 +83,25 @@
       .sort((a, b) => b.c - a.c || a.i - b.i)
       .map((x) => x.m);
   };
-  const gridOrder = () => state.maps;
 
   const paint = () => {
     const voted = votedOrder();
-    const grid = gridOrder();
     const row = document.getElementById("mv-voted-row");
     if (row) row.classList.toggle("is-empty", voted.length === 0);
 
-    const bumps = voted.map((m, i) => {
-      const prev = state.lastStrip[i];
-      return !prev || prev.map !== m || prev.votes !== (state.votes[m] || 0);
-    });
-    if (bumps.some(Boolean)) state.bumpSide = !state.bumpSide;
-
     for (let i = 0; i < SLOT; i++) {
       if (i < voted.length) {
-        paintTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`, voted[i], state.mine, bumps[i]);
+        paintTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`, voted[i]);
       } else {
         clearTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`);
       }
 
-      if (i < grid.length) paintTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`, grid[i], state.mine, false);
-      else clearTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`);
+      if (i < state.maps.length) {
+        paintTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`, state.maps[i]);
+      } else {
+        clearTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`);
+      }
     }
-
-    state.lastStrip = voted.map((m) => ({ map: m, votes: state.votes[m] || 0 }));
   };
 
   const cast = (map) => {
@@ -137,8 +130,7 @@
     }
     if (/^mv-\d+$/.test(id)) {
       const i = Number(id.slice(3));
-      const order = gridOrder();
-      return Number.isInteger(i) && i >= 0 && i < order.length ? order[i] : null;
+      return Number.isInteger(i) && i >= 0 && i < state.maps.length ? state.maps[i] : null;
     }
     return null;
   };
@@ -158,30 +150,20 @@
     state.mine = "de_dust2";
   };
 
+  const topMap = () => votedOrder()[0] || state.maps[0];
+
   const reveal = () => {
     state.reveal = true;
-    const root = document.getElementById("Vote");
-    const winner = document.getElementById("mv-winner");
-    const shot = document.getElementById("mv-winner-shot");
-    root?.classList.add("is-reveal");
-    winner?.classList.remove("is-empty");
-    const top = votedOrder()[0] || state.maps[0];
-    if (shot) shot.className = `WinnerShot ${mapClass(top)}`;
-    setVar("winner_name", top);
-    setVar("winner_votes", String(state.votes[top] || 0));
+    state.winner = topMap();
     paint();
   };
 
   const reset = () => {
     state.votes = Object.fromEntries(state.maps.map((m) => [m, 0]));
     state.firstVote = [];
-    state.lastStrip = [];
     state.mine = null;
     state.reveal = false;
-    document.getElementById("Vote")?.classList.remove("is-reveal");
-    document.getElementById("mv-winner")?.classList.add("is-empty");
-    setVar("winner_name", "");
-    setVar("winner_votes", "");
+    state.winner = null;
     seedVotes();
     paint();
   };
@@ -191,7 +173,7 @@
   bar.innerHTML = `
     <button type="button" data-act="reset">Reset demo</button>
     <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-note">Synced from vote.xml + hud.vcss. CS2 163×286 cards, 48px gap; voted strip h-scroll only.</span>
+    <span class="pv-note">CS2 vote cards · voted row + 10-across grid · maps/*.webp</span>
   `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {

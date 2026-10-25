@@ -26,17 +26,19 @@ Colours are hex literals only. No `@define` / `var()`.
 
 Blur:
 
-- `world-blur` — frosted glass over the world / backbuffer (use on `.mv-bg`)
-- `blur` — this panel and its children (use on `.MapShot` when voted so the vote number stays sharp as a sibling)
+- `world-blur` — frosted glass over the world / backbuffer (optional; this HUD uses a top-dark gradient on `.mv-bg` instead)
+- `blur` — this panel and its children
 - `background-blur` — registered and broken; do not use
 
 Composition colour (inherits to children): `saturation` (0 = greyscale), `brightness`, `wash-color`, `opacity`.
 
 `box-shadow`: **colour first** — `#000000aa 0px 4px 8px 0px`. Transitions: split `transition-property` / `transition-duration` / `transition-timing-function`.
 
+Scroll lists: `overflow: squish scroll` (proven under input capture).
+
 ## MapVote classes
 
-`.mv-bg` milky fullscreen glass · `.VoteBody` stage (`max-width: 2062px`) · `.ThumbLead` width-relative thumb lead-in · `.VotedRow` one-row strip (h-scroll) · `.MapGrid` wrap + v-scroll only · `.MapTile` (CS2 **163×286**, **48px** gap) / `.MapShot` / `.MapCaption` / `.MapVotes` / `.MapName` · `.is-empty` / `.is-voted` / `.is-mine` · `bump-a` / `bump-b` · `.Winner` · `tick-a` / `tick-b` · `.mv-map-*` · `.ph-card` / `.ph-fading` / `.ph-off`. Preview: [`preview/vote.html`](preview/vote.html) (`endmatch.jpg` plate).
+`.mv-bg` top-dark eom scrim · `.VoteBody` (`max-width: 1420px` = 10 cards) · `.VotedRow` h-scroll · `.MapGrid` wrap + `squish scroll` · `.MapTile` / `.MapShot` / `.MapFade` / `.MapVotes` (orange count) / `.MapName` / `.MapWinnerCheck` — Valve `map-selection-btn--vote` · `.is-empty` / `.is-mine` / `.is-winner` · `.mv-map-*` · `.ph-*`. Preview: [`preview/vote.html`](preview/vote.html) + [`preview/maps/*.webp`](preview/maps/).
 
 Hide empty slots with `is-empty` → `visibility: collapse`. Do not name a class `hidden` / `Hidden`.
 

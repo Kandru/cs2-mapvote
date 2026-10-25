@@ -11,38 +11,25 @@ namespace MapVote.Huds
 
         private static VoteSession? _session;
         private static bool _revealing;
-        private static bool _tickSide;
-        private static int _tickCounter;
-        private static bool _bumpSide;
-        private static readonly string?[] LastStripMaps = new string?[SlotCount];
-        private static readonly int[] LastStripCounts = new int[SlotCount];
-        private static readonly bool[] StripBump = new bool[SlotCount];
+        private static string? _winner;
 
         public static void Bind(VoteSession session)
         {
             _session = session;
             _revealing = false;
-            _tickSide = false;
-            _tickCounter = 0;
-            ClearStripSnapshot();
+            _winner = null;
         }
 
         public static void Clear()
         {
             _session = null;
             _revealing = false;
-            ClearStripSnapshot();
+            _winner = null;
         }
 
         public static void WriteDefaults(CCSPlayerController player)
         {
-            CustomHud.SetText(player, Panel, "winner_name", string.Empty);
-            CustomHud.SetText(player, Panel, "winner_votes", string.Empty);
-            CustomHud.SetHasClass(player, Panel, "is-reveal", false);
             CustomHud.SetHasClass(player, "mv-voted-row", "is-empty", true);
-            SetWinnerVisible(player, show: false);
-            CustomHud.SetMapImage(player, "mv-winner-shot", null);
-
             for (int i = 0; i < SlotCount; i++)
             {
                 PaintEmpty(player, Pool.Voted, i);
@@ -69,10 +56,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            IReadOnlyList<string> strip = _session.VotedOrder();
-            PrepareStripBump(strip);
-            ForEachOpen(player => PaintPrepared(player, strip));
-            CommitStripSnapshot(strip);
+            ForEachOpen(Paint);
         }
 
         public static void Paint(CCSPlayerController player)
@@ -82,26 +66,26 @@ namespace MapVote.Huds
                 return;
             }
 
-            IReadOnlyList<string> strip = _session.VotedOrder();
-            PrepareStripBump(strip);
-            PaintPrepared(player, strip);
-            CommitStripSnapshot(strip);
+            string? mine = player.AuthorizedSteamID is { } steam
+                ? _session.VoteOf(steam.SteamId64)
+                : null;
+
+            IReadOnlyList<string> voted = _session.VotedOrder();
+            CustomHud.SetHasClass(player, "mv-voted-row", "is-empty", voted.Count == 0);
+            PaintPool(player, Pool.Voted, voted, mine);
+            PaintPool(player, Pool.Grid, _session.GridOrder(), mine);
         }
 
         public static void BeginReveal(string winner, int votes)
         {
+            _ = votes;
             _revealing = true;
-            _tickSide = false;
-            _tickCounter = 0;
+            _winner = winner;
 
             ForEachOpen(player =>
             {
                 HudMenu.DropCapture(player);
-                CustomHud.SetHasClass(player, Panel, "is-reveal", true);
-                SetWinnerVisible(player, show: true);
-                CustomHud.SetMapImage(player, "mv-winner-shot", winner);
-                CustomHud.SetText(player, Panel, "winner_name", winner);
-                CustomHud.SetText(player, Panel, "winner_votes", votes.ToString());
+                Paint(player);
             });
         }
 
@@ -140,42 +124,13 @@ namespace MapVote.Huds
 
         public static void OnTick()
         {
-            if (!_revealing || ++_tickCounter < 32)
-            {
-                return;
-            }
-
-            _tickCounter = 0;
-            _tickSide = !_tickSide;
-            ForEachOpen(player =>
-            {
-                CustomHud.SetHasClass(player, "mv-winner", "tick-a", _tickSide);
-                CustomHud.SetHasClass(player, "mv-winner", "tick-b", !_tickSide);
-            });
-        }
-
-        private static void PaintPrepared(CCSPlayerController player, IReadOnlyList<string> strip)
-        {
-            if (_session is null || !Players.IsHumanViewer(player))
-            {
-                return;
-            }
-
-            string? mine = player.AuthorizedSteamID is { } steam
-                ? _session.VoteOf(steam.SteamId64)
-                : null;
-
-            CustomHud.SetHasClass(player, "mv-voted-row", "is-empty", strip.Count == 0);
-            PaintPool(player, Pool.Voted, strip, mine, useBump: true);
-            PaintPool(player, Pool.Grid, _session.GridOrder(), mine, useBump: false);
         }
 
         private static void PaintPool(
             CCSPlayerController player,
             Pool pool,
             IReadOnlyList<string> order,
-            string? mine,
-            bool useBump)
+            string? mine)
         {
             for (int i = 0; i < SlotCount; i++)
             {
@@ -186,7 +141,7 @@ namespace MapVote.Huds
                 }
 
                 string map = order[i];
-                PaintTile(player, pool, i, map, _session!.CountOf(map), mine, bump: useBump && StripBump[i]);
+                PaintTile(player, pool, i, map, _session!.CountOf(map), mine);
             }
         }
 
@@ -196,16 +151,13 @@ namespace MapVote.Huds
             int index,
             string map,
             int votes,
-            string? mine,
-            bool bump)
+            string? mine)
         {
             string tileId = TileId(pool, index);
             CustomHud.SetHasClass(player, tileId, "is-empty", false);
-            CustomHud.SetHasClass(player, tileId, "is-voted", votes > 0);
             CustomHud.SetHasClass(player, tileId, "is-mine", mine == map);
-            CustomHud.SetHasClass(player, tileId, "bump-a", bump && _bumpSide);
-            CustomHud.SetHasClass(player, tileId, "bump-b", bump && !_bumpSide);
-            CustomHud.SetText(player, Panel, VoteVar(pool, index), votes > 0 ? votes.ToString() : string.Empty);
+            CustomHud.SetHasClass(player, tileId, "is-winner", _winner == map);
+            CustomHud.SetText(player, Panel, VoteVar(pool, index), votes.ToString());
             CustomHud.SetText(player, Panel, NameVar(pool, index), map);
             CustomHud.SetMapImage(player, ShotId(pool, index), map);
         }
@@ -214,63 +166,11 @@ namespace MapVote.Huds
         {
             string tileId = TileId(pool, index);
             CustomHud.SetHasClass(player, tileId, "is-empty", true);
-            CustomHud.SetHasClass(player, tileId, "is-voted", false);
             CustomHud.SetHasClass(player, tileId, "is-mine", false);
-            CustomHud.SetHasClass(player, tileId, "bump-a", false);
-            CustomHud.SetHasClass(player, tileId, "bump-b", false);
+            CustomHud.SetHasClass(player, tileId, "is-winner", false);
             CustomHud.SetText(player, Panel, VoteVar(pool, index), string.Empty);
             CustomHud.SetText(player, Panel, NameVar(pool, index), string.Empty);
             CustomHud.SetMapImage(player, ShotId(pool, index), null);
-        }
-
-        private static void SetWinnerVisible(CCSPlayerController player, bool show)
-        {
-            CustomHud.SetHasClass(player, "mv-winner", "is-empty", !show);
-            CustomHud.SetHasClass(player, "mv-winner", "tick-a", false);
-            CustomHud.SetHasClass(player, "mv-winner", "tick-b", false);
-        }
-
-        private static void PrepareStripBump(IReadOnlyList<string> strip)
-        {
-            bool any = false;
-            for (int i = 0; i < SlotCount; i++)
-            {
-                string? map = i < strip.Count ? strip[i] : null;
-                int votes = map is null ? 0 : _session!.CountOf(map);
-                bool changed = map != LastStripMaps[i] || votes != LastStripCounts[i];
-                StripBump[i] = changed && map is not null;
-                any |= StripBump[i];
-            }
-
-            if (any)
-            {
-                _bumpSide = !_bumpSide;
-            }
-        }
-
-        private static void CommitStripSnapshot(IReadOnlyList<string> strip)
-        {
-            for (int i = 0; i < SlotCount; i++)
-            {
-                if (i < strip.Count)
-                {
-                    LastStripMaps[i] = strip[i];
-                    LastStripCounts[i] = _session!.CountOf(strip[i]);
-                }
-                else
-                {
-                    LastStripMaps[i] = null;
-                    LastStripCounts[i] = 0;
-                }
-            }
-        }
-
-        private static void ClearStripSnapshot()
-        {
-            Array.Clear(LastStripMaps);
-            Array.Clear(LastStripCounts);
-            Array.Clear(StripBump);
-            _bumpSide = false;
         }
 
         private static string TileId(Pool pool, int index) =>

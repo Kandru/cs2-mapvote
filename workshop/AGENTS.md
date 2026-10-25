@@ -17,7 +17,7 @@ Bump `PanoramaVersion` only when a layout or stylesheet change would break plugi
 1. Dialog variable on the layout's root card id → Label `text="{s:name}"` (text only, never a path or colour).
 2. `SetHasClass` on a panel **id**.
 
-No panel creation, no width/colour/image path from C#. Map images are a CSS class palette (`.mv-map-<name>`). C# swaps the class on `mv-shot-N`. Bars and accents are classes. Layout edits need a VPK republish; C# does not.
+No panel creation, no width/colour/image path from C#. Map images are a CSS class palette (`.mv-map-<name>`). C# swaps the class on `mv-shot-N` / `mv-voted-shot-N`. Layout edits need a VPK republish; C# does not.
 
 **Round restart:** `custom_hud_layout` entities stay alive across rounds. `CustomHud.ResetRound()` restores XML defaults. Never Kill/respawn a live layout mid-match; `CustomHud.Shutdown` only runs on map end / unload.
 
@@ -27,33 +27,31 @@ No panel creation, no width/colour/image path from C#. Map images are a CSS clas
 
 | Layout | Root card id | Routed ids |
 | --- | --- | --- |
-| `vote.xml` | `Vote` | `Vote`, `mv-voted-row`, `mv-voted-0`…`mv-voted-49`, `mv-grid`, `mv-0`…`mv-49`, shots/votes/names, `mv-winner` |
+| `vote.xml` | `Vote` | `Vote`, `mv-voted-row`, `mv-voted-0`…`49`, `mv-grid`, `mv-0`…`49`, shots/votes, `{s:vN}` / `{s:nN}` / `{s:vvN}` / `{s:vnN}` |
 
 `tools/validate_panorama.py` (`make panorama`) checks that the ids and `{s:…}` variables match what C# writes, that every `.mv-map-*` class has a matching PNG + VTEX, and regenerates the browser preview under [`preview/`](preview/).
 
 ### Vote overlay ([`VoteHud`](../src/MapVote/Huds/VoteHud.cs))
 
-Fullscreen milky glass (`.mv-bg` + `world-blur`, transparent `.ph-card`). No title or overlay countdown (game clock stays visible). Stage is `max-width: 2062px` (ten CS2 cards). Voted strip (`VotedRow`, `{s:vvN}` / `{s:vnN}`) then the catalog grid (`MapGrid`, `{s:vN}` / `{s:nN}`). Up to `SlotCount = 50` maps (`MapCatalog.MaxMaps` must match).
+Fullscreen CS2 end-of-match vote: top-dark scrim, **voted strip** (row 1) then catalog grid. Stage `max-width: 1420px` = **10** Valve cards across. Up to `SlotCount = 50`.
 
 - Empty slots / empty voted strip: `is-empty` → `visibility: collapse`.
-- Map art: class swap on `mv-shot-N` / `mv-voted-shot-N` (`mv-map-<sanitized>` or `mv-map-default`), stretched with `background-size: 100% 100%`.
-- Cards match Valve map-vote size: **163×286** with **48px** gaps. `.ThumbLead` is `width-percentage` so the first row tracks the thumb band across 16:9 / 16:10.
-- Cards: milky panel + light border; `.is-mine` uses gold left/bottom accents.
-- Caption: vote count + map id at the bottom of each tile.
-- Voted strip: one row, sorted by count; **horizontal scroll only here** when there are too many voted maps. Pulse via `bump-a` / `bump-b`.
-- Grid: full catalog, wrap + **vertical scroll only**. Voted maps stay in the grid too.
-- Reveal: lead + strip + grid collapse, `#mv-winner` for the last 5 seconds. Pulse via `tick-a` / `tick-b`.
+- Cards = Valve `map-selection-btn--vote` (110 × 175%, margins, fade, hover zoom, selected border).
+- Vote count: orange `#ff9a1a`, count only (no `/max`).
+- Voted strip: maps with votes, sorted by count; h-scroll if needed.
+- Grid: full catalog, wrap + v-scroll; unused slots collapsed.
+- Reveal: `.is-winner` green check on the winning tile; mouse capture drops.
 
-Browser mock: open [`preview/vote.html`](preview/vote.html) (synced from `vote.xml` + `hud.vcss` on every `make panorama`). Preview uses [`preview/endmatch.jpg`](preview/endmatch.jpg) as a top-anchored 16:10 plate.
+Browser mock: [`preview/vote.html`](preview/vote.html). Preview shots load from [`preview/maps/*.webp`](preview/maps/) (not the addon VTEX palette). Plate: [`preview/endmatch.jpg`](preview/endmatch.jpg).
 
-Mouse capture via `HudMenu` so `:hover` works. Clicks arrive as `Listeners.OnCustomHudClicked` → `HudMenu` → `VoteHud.OnButton`.
+Mouse capture via `HudMenu`. Clicks → `Listeners.OnCustomHudClicked` → `HudMenu` → `VoteHud.OnButton`.
 
 ## Images
 
-`make images WORKSHOP_DIR=…` extracts the largest suitable screenshot/radar from each map VPK, center-crops to 16:9, resizes to **350×197**, writes `<map>.png` + `.vtex`, and rewrites the marked CSS block of `mv-map-*` classes. Clients only see images published in this addon. Always keep `default.png` / `default.vtex` as the fallback class (`mv-map-default`).
+`make images WORKSHOP_DIR=…` extracts screenshots into the addon palette (`mv-map-*`). Preview-only art lives in `preview/maps/*.webp`. Always keep `default.png` / `default.vtex` (and `preview/maps/default.webp`).
 
 ## Check before inventing CSS
 
-[panorama-css.md](panorama-css.md) for the layout model. `make panorama` for the reject list. Engine skill pack: [`stuff/panorama-skills/`](../stuff/panorama-skills/).
+[panorama-css.md](panorama-css.md). `make panorama`. Ruleset: [`stuff/PANORAMA_RULESET.md`](../stuff/PANORAMA_RULESET.md).
 
 Update this file when HUD behaviour changes.

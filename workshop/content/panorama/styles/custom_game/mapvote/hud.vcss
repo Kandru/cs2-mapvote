@@ -1,4 +1,5 @@
-/* MapVote HUD — Panorama CSS only (see workshop/panorama-css.md). */
+/* MapVote HUD — CS2 end-of-match vote tiles, fullscreen + scroll (see workshop/panorama-css.md).
+   Cards = Valve map-selection-btn--vote. Stage width fits 10 cards (Valve eom row). */
 
 @keyframes mv-in
 {
@@ -25,18 +26,6 @@
 	{
 		transform: scale3d( 0.96, 0.96, 1.0 );
 		opacity: 0.0;
-	}
-}
-
-@keyframes mv-bump
-{
-	0%
-	{
-		transform: scale3d( 1.06, 1.06, 1.0 );
-	}
-	100%
-	{
-		transform: scale3d( 1.0, 1.0, 1.0 );
 	}
 }
 
@@ -77,39 +66,35 @@
 	animation-fill-mode: forwards;
 }
 
+/* Top-dark scrim like Valve .eom-layout. */
 .mv-bg
 {
 	width: 100%;
 	height: 100%;
-	background-color: #0a101844;
-	world-blur: hologram;
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000e0 ), to( #00000000 ) );
 	ignore-parent-flow: true;
 }
 
-/* Stage fits ten 163px cards with 48px gaps: 10×163 + 9×48 = 2062. */
+/* 10 cards: 10×110 + 10×32 margin = 1420 (Valve ~10-across vote row). */
 .VoteBody
 {
 	width: 100%;
-	max-width: 2062px;
+	max-width: 1420px;
 	height: 100%;
 	horizontal-align: center;
 	flow-children: down;
+	padding-top: 12px;
 }
 
-/* Width-relative lead-in so the first card row tracks Valve's thumb band. */
-.ThumbLead
-{
-	width: 100%;
-	height: width-percentage( 4.7% );
-}
-
-/* Voted maps only: one row, horizontal scroll when more than fit. */
+/* Row 1: maps that have votes — one strip, h-scroll if needed. */
 .VotedRow
 {
 	width: 100%;
 	height: fit-children;
 	flow-children: right;
 	overflow: scroll clip;
+	horizontal-align: center;
+	margin-bottom: 8px;
 }
 
 .VotedRow.is-empty
@@ -117,52 +102,34 @@
 	visibility: collapse;
 }
 
-/* Full catalog: wrap + vertical scroll only (no horizontal bar). */
-.MapGrid
-{
-	width: 100%;
-	height: fill-parent-flow( 1.0 );
-	flow-children: right-wrap;
-	overflow: clip scroll;
-	horizontal-align: center;
-}
-
-.VoteRoot.is-reveal .ThumbLead,
-.VoteRoot.is-reveal .VotedRow,
-.VoteRoot.is-reveal .MapGrid
-{
-	visibility: collapse;
-}
-
-/* CS2 map-vote card size and gap. */
-.MapTile
-{
-	width: 163px;
-	height: 286px;
-	margin-right: 48px;
-	margin-bottom: 48px;
-	transition-property: transform, box-shadow;
-	transition-duration: 0.12s;
-	transition-timing-function: ease-out;
-	overflow: noclip;
-}
-
 .VotedRow .MapTile
 {
 	margin-bottom: 0px;
 }
 
-.MapTile:hover
+/* Catalog: same 10-across wrap, fill leftover height, v-scroll. */
+.MapGrid
 {
-	transform: scale3d( 1.03, 1.03, 1.0 );
-	box-shadow: #00000088 0px 8px 22px 0px;
+	width: 100%;
+	height: fill-parent-flow( 1.0 );
+	flow-children: right-wrap;
+	overflow: squish scroll;
+	horizontal-align: center;
 }
 
-.MapTile:active
+/* ---- Valve .map-selection-btn--vote ---- */
+.MapTile
 {
-	transform: scale3d( 0.98, 0.98, 1.0 );
-	sound: "UIPanorama.submenu_select";
-	sound-optical: "UIPanorama.submenu_select";
+	width: 110px;
+	height: width-percentage( 175% );
+	margin: 10px 16px 10px 16px;
+	border: 0px solid #cacaca1a;
+	box-shadow: none;
+	wash-color: none;
+	overflow: clip;
+	transition-property: border, box-shadow, brightness, opacity;
+	transition-duration: 0.25s;
+	transition-timing-function: ease-in-out;
 }
 
 .MapTile.is-empty
@@ -172,131 +139,59 @@
 
 .MapTile.is-mine
 {
-	box-shadow: #f0c85a55 0px 0px 16px 0px;
-}
-
-.MapTile.bump-a,
-.MapTile.bump-b
-{
-	animation-name: mv-bump;
-	animation-duration: 0.28s;
-	animation-timing-function: ease-out;
-	animation-fill-mode: forwards;
+	border: 2px solid #ffffff;
+	box-shadow: #ffffff 0px 0px 6px 0px;
 }
 
 .MapShot
 {
 	width: 100%;
 	height: 100%;
-	background-color: #10141caa;
-	background-size: 100% 100%;
+	pre-transform-scale2d: 1.0, 1.0;
 	background-repeat: no-repeat;
+	background-size: 100% 100%;
 	background-position: 50% 50%;
-	border: 1px solid #e4e7eeaa;
+	transition-property: opacity, pre-transform-scale2d;
+	transition-duration: 2.0s, 0.25s;
+	transition-timing-function: ease-in-out;
 }
 
-.MapTile:hover .MapShot,
-.MapTile.is-voted .MapShot
+.MapTile:hover .MapShot
 {
-	border: 1px solid #9eb6ffcc;
+	pre-transform-scale2d: 1.2, 1.2;
+	sound: "UIPanorama.submenu_contents_rollover";
+	sound-optical: "UIPanorama.submenu_contents_rollover";
 }
 
 .MapTile.is-mine .MapShot
 {
-	border: 3px solid #f0c85a;
-	border-top: 1px solid #f0c85a;
-	border-right: 1px solid #f0c85a;
+	pre-transform-scale2d: 1.2, 1.2;
 }
 
-.MapCaption
+.MapTile:active
+{
+	sound: "UIPanorama.submenu_select";
+	sound-optical: "UIPanorama.submenu_select";
+}
+
+.MapFade
 {
 	width: 100%;
-	height: fit-children;
-	horizontal-align: center;
-	vertical-align: bottom;
-	flow-children: down;
-	padding: 18px 6px 8px 6px;
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #00000000 ), to( #000000cc ) );
+	height: 100%;
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #00000020 ), to( #000000ff ) );
 }
 
-.MapVotes,
-.MapName
-{
-	horizontal-align: center;
-	text-align: center;
-	width: 100%;
-	color: #ffffff;
-	text-shadow: #000000 0px 0px 3px 0px,
-		#000000 1px 1px 0px 0px,
-		#000000 -1px -1px 0px 0px,
-		#000000 1px -1px 0px 0px,
-		#000000 -1px 1px 0px 0px;
-}
-
+/* Vote count only (no /max) — CS2 accent orange. */
 .MapVotes
 {
-	font-size: 22;
-}
-
-.MapName
-{
-	font-size: 14;
-	color: #e8ecf4;
-	margin-top: 2px;
-}
-
-.Winner
-{
-	width: 720px;
-	height: fit-children;
-	horizontal-align: center;
-	vertical-align: middle;
-	flow-children: down;
-	margin-top: 40px;
-}
-
-.Winner.is-empty
-{
-	visibility: collapse;
-}
-
-.WinnerFrame
-{
-	width: 720px;
-	height: 405px;
-	overflow: noclip;
-}
-
-.WinnerShot
-{
-	width: 720px;
-	height: 405px;
-	border: 2px solid #f0c85a;
-	border-left: 4px solid #f0c85a;
-	border-bottom: 4px solid #f0c85a;
-	box-shadow: #f0c85a66 0px 0px 28px 0px;
-	background-color: #10141ccc;
-	background-size: 100% 100%;
-	background-repeat: no-repeat;
-	background-position: 50% 50%;
-}
-
-.WinnerName
-{
-	horizontal-align: center;
-	margin-top: 18px;
-	font-size: 40;
-	color: #f2f5ff;
-	text-shadow: #000000aa 0px 2px 10px 0px;
-}
-
-.WinnerVotes
-{
-	horizontal-align: right;
 	vertical-align: bottom;
-	margin: 0px 16px 12px 0px;
-	font-size: 36;
-	color: #ffffff;
+	horizontal-align: center;
+	margin: 0px;
+	margin-bottom: 40px;
+	font-family: Stratum2 Bold;
+	font-size: 26;
+	color: #ff9a1a;
+	text-align: center;
 	text-shadow: #000000 0px 0px 3px 0px,
 		#000000 1px 1px 0px 0px,
 		#000000 -1px -1px 0px 0px,
@@ -304,14 +199,39 @@
 		#000000 -1px 1px 0px 0px;
 }
 
-.Winner.tick-a .WinnerShot
+.MapName
 {
-	brightness: 1.08;
+	width: 90%;
+	height: 36px;
+	margin: 0px 4px 6px 4px;
+	vertical-align: bottom;
+	horizontal-align: center;
+	text-align: center;
+	font-size: 16;
+	color: #ffffff;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.Winner.tick-b .WinnerShot
+.MapWinnerCheck
 {
-	brightness: 0.92;
+	wash-color: #2bff00;
+	pre-transform-scale2d: 2.0, 2.0;
+	width: 50px;
+	height: width-percentage( 100% );
+	vertical-align: middle;
+	horizontal-align: center;
+	img-shadow: 0px 0px 1px 1.0 #2bff00;
+	transition-property: pre-transform-scale2d, opacity;
+	transition-duration: 0.1s;
+	transition-timing-function: ease-in-out;
+	opacity: 0.0;
+}
+
+.MapTile.is-winner .MapWinnerCheck
+{
+	pre-transform-scale2d: 1.0, 1.0;
+	opacity: 1.0;
 }
 
 /* BEGIN mv-map-palette */
