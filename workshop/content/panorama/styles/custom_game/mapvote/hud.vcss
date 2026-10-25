@@ -690,7 +690,205 @@
 }
 
 /* BEGIN mv-map-palette */
-/* Map screenshots — class names must stay ASCII-safe for CustomHud.SetHasClass.
-   `make images` rewrites this block from extracted PNGs. */
-.mv-map-default { background-image: url( "s2r://panorama/images/custom_game/mapvote/maps/default.vtex" ); }
+
+.mv-map-default
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/default.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-cs_militia_css
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/cs_militia_css.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_bikinibottom
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_bikinibottom.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_brewery
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_brewery.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_cbble_united
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_cbble_united.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_debris
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_debris.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_dogtown
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_dogtown.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_dust2_n
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_dust2_n.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_echolab
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_echolab.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_extraction_s2
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_extraction_s2.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_flick
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_flick.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_ganny
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_ganny.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_golden
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_golden.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_palacio
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_palacio.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_rails
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_rails.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_safehouse
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_safehouse.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-de_splat
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/de_splat.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-drawbridge
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/drawbridge.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-dust2
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/dust2.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-foroglio
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/foroglio.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-idk
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/idk.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-poseidon
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/poseidon.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-shortdust
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/shortdust.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-texture_jungle
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/texture_jungle.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-transit
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/transit.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
 /* END mv-map-palette */
