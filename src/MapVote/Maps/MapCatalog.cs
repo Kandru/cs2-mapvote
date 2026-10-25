@@ -9,7 +9,6 @@ namespace MapVote.Maps
         private readonly Action<string> _log;
         private readonly object _gate = new();
         private IReadOnlyList<MapEntry> _maps = [];
-        private DateTime _loadedUtc = DateTime.MinValue;
         private bool _loading;
         private bool _loggedMissingPassword;
 
@@ -25,24 +24,11 @@ namespace MapVote.Maps
             get { lock (_gate) { return _loading; } }
         }
 
-        public bool IsStale(TimeSpan maxAge)
-        {
-            lock (_gate)
-            {
-                return _maps.Count == 0 || DateTime.UtcNow - _loadedUtc > maxAge;
-            }
-        }
-
-        public void RequestRefresh(bool force = false)
+        public void RequestRefresh()
         {
             lock (_gate)
             {
                 if (_loading)
-                {
-                    return;
-                }
-
-                if (!force && _maps.Count > 0 && DateTime.UtcNow - _loadedUtc < TimeSpan.FromSeconds(5))
                 {
                     return;
                 }
@@ -63,7 +49,7 @@ namespace MapVote.Maps
                 return;
             }
 
-            _log($"catalog refresh started (force={force})");
+            _log("catalog refresh started");
             _ = Task.Run(() => LoadWorker(port, password));
         }
 
@@ -71,30 +57,30 @@ namespace MapVote.Maps
         {
             try
             {
-                List<MapEntry> maps = QueryMaps(
-                    port, password, "print_mapgroup_sv", MapOrigin.Workshop, MapNameFilter.NormalizeMapgroupLine);
-                string source = "mapgroup";
+                using RconClient client = new("127.0.0.1", port, password, 1000);
+                client.Connect();
 
-                if (maps.Count == 0)
-                {
-                    maps = QueryMaps(port, password, "maps *", MapOrigin.Local, MapNameFilter.NormalizeLocalLine);
-                    source = "maps *";
-                }
+                List<MapEntry> local = ParseMaps(
+                    client.SendCommand("maps *"), MapOrigin.Local, MapNameFilter.NormalizeLocalLine);
+                List<MapEntry> workshop = ParseMaps(
+                    client.SendCommand("print_mapgroup_sv"),
+                    MapOrigin.Workshop,
+                    MapNameFilter.NormalizeMapgroupLine);
 
+                List<MapEntry> maps = Merge(local, workshop);
                 if (maps.Count > MaxMaps)
                 {
                     int original = maps.Count;
-                    maps = maps.Take(MaxMaps).ToList();
+                    maps.RemoveRange(MaxMaps, maps.Count - MaxMaps);
                     _log($"map list truncated from {original} to {MaxMaps}.");
                 }
 
                 lock (_gate)
                 {
                     _maps = maps;
-                    _loadedUtc = DateTime.UtcNow;
                 }
 
-                _log($"loaded {maps.Count} maps (source={source}).");
+                _log($"loaded {maps.Count} maps (local={local.Count}, workshop={workshop.Count}).");
             }
             catch (Exception ex)
             {
@@ -106,16 +92,38 @@ namespace MapVote.Maps
             }
         }
 
-        private static List<MapEntry> QueryMaps(
-            int port,
-            string password,
-            string command,
+        /// <summary>
+        /// Local maps first (keep their order), then mapgroup-only names as workshop.
+        /// Names present in both keep Local origin.
+        /// </summary>
+        internal static List<MapEntry> Merge(IReadOnlyList<MapEntry> local, IReadOnlyList<MapEntry> workshop)
+        {
+            List<MapEntry> maps = new(local.Count + workshop.Count);
+            HashSet<string> seen = new(StringComparer.Ordinal);
+            AppendUnique(maps, seen, local);
+            AppendUnique(maps, seen, workshop);
+            return maps;
+        }
+
+        private static void AppendUnique(
+            List<MapEntry> maps,
+            HashSet<string> seen,
+            IReadOnlyList<MapEntry> source)
+        {
+            foreach (MapEntry entry in source)
+            {
+                if (seen.Add(entry.Name))
+                {
+                    maps.Add(entry);
+                }
+            }
+        }
+
+        private static List<MapEntry> ParseMaps(
+            string response,
             MapOrigin origin,
             Func<string, string?> normalize)
         {
-            using RconClient client = new("127.0.0.1", port, password, 1000);
-            client.Connect();
-            string response = client.SendCommand(command);
             if (string.IsNullOrEmpty(response))
             {
                 return [];

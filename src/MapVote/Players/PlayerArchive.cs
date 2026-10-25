@@ -2,32 +2,28 @@ using MapVote.Config;
 
 namespace MapVote.Players
 {
-    /// <summary>Steam-id keyed player favorites for the life of the plugin instance.</summary>
+    /// <summary>Steam-id keyed player favorites. Memory during the map; disk at map boundaries.</summary>
     public sealed class PlayerArchive
     {
         private readonly Dictionary<string, PlayerState> _bySteam = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _blockedWrites = new(StringComparer.OrdinalIgnoreCase);
-        private bool _loaded;
 
-        public Dictionary<string, PlayerState>.ValueCollection States => _bySteam.Values;
-
-        public void EnsureLoaded(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
+        public void Load(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
         {
-            if (_loaded)
-            {
-                return;
-            }
+            _bySteam.Clear();
+            _blockedWrites.Clear();
 
-            _loaded = true;
             string dir = PlayerFiles.DirectoryPath(config);
             if (!Directory.Exists(dir))
             {
+                debug?.Invoke("player archive: no players directory");
                 return;
             }
 
             string[] paths = Directory.GetFiles(dir, "*.json");
             if (paths.Length == 0)
             {
+                debug?.Invoke("player archive: 0 loaded");
                 return;
             }
 
@@ -105,28 +101,39 @@ namespace MapVote.Players
                 ? state
                 : null;
 
-        public PlayerState GetOrCreate(string steamId, out bool created)
+        public PlayerState GetOrCreate(string steamId)
         {
             if (_bySteam.TryGetValue(steamId, out PlayerState? state))
             {
-                created = false;
                 return state;
             }
 
             state = new PlayerState { SteamId = steamId, Username = steamId };
             _bySteam[steamId] = state;
-            created = true;
             return state;
         }
 
-        public PlayerState GetOrCreate(string steamId) => GetOrCreate(steamId, out _);
+        public int SaveDirty(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
+        {
+            string directory = PlayerFiles.DirectoryPath(config);
+            int written = 0;
+            foreach (PlayerState state in _bySteam.Values)
+            {
+                if (!state.Dirty)
+                {
+                    continue;
+                }
 
-        public bool IsWriteBlocked(string steamId) => _blockedWrites.Contains(steamId);
+                if (TryWrite(directory, state, warn, debug))
+                {
+                    written++;
+                }
+            }
 
-        public bool TryWrite(PluginConfig config, PlayerState state, Action<string>? warn = null, Action<string>? debug = null) =>
-            TryWrite(PlayerFiles.DirectoryPath(config), state, warn, debug);
+            return written;
+        }
 
-        public bool TryWrite(string directory, PlayerState state, Action<string>? warn = null, Action<string>? debug = null)
+        private bool TryWrite(string directory, PlayerState state, Action<string>? warn, Action<string>? debug)
         {
             string steamId = state.SteamId;
             if (steamId.Length == 0)
@@ -135,7 +142,7 @@ namespace MapVote.Players
                 return false;
             }
 
-            if (IsWriteBlocked(steamId))
+            if (_blockedWrites.Contains(steamId))
             {
                 warn?.Invoke($"skip save: writes blocked for {steamId} (corrupt file left in place)");
                 return false;
@@ -143,8 +150,7 @@ namespace MapVote.Players
 
             try
             {
-                string path = PlayerFiles.FilePath(directory, steamId);
-                PlayerFiles.Write(path, state);
+                PlayerFiles.Write(PlayerFiles.FilePath(directory, steamId), state);
                 state.Dirty = false;
                 debug?.Invoke($"saved {state.Username} ({steamId}) favorites={state.Favorites.Count}");
                 return true;
@@ -155,25 +161,6 @@ namespace MapVote.Players
                 state.Dirty = true;
                 return false;
             }
-        }
-
-        public int FlushDirty(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
-        {
-            int written = 0;
-            foreach (PlayerState state in _bySteam.Values)
-            {
-                if (!state.Dirty)
-                {
-                    continue;
-                }
-
-                if (TryWrite(config, state, warn, debug))
-                {
-                    written++;
-                }
-            }
-
-            return written;
         }
 
         private static (string Path, PlayerState? State, DateTime WriteTime, Exception? Error) ReadOne(string path)

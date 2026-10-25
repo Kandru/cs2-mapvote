@@ -15,7 +15,7 @@ namespace MapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void OnRtvCommand(CCSPlayerController? player, CommandInfo info)
         {
-            if (!Config.Enabled || !Config.Rtv.Enabled || player is null || !PlayerUtil.IsHumanViewer(player)
+            if (!Config.Rtv.Enabled || player is null || !PlayerUtil.IsHumanViewer(player)
                 || player.AuthorizedSteamID is not { SteamId64: var id })
             {
                 return;

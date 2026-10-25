@@ -25,11 +25,6 @@ namespace MapVote
                 return;
             }
 
-            if (_catalog.IsStale(TimeSpan.FromSeconds(Math.Max(1, Config.CatalogMaxAgeSeconds))))
-            {
-                _catalog.RequestRefresh(force: true);
-            }
-
             List<MapEntry> maps = SelectCandidates();
             if (maps.Count > 0)
             {
@@ -37,11 +32,9 @@ namespace MapVote
                 return;
             }
 
-            // Empty after the stale refresh kick-off — wait for the async load.
-            _catalog.RequestRefresh(force: true);
             if (!_catalog.IsLoading)
             {
-                GiveUpCatalogWait("catalog empty and not loading");
+                EnableNativeVote("catalog empty and not loading");
                 return;
             }
 
@@ -71,15 +64,16 @@ namespace MapVote
                 string reason = !_catalog.IsLoading
                     ? "catalog empty and not loading"
                     : "catalog still empty after wait";
-                GiveUpCatalogWait(reason);
+                EnableNativeVote(reason);
             }
         }
 
-        private void GiveUpCatalogWait(string reason)
+        private void EnableNativeVote(string reason)
         {
             KillCatalogWaitTimer();
-            PluginLog.Info($"vote skipped: {reason}; restoring Valve end-match vote");
-            EngineVotePrep.RestoreValveVote();
+            int voteSeconds = VoteClock.Resolve(Config.Endmatch).OpenSeconds;
+            PluginLog.Info($"vote skipped: {reason}; enabling Valve end-match vote ({voteSeconds}s)");
+            EngineVotePrep.PrepareNativeVote(voteSeconds);
         }
 
         private void BeginVote(List<MapEntry> maps)
@@ -91,13 +85,8 @@ namespace MapVote
 
             KillCatalogWaitTimer();
 
-            _timing = VoteClock.Resolve(
-                ConVars.ReadFloat("mp_endmatch_votenextleveltime"),
-                ConVars.ReadInt("mp_match_restart_delay"),
-                Config.FallbackVoteSeconds,
-                Config.RevealSeconds);
-
-            EngineVotePrep.Prepare(_timing.TotalSeconds);
+            _timing = VoteClock.Resolve(Config.Endmatch);
+            EngineVotePrep.PrepareCustomVote(_timing.EngineHoldSeconds);
 
             _session = new VoteSession(maps.Select(static m => m.Name).ToList());
             Dictionary<string, MapOrigin> origins = maps.ToDictionary(
@@ -110,8 +99,7 @@ namespace MapVote
                 Config.Filters,
                 _archive,
                 _plays,
-                (player, key) => Localization.ForPlayerSafe(Localizer, player, key),
-                state => _saves.Enqueue(state));
+                (player, key) => Localization.ForPlayerSafe(Localizer, player, key));
             _voteActive = true;
             _revealActive = false;
             _pendingWinner = null;
@@ -134,10 +122,14 @@ namespace MapVote
                 return [];
             }
 
+            if (!Config.Endmatch.ExcludeCurrentMap)
+            {
+                return source.ToList();
+            }
+
             string current = Server.MapName.ToLowerInvariant();
             return source
-                .Where(m => !Config.ExcludeCurrentMap || !string.Equals(m.Name, current, StringComparison.Ordinal))
-                .Take(MapCatalog.MaxMaps)
+                .Where(m => !string.Equals(m.Name, current, StringComparison.Ordinal))
                 .ToList();
         }
 
@@ -175,7 +167,7 @@ namespace MapVote
                 return;
             }
 
-            _plays.Increment(Config, winner, warn: msg => PluginLog.Info($"[plays] {msg}"));
+            _plays.Increment(winner);
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
             PluginLog.Info($"changing map: {command}");
             int generation = ++_changelevelGeneration;

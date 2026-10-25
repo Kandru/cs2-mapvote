@@ -1,3 +1,4 @@
+using MapVote.Config;
 using MapVote.Voting;
 
 namespace MapVote.Tests;
@@ -5,36 +6,35 @@ namespace MapVote.Tests;
 public class VoteClockTests
 {
     [Fact]
-    public void Resolve_UsesEndmatchCvarMinusReveal()
+    public void Resolve_UsesConfiguredWindows()
     {
-        VoteTiming timing = VoteClock.Resolve(endmatchVoteNextLevelTime: 20f, matchRestartDelay: 5, fallbackVoteSeconds: 15, revealSeconds: 5);
+        VoteTiming timing = VoteClock.Resolve(new EndmatchConfig
+        {
+            VoteSeconds = 15,
+            WinnerRevealSeconds = 5,
+        });
         Assert.Equal(15, timing.OpenSeconds);
         Assert.Equal(5, timing.RevealSeconds);
         Assert.Equal(20, timing.TotalSeconds);
+        Assert.Equal(21, timing.EngineHoldSeconds);
     }
 
     [Fact]
-    public void Resolve_FallsBackToRestartDelayWhenEndmatchTooShort()
+    public void Resolve_ClampsOpenAndRevealToAtLeastOne()
     {
-        VoteTiming timing = VoteClock.Resolve(endmatchVoteNextLevelTime: 3f, matchRestartDelay: 12, fallbackVoteSeconds: 15, revealSeconds: 5);
-        Assert.Equal(7, timing.OpenSeconds);
-        Assert.Equal(5, timing.RevealSeconds);
-    }
-
-    [Fact]
-    public void Resolve_UsesFallbackWhenOthersMissing()
-    {
-        VoteTiming timing = VoteClock.Resolve(null, null, fallbackVoteSeconds: 15, revealSeconds: 5);
-        Assert.Equal(10, timing.OpenSeconds);
-        Assert.Equal(5, timing.RevealSeconds);
-        Assert.Equal(15, timing.TotalSeconds);
-    }
-
-    [Fact]
-    public void Resolve_EnsuresAtLeastOneOpenSecond()
-    {
-        VoteTiming timing = VoteClock.Resolve(6f, null, 15, 5);
+        VoteTiming timing = VoteClock.Resolve(voteSeconds: 0, winnerRevealSeconds: 0);
         Assert.Equal(1, timing.OpenSeconds);
-        Assert.Equal(5, timing.RevealSeconds);
+        Assert.Equal(1, timing.RevealSeconds);
+        Assert.Equal(2, timing.TotalSeconds);
+        Assert.Equal(3, timing.EngineHoldSeconds);
+    }
+
+    [Fact]
+    public void Resolve_ClampsNegativeToOne()
+    {
+        VoteTiming timing = VoteClock.Resolve(voteSeconds: -3, winnerRevealSeconds: -1);
+        Assert.Equal(1, timing.OpenSeconds);
+        Assert.Equal(1, timing.RevealSeconds);
+        Assert.Equal(3, timing.EngineHoldSeconds);
     }
 }

@@ -18,7 +18,6 @@ namespace MapVote
 
         private MapCatalog _catalog = null!;
         private PlayerArchive _archive = null!;
-        private PlayerSaveQueue _saves = null!;
         private MapPlayCounts _plays = null!;
         private VoteSession? _session;
         private VoteTiming _timing;
@@ -50,66 +49,57 @@ namespace MapVote
             _catalog = new MapCatalog(PluginLog.CatalogSink());
             _archive = new PlayerArchive();
             _plays = new MapPlayCounts();
-            _archive.EnsureLoaded(
-                Config,
-                warn: msg => PluginLog.Info($"[players] {msg}"),
-                debug: msg => PluginLog.Debug($"[players] {msg}"));
-            _plays.Load(Config, warn: msg => PluginLog.Info($"[plays] {msg}"));
-            _saves = new PlayerSaveQueue(
-                _archive,
-                Config,
-                warn: msg => PluginLog.Info($"[players] {msg}"),
-                debug: msg => PluginLog.Debug($"[players] {msg}"));
+            LoadPersistence();
 
-            RegisterHooks();
+            RegisterListener<Listeners.OnMapStart>(OnMapStart);
+            RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
+            RegisterListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
+            RegisterListener<Listeners.OnTick>(OnTick);
+            RegisterListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
 
-            if (hotReload)
-            {
-                _catalog.RequestRefresh(force: true);
-            }
+            RegisterEventHandler<EventCsIntermission>(OnIntermission);
+            RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+            RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+
+            _catalog.RequestRefresh();
         }
 
         public override void Unload(bool hotReload)
         {
             PluginLog.Debug($"unload (hotReload={hotReload})");
             EndVoteUi();
-            _saves.FlushSync();
+            SavePersistence();
             CustomHud.Shutdown();
-            UnregisterHooks();
-        }
-
-        private void RegisterHooks()
-        {
-            RegisterListener<Listeners.OnMapStart>(OnMapStart);
-            RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
-            RegisterListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
-            RegisterListener<Listeners.OnTick>(OnTick);
-            RegisterListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
-            RegisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
-            RegisterEventHandler<EventRoundAnnounceMatchPoint>(OnMatchPoint);
-            RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
-            RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
-            RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
-        }
-
-        private void UnregisterHooks()
-        {
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
             RemoveListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
             RemoveListener<Listeners.OnTick>(OnTick);
             RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
-            DeregisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
-            DeregisterEventHandler<EventRoundAnnounceMatchPoint>(OnMatchPoint);
-            DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
-            DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
-            DeregisterEventHandler<EventRoundEnd>(OnRoundEnd);
         }
 
-        private void OnTick()
+        private void OnTick() => CustomHud.OnTick();
+
+        private void LoadPersistence()
         {
-            _saves.Pump();
-            CustomHud.OnTick();
+            _archive.Load(
+                Config,
+                warn: msg => PluginLog.Info($"[players] {msg}"),
+                debug: msg => PluginLog.Debug($"[players] {msg}"));
+            _plays.Load(Config, warn: msg => PluginLog.Info($"[plays] {msg}"));
+        }
+
+        private void SavePersistence()
+        {
+            int written = _archive.SaveDirty(
+                Config,
+                warn: msg => PluginLog.Info($"[players] {msg}"),
+                debug: msg => PluginLog.Debug($"[players] {msg}"));
+            if (written > 0)
+            {
+                PluginLog.Debug($"[players] saved {written} dirty player(s)");
+            }
+
+            _plays.Save(Config, warn: msg => PluginLog.Info($"[plays] {msg}"));
         }
     }
 }

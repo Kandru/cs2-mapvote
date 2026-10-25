@@ -4,19 +4,26 @@ using MapVote.Config;
 
 namespace MapVote.Players
 {
-    /// <summary>Server-wide map play counts next to the plugin config (<c>map_plays.json</c>).</summary>
+    /// <summary>Server-wide map play counts. Memory during the map; disk at map boundaries.</summary>
     public sealed class MapPlayCounts
     {
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
         private readonly object _gate = new();
         private Dictionary<string, int> _counts = new(StringComparer.Ordinal);
+        private bool _dirty;
 
         public static string FilePath(PluginConfig config) =>
             Path.Combine(Path.GetDirectoryName(config.GetConfigPath()) ?? ".", "map_plays.json");
 
         public void Load(PluginConfig config, Action<string>? warn = null)
         {
+            lock (_gate)
+            {
+                _counts = new Dictionary<string, int>(StringComparer.Ordinal);
+                _dirty = false;
+            }
+
             string path = FilePath(config);
             if (!File.Exists(path))
             {
@@ -26,7 +33,7 @@ namespace MapVote.Players
             try
             {
                 Dictionary<string, int>? loaded =
-                    JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllText(path), JsonOptions);
+                    JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllBytes(path), JsonOptions);
                 if (loaded is null)
                 {
                     return;
@@ -51,18 +58,31 @@ namespace MapVote.Players
             }
         }
 
-        public void Increment(PluginConfig config, string map, Action<string>? warn = null)
+        public void Increment(string map)
         {
             if (string.IsNullOrWhiteSpace(map))
             {
                 return;
             }
 
-            Dictionary<string, int> snapshot;
             lock (_gate)
             {
                 _counts.TryGetValue(map, out int n);
                 _counts[map] = n + 1;
+                _dirty = true;
+            }
+        }
+
+        public void Save(PluginConfig config, Action<string>? warn = null)
+        {
+            Dictionary<string, int> snapshot;
+            lock (_gate)
+            {
+                if (!_dirty)
+                {
+                    return;
+                }
+
                 snapshot = new Dictionary<string, int>(_counts, StringComparer.Ordinal);
             }
 
@@ -75,8 +95,11 @@ namespace MapVote.Players
                     Directory.CreateDirectory(dir);
                 }
 
-                byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(snapshot, JsonOptions);
-                PlayerFiles.WriteBytes(path, bytes);
+                PlayerFiles.WriteBytes(path, JsonSerializer.SerializeToUtf8Bytes(snapshot, JsonOptions));
+                lock (_gate)
+                {
+                    _dirty = false;
+                }
             }
             catch (Exception ex)
             {

@@ -25,7 +25,6 @@ namespace MapVote.Huds
         private static PlayerArchive? _archive;
         private static MapPlayCounts? _plays;
         private static Func<CCSPlayerController, string, string>? _text;
-        private static Action<PlayerState>? _enqueueSave;
         private static bool _revealing;
         private static string? _winner;
 
@@ -43,15 +42,13 @@ namespace MapVote.Huds
             FiltersConfig filters,
             PlayerArchive archive,
             MapPlayCounts plays,
-            Func<CCSPlayerController, string, string> text,
-            Action<PlayerState> enqueueSave)
+            Func<CCSPlayerController, string, string> text)
         {
             _session = session;
             _filters = filters;
             _archive = archive;
             _plays = plays;
             _text = text;
-            _enqueueSave = enqueueSave;
             ResetAllSlots();
             _revealing = false;
             _winner = null;
@@ -63,7 +60,6 @@ namespace MapVote.Huds
             _archive = null;
             _plays = null;
             _text = null;
-            _enqueueSave = null;
             _revealing = false;
             _winner = null;
             ResetAllSlots();
@@ -240,7 +236,7 @@ namespace MapVote.Huds
 
             if (buttonId == VoteIds.FavoritesSort)
             {
-                ApplySortClick(player, FavoritesSortIndex());
+                ApplySortClick(player, OnlySortIndex());
                 return;
             }
 
@@ -392,35 +388,36 @@ namespace MapVote.Huds
             int activeSort = SortSelection[player.Slot];
             if (activeSort >= 0
                 && activeSort < _filters.Sorts.Count
-                && !SortChipEnabled(_filters.Sorts[activeSort], favorites))
+                && !MapSort.ChipEnabled(_filters.Sorts[activeSort], favorites))
             {
                 activeSort = -1;
                 SortSelection[player.Slot] = -1;
             }
 
-            int favSortIndex = FavoritesSortIndex();
-            if (favSortIndex >= 0)
+            int onlySortIndex = OnlySortIndex();
+            if (onlySortIndex >= 0)
             {
+                SortConfig onlySort = _filters.Sorts[onlySortIndex];
                 WriteChip(
                     player,
                     VoteIds.FavoritesSort,
                     VoteIds.FavoritesSortVar,
-                    T(player, "sort.favorites"),
+                    T(player, $"sort.{onlySort.Id}"),
                     off: false,
-                    active: activeSort == favSortIndex,
-                    disabled: !SortChipEnabled("favorites", favorites));
+                    active: activeSort == onlySortIndex,
+                    disabled: !MapSort.ChipEnabled(onlySort, favorites));
             }
             else
             {
                 WriteChip(player, VoteIds.FavoritesSort, off: true);
             }
 
-            // mv-fs-* paints non-favorites sorts; favorites sits next to All.
+            // mv-fs-* paints reorder sorts; only-filter sorts sit next to All.
             int sortChip = 0;
             for (int i = 0; i < _filters.Sorts.Count && sortChip < FilterSortSlots; i++)
             {
-                string sortId = _filters.Sorts[i];
-                if (sortId == "favorites")
+                SortConfig sort = _filters.Sorts[i];
+                if (sort.Only)
                 {
                     continue;
                 }
@@ -429,10 +426,10 @@ namespace MapVote.Huds
                     player,
                     VoteIds.SortChipIds[sortChip],
                     VoteIds.SortVars[sortChip],
-                    T(player, $"sort.{sortId}"),
+                    T(player, $"sort.{sort.Id}"),
                     off: false,
                     active: activeSort == i,
-                    disabled: !SortChipEnabled(sortId, favorites));
+                    disabled: !MapSort.ChipEnabled(sort, favorites));
                 sortChip++;
             }
 
@@ -442,15 +439,16 @@ namespace MapVote.Huds
             }
         }
 
-        private static int FavoritesSortIndex() => _filters.Sorts.IndexOf("favorites");
+        private static int OnlySortIndex() =>
+            _filters.Sorts.FindIndex(static s => s.Only);
 
-        /// <summary>Map an <c>mv-fs-*</c> chip onto the matching non-favorites entry in sorts.</summary>
+        /// <summary>Map an <c>mv-fs-*</c> chip onto the matching non-only entry in sorts.</summary>
         private static int SortIndexForChip(int chipIndex)
         {
             int chip = 0;
             for (int i = 0; i < _filters.Sorts.Count; i++)
             {
-                if (_filters.Sorts[i] == "favorites")
+                if (_filters.Sorts[i].Only)
                 {
                     continue;
                 }
@@ -510,13 +508,6 @@ namespace MapVote.Huds
             return false;
         }
 
-        private static bool SortChipEnabled(string sortId, HashSet<string> favorites) =>
-            sortId switch
-            {
-                "favorites" => favorites.Count > 0,
-                _ => true,
-            };
-
         private static IReadOnlyList<string> FilteredGrid(CCSPlayerController player, HashSet<string> favorites)
         {
             IReadOnlyList<string> source = _session!.GridOrder();
@@ -533,38 +524,15 @@ namespace MapVote.Huds
             int activeSort = SortSelection[player.Slot];
             if (_filters.Enabled && activeSort >= 0 && activeSort < _filters.Sorts.Count)
             {
-                string sortId = _filters.Sorts[activeSort];
-                maps = sortId switch
-                {
-                    "most_played" => maps
-                        .OrderByDescending(m => _plays?.CountOf(m) ?? 0)
-                        .ThenBy(m => IndexOf(source, m))
-                        .ToList(),
-                    "least_played" => maps
-                        .OrderBy(m => _plays?.CountOf(m) ?? 0)
-                        .ThenBy(m => IndexOf(source, m))
-                        .ToList(),
-                    "favorites" => maps
-                        .Where(m => favorites.Contains(m))
-                        .ToList(),
-                    _ => maps,
-                };
+                maps = MapSort.Apply(
+                    maps,
+                    source,
+                    _filters.Sorts[activeSort],
+                    m => _plays?.CountOf(m) ?? 0,
+                    favorites);
             }
 
             return maps;
-        }
-
-        private static int IndexOf(IReadOnlyList<string> source, string map)
-        {
-            for (int i = 0; i < source.Count; i++)
-            {
-                if (source[i] == map)
-                {
-                    return i;
-                }
-            }
-
-            return int.MaxValue;
         }
 
         private static void ApplyFilterClick(CCSPlayerController player, bool isType, int chipIndex)
@@ -602,7 +570,7 @@ namespace MapVote.Huds
             if (!_filters.Enabled
                 || sortIndex < 0
                 || sortIndex >= _filters.Sorts.Count
-                || !SortChipEnabled(_filters.Sorts[sortIndex], FavoritesOf(player)))
+                || !MapSort.ChipEnabled(_filters.Sorts[sortIndex], FavoritesOf(player)))
             {
                 return;
             }
@@ -637,7 +605,6 @@ namespace MapVote.Huds
             }
 
             state.Dirty = true;
-            _enqueueSave?.Invoke(state);
             Dirty[player.Slot] = true;
             Paint(player);
         }

@@ -5,32 +5,29 @@ namespace MapVote.Config
 {
     public sealed class PluginConfig : BasePluginConfig
     {
-        [JsonPropertyName("enabled")]
-        public bool Enabled { get; set; } = true;
-
         [JsonPropertyName("debug")]
         public bool Debug { get; set; }
 
-        [JsonPropertyName("exclude_current_map")]
-        public bool ExcludeCurrentMap { get; set; } = true;
-
-        [JsonPropertyName("fallback_vote_seconds")]
-        public int FallbackVoteSeconds { get; set; } = 15;
-
-        [JsonPropertyName("reveal_seconds")]
-        public int RevealSeconds { get; set; } = 5;
-
-        [JsonPropertyName("catalog_max_age_seconds")]
-        public int CatalogMaxAgeSeconds { get; set; } = 30;
+        [JsonPropertyName("endmatch")]
+        public EndmatchConfig Endmatch { get; set; } = new();
 
         [JsonPropertyName("rtv")]
         public RtvConfig Rtv { get; set; } = new();
 
         [JsonPropertyName("filters")]
         public FiltersConfig Filters { get; set; } = new();
+    }
 
-        [JsonPropertyName("persistence")]
-        public PersistenceConfig Persistence { get; set; } = new();
+    public sealed class EndmatchConfig
+    {
+        [JsonPropertyName("exclude_current_map")]
+        public bool ExcludeCurrentMap { get; set; } = true;
+
+        [JsonPropertyName("vote_seconds")]
+        public int VoteSeconds { get; set; } = 15;
+
+        [JsonPropertyName("winner_reveal_seconds")]
+        public int WinnerRevealSeconds { get; set; } = 5;
     }
 
     public sealed class RtvConfig
@@ -43,15 +40,6 @@ namespace MapVote.Config
 
         [JsonPropertyName("success_command")]
         public string SuccessCommand { get; set; } = "mp_halftime 0; mp_maxrounds 1";
-    }
-
-    public sealed class PersistenceConfig
-    {
-        [JsonPropertyName("autosave_on_round_end")]
-        public bool AutosaveOnRoundEnd { get; set; } = true;
-
-        [JsonPropertyName("autosave_per_tick")]
-        public int AutosavePerTick { get; set; } = 2;
     }
 
     public sealed class FiltersConfig
@@ -70,7 +58,12 @@ namespace MapVote.Config
         ];
 
         [JsonPropertyName("sorts")]
-        public List<string> Sorts { get; set; } = ["most_played", "least_played", "favorites"];
+        public List<SortConfig> Sorts { get; set; } =
+        [
+            new() { Id = "most_played", By = "plays", Order = "desc" },
+            new() { Id = "least_played", By = "plays", Order = "asc" },
+            new() { Id = "favorites", By = "favorite", Order = "desc", Only = true },
+        ];
     }
 
     public sealed class FilterTypeConfig
@@ -80,5 +73,20 @@ namespace MapVote.Config
 
         [JsonPropertyName("prefixes")]
         public List<string> Prefixes { get; set; } = [];
+    }
+
+    public sealed class SortConfig
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("by")]
+        public string By { get; set; } = "name";
+
+        [JsonPropertyName("order")]
+        public string Order { get; set; } = "asc";
+
+        [JsonPropertyName("only")]
+        public bool Only { get; set; }
     }
 }

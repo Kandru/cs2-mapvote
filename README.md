@@ -40,18 +40,21 @@ Requires Pillow. Republish the workshop addon after extracting new workshop maps
 
 ## Config
 
-`addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (generated on first run):
+`addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (generated on first run). Disable the plugin in CounterStrikeSharp if you do not want MapVote at all.
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `enabled` | `true` | Master switch |
-| `exclude_current_map` | `true` | Hide the map just played |
-| `fallback_vote_seconds` | `15` | Used when end-match cvars are missing/too short |
-| `reveal_seconds` | `5` | Locked-winner display window |
+| `debug` | `false` | Extra console logging |
+| `endmatch.exclude_current_map` | `true` | Hide the map just played |
+| `endmatch.vote_seconds` | `15` | Open voting window (custom menu or native CS2 vote) |
+| `endmatch.winner_reveal_seconds` | `5` | Locked-winner hold after our vote (custom menu only) |
 | `rtv.enabled` | `true` | `!rtv` / `css_rtv` |
 | `rtv.ratio` | `0.6` | Fraction of humans required |
+| `filters.enabled` | `true` | Type / sort chip bar |
+| `filters.types` | bomb/hostage/… | Prefix (or glob) groups for type chips |
+| `filters.sorts` | most/least/favorites | Sort chips: `id`, `by` (`plays`/`name`/`favorite`), `order` (`asc`/`desc`), optional `only` |
 
-Vote duration is `floor(mp_endmatch_votenextleveltime) - reveal_seconds`, with fallbacks to `mp_match_restart_delay` then `fallback_vote_seconds`.
+On map start the plugin refreshes local (`maps *`) and workshop (`print_mapgroup_sv`) maps via RCON. At intermission it disables the native map vote and opens our overlay when the catalog has candidates; otherwise it enables the native CS2 vote for `endmatch.vote_seconds`. For the custom overlay, `mp_match_restart_delay` / `mp_endmatch_votenextleveltime` are set to `vote_seconds + winner_reveal_seconds + 1` so the plugin can changelevel before the engine ends the intermission. Player favorites and map play counts stay in memory during the map and are written on map end.
 
 ## Workshop layout
 
