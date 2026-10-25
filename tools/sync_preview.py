@@ -323,14 +323,13 @@ button {
   opacity: 1 !important;
 }
 
-/* Panorama flow-children: none → CSS grid stack: every direct child shares the cell. */
+/* Panorama flow-children: none → CSS grid stack: every direct child shares the cell.
+ * VoteTopBar / FilterChip use flex centering instead — do not force grid-area there. */
 .VoteRoot > *,
-.VoteTopBar > *,
 .VotedRow > *,
 .MapSlot > *,
 .MapTile > *,
 .MapGridHost > *,
-.FilterChip > *,
 .FavBtn > *,
 .CreditBar > * {
   grid-area: 1 / 1;
@@ -342,6 +341,75 @@ button {
   z-index: 1;
   width: 100%;
   height: 100%;
+}
+
+/*
+ * Vertical centering in the browser preview.
+ * Panorama uses vertical-align:middle; Chromium does not. Match CreditLabel:
+ * single-line labels use line-height == box height (not flex + em-box math).
+ */
+.VoteTopBar {
+  position: relative;
+  flex-shrink: 0;
+  height: 40px !important;
+}
+.VoteTopBar > .VoteTitle {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 40px !important;
+  margin: 0 !important;
+  display: block !important;
+  text-align: center !important;
+  line-height: 40px !important;
+}
+.VoteTopBar > .MinimizeBtn {
+  position: absolute !important;
+  top: 50% !important;
+  right: 16px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  display: block !important;
+  justify-self: auto !important;
+  align-self: auto !important;
+  line-height: 0 !important; /* label owns the line-height */
+}
+.FilterBar,
+.FilterTypeRow,
+.FilterSortRow {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+}
+.FilterChip {
+  display: block !important;
+  line-height: 0 !important;
+}
+.FilterChip.is-off {
+  display: none !important;
+}
+/* 28px chip/btn − 1px border × 2 → 26px content box */
+.MinimizeLabel,
+.FilterChipLabel {
+  width: 100%;
+  height: 26px !important;
+  display: block !important;
+  text-align: center !important;
+  line-height: 26px !important;
+  margin: 0 !important;
+  transform: none;
+}
+.VoteTitle .pv-var,
+.MinimizeLabel .pv-var,
+.FilterChipLabel .pv-var {
+  display: inline !important;
+  line-height: inherit !important;
+  height: auto !important;
+  width: auto;
+  margin: 0 !important;
+  transform: none !important;
 }
 .mv-glass,
 .mv-scrim-top,
@@ -579,13 +647,7 @@ VOTE_JS = r"""(() => {
         .slice()
         .sort((a, b) => (state.plays[a] || 0) - (state.plays[b] || 0) || state.maps.indexOf(a) - state.maps.indexOf(b));
     } else if (state.sort === 2) {
-      maps = maps
-        .slice()
-        .sort(
-          (a, b) =>
-            (state.favorites.has(b) ? 1 : 0) - (state.favorites.has(a) ? 1 : 0) ||
-            state.maps.indexOf(a) - state.maps.indexOf(b)
-        );
+      maps = maps.filter((m) => state.favorites.has(m));
     }
     return maps;
   };

@@ -42,14 +42,13 @@ button {
   opacity: 1 !important;
 }
 
-/* Panorama flow-children: none → CSS grid stack: every direct child shares the cell. */
+/* Panorama flow-children: none → CSS grid stack: every direct child shares the cell.
+ * VoteTopBar / FilterChip use flex centering instead — do not force grid-area there. */
 .VoteRoot > *,
-.VoteTopBar > *,
 .VotedRow > *,
 .MapSlot > *,
 .MapTile > *,
 .MapGridHost > *,
-.FilterChip > *,
 .FavBtn > *,
 .CreditBar > * {
   grid-area: 1 / 1;
@@ -61,6 +60,75 @@ button {
   z-index: 1;
   width: 100%;
   height: 100%;
+}
+
+/*
+ * Vertical centering in the browser preview.
+ * Panorama uses vertical-align:middle; Chromium does not. Match CreditLabel:
+ * single-line labels use line-height == box height (not flex + em-box math).
+ */
+.VoteTopBar {
+  position: relative;
+  flex-shrink: 0;
+  height: 40px !important;
+}
+.VoteTopBar > .VoteTitle {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 40px !important;
+  margin: 0 !important;
+  display: block !important;
+  text-align: center !important;
+  line-height: 40px !important;
+}
+.VoteTopBar > .MinimizeBtn {
+  position: absolute !important;
+  top: 50% !important;
+  right: 16px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  display: block !important;
+  justify-self: auto !important;
+  align-self: auto !important;
+  line-height: 0 !important; /* label owns the line-height */
+}
+.FilterBar,
+.FilterTypeRow,
+.FilterSortRow {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+}
+.FilterChip {
+  display: block !important;
+  line-height: 0 !important;
+}
+.FilterChip.is-off {
+  display: none !important;
+}
+/* 28px chip/btn − 1px border × 2 → 26px content box */
+.MinimizeLabel,
+.FilterChipLabel {
+  width: 100%;
+  height: 26px !important;
+  display: block !important;
+  text-align: center !important;
+  line-height: 26px !important;
+  margin: 0 !important;
+  transform: none;
+}
+.VoteTitle .pv-var,
+.MinimizeLabel .pv-var,
+.FilterChipLabel .pv-var {
+  display: inline !important;
+  line-height: inherit !important;
+  height: auto !important;
+  width: auto;
+  margin: 0 !important;
+  transform: none !important;
 }
 .mv-glass,
 .mv-scrim-top,
@@ -228,16 +296,14 @@ button {
 .VoteTopBar
 {
 	width: 100%;
-	height: auto;
+	height: 40px;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-	padding-top: 4px;
-	padding-bottom: 4px;
 }
 
 .VoteTitle
 {
 	width: 100%;
-	height: auto;
+	height: 28px;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -280,6 +346,7 @@ button {
 .MinimizeLabel
 {
 	width: 100%;
+	height: 100%;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -431,6 +498,7 @@ button {
 	height: 36px;
 	display: flex; flex-direction: row; flex-wrap: nowrap;
 	justify-self: center; margin-left: auto; margin-right: auto;
+	align-self: center;
 	padding-left: 12px;
 	padding-right: 12px;
 	margin-bottom: 4px;
@@ -504,6 +572,7 @@ button {
 .FilterChipLabel
 {
 	width: 100%;
+	height: 100%;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -698,8 +767,8 @@ button {
 	width: 100%;
 	height: 100%;
 	z-index: 1;
-	/* Valve .map-selection-btn__gradient (endofmatch-voting.css) */
-	background-image: linear-gradient(to bottom, #00000020, #000000ff);
+	/* Clear through mid-tile; shadow ramps below for vote count + name. */
+	background-image: linear-gradient(to bottom, #00000000, #00000000 50%, #000000aa 70%, #000000ff);
 }
 
 .MapVotes

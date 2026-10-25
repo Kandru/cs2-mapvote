@@ -134,13 +134,7 @@
         .slice()
         .sort((a, b) => (state.plays[a] || 0) - (state.plays[b] || 0) || state.maps.indexOf(a) - state.maps.indexOf(b));
     } else if (state.sort === 2) {
-      maps = maps
-        .slice()
-        .sort(
-          (a, b) =>
-            (state.favorites.has(b) ? 1 : 0) - (state.favorites.has(a) ? 1 : 0) ||
-            state.maps.indexOf(a) - state.maps.indexOf(b)
-        );
+      maps = maps.filter((m) => state.favorites.has(m));
     }
     return maps;
   };

@@ -64,16 +64,14 @@
 .VoteTopBar
 {
 	width: 100%;
-	height: fit-children;
+	height: 40px;
 	flow-children: none;
-	padding-top: 4px;
-	padding-bottom: 4px;
 }
 
 .VoteTitle
 {
 	width: 100%;
-	height: fit-children;
+	height: 28px;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
@@ -116,6 +114,7 @@
 .MinimizeLabel
 {
 	width: 100%;
+	height: 100%;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
@@ -267,6 +266,7 @@
 	height: 36px;
 	flow-children: right;
 	horizontal-align: center;
+	vertical-align: middle;
 	padding-left: 12px;
 	padding-right: 12px;
 	margin-bottom: 4px;
@@ -340,6 +340,7 @@
 .FilterChipLabel
 {
 	width: 100%;
+	height: 100%;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
@@ -534,8 +535,8 @@
 	width: 100%;
 	height: 100%;
 	z-index: 1;
-	/* Valve .map-selection-btn__gradient (endofmatch-voting.css) */
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #00000020 ), to( #000000ff ) );
+	/* Clear through mid-tile; shadow ramps below for vote count + name. */
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #00000000 ), color-stop( 0.5, #00000000 ), color-stop( 0.7, #000000aa ), to( #000000ff ) );
 }
 
 .MapVotes

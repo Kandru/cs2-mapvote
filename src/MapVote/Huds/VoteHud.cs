@@ -416,8 +416,7 @@ namespace MapVote.Huds
                         .ThenBy(m => IndexOf(source, m))
                         .ToList(),
                     "favorites" => maps
-                        .OrderByDescending(m => favorites.Contains(m) ? 1 : 0)
-                        .ThenBy(m => IndexOf(source, m))
+                        .Where(m => favorites.Contains(m))
                         .ToList(),
                     _ => maps,
                 };
