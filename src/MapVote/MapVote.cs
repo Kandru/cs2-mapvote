@@ -84,18 +84,12 @@ namespace MapVote
 
         private void OnTick()
         {
-            CustomHud.OnTick();
-            // Only the empty-catalog → native transition is polled; custom is armed
-            // at map start / RTV / BeginVote.
-            if (!_nativeVoteArmed && !VoteBusy && !_catalog.IsLoading && _catalog.Maps.Count == 0)
+            if (!_voteActive && !_revealActive)
             {
-                ArmEngineVote();
+                return;
             }
 
-            if (_voteActive || _revealActive)
-            {
-                EngineVotePrep.ClearNativeVoteSlots();
-            }
+            CustomHud.OnTick();
         }
 
         private void LoadPersistence()

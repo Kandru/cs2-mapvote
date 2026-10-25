@@ -184,6 +184,21 @@ namespace MapVote.Huds
                 return;
             }
 
+            bool anyDirty = false;
+            for (int i = 0; i < MaxSlots; i++)
+            {
+                if (Dirty[i])
+                {
+                    anyDirty = true;
+                    break;
+                }
+            }
+
+            if (!anyDirty)
+            {
+                return;
+            }
+
             ForEachOpen(player =>
             {
                 if (player.Slot is >= 0 and < MaxSlots && Dirty[player.Slot])

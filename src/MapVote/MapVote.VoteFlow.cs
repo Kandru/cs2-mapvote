@@ -113,7 +113,7 @@ namespace MapVote
 
             _timing = VoteClock.Resolve(Config.Endmatch);
             ArmEngineVote();
-            EngineVotePrep.ClearNativeVoteSlots();
+            SuppressNativeVoteSlots();
 
             _session = new VoteSession(maps.Select(static m => m.Name).ToList());
             Dictionary<string, MapOrigin> origins = maps.ToDictionary(
@@ -139,6 +139,22 @@ namespace MapVote
             _openTimer?.Kill();
             _openTimer = AddTimer(_timing.OpenSeconds, () => BeginReveal(origins));
             PluginLog.Info($"vote started: {maps.Count} maps, open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s.");
+        }
+
+        /// <summary>
+        /// Blank native end-match vote slots now and once more next frame so a late
+        /// engine write after intermission cannot repopulate the Valve panel.
+        /// </summary>
+        private void SuppressNativeVoteSlots()
+        {
+            EngineVotePrep.ClearNativeVoteSlots();
+            Server.NextFrame(() =>
+            {
+                if (_voteActive || _revealActive)
+                {
+                    EngineVotePrep.ClearNativeVoteSlots();
+                }
+            });
         }
 
         private List<MapEntry> SelectCandidates()

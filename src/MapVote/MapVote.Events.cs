@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using MapVote.Huds;
 using MapVote.Players;
@@ -30,13 +31,20 @@ namespace MapVote
 
         private HookResult OnIntermission(EventCsIntermission @event, GameEventInfo info)
         {
-            if (!_voteActive && !_revealActive && _catalogWaitTimer is null)
+            // Let GoToIntermission finish writing native vote slots, then start ours.
+            Server.NextFrame(OnIntermissionNextFrame);
+            return HookResult.Continue;
+        }
+
+        private void OnIntermissionNextFrame()
+        {
+            if (_voteActive || _revealActive || _catalogWaitTimer is not null)
             {
-                PluginLog.Debug("intermission: starting vote");
-                StartVote();
+                return;
             }
 
-            return HookResult.Continue;
+            PluginLog.Debug("intermission: starting vote");
+            StartVote();
         }
 
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
