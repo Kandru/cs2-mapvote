@@ -51,12 +51,15 @@
     });
   };
 
+  const COLS = 10;
+  const ROW_COUNT = Math.ceil(SLOT / COLS);
+
   const clearTile = (tileId, shotId, voteVar, nameVar) => {
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
-    tile.classList.add("is-empty");
-    tile.classList.remove("is-mine", "is-winner");
+    tile.classList.add("is-off");
+    tile.classList.remove("is-self", "is-done");
     shot.className = "MapShot";
     shot.style.backgroundImage = "";
     setVar(voteVar, "");
@@ -68,12 +71,17 @@
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     const count = state.votes[map] || 0;
-    tile.classList.remove("is-empty");
-    tile.classList.toggle("is-mine", state.mine === map);
-    tile.classList.toggle("is-winner", state.winner === map);
+    tile.classList.remove("is-off");
+    tile.classList.toggle("is-self", state.mine === map);
+    tile.classList.toggle("is-done", state.winner === map);
     applyShot(shot, map);
     setVar(voteVar, String(count));
     setVar(nameVar, map);
+  };
+
+  const setLadder = (el, prefix, max, value) => {
+    if (!el) return;
+    for (let n = 0; n <= max; n++) el.classList.toggle(`${prefix}-${n}`, n === value);
   };
 
   const votedOrder = () => {
@@ -87,7 +95,15 @@
   const paint = () => {
     const voted = votedOrder();
     const row = document.getElementById("mv-voted-row");
-    if (row) row.classList.toggle("is-empty", voted.length === 0);
+    if (row) row.classList.toggle("is-off", voted.length === 0);
+    setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
+
+    const rowCount = state.maps.length === 0 ? 0 : Math.ceil(state.maps.length / COLS);
+    setLadder(document.getElementById("mv-catalog"), "rows", ROW_COUNT, rowCount);
+    for (let r = 0; r < ROW_COUNT; r++) {
+      const crow = document.getElementById(`mv-crow-${r}`);
+      if (crow) crow.classList.toggle("is-off", r >= rowCount);
+    }
 
     for (let i = 0; i < SLOT; i++) {
       if (i < voted.length) {
@@ -173,7 +189,7 @@
   bar.innerHTML = `
     <button type="button" data-act="reset">Reset demo</button>
     <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-note">CS2 vote cards · voted row + 10-across grid · maps/*.webp</span>
+    <span class="pv-note">CS2 vote cards · voted strip + catalog rows · maps/*.webp</span>
   `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {

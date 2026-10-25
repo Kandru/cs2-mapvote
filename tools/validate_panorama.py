@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -18,6 +19,7 @@ VOTE_XML = LAYOUTS / "vote.xml"
 VOTE_HUD_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteHud.cs"
 MAP_CATALOG_CS = ROOT / "src" / "MapVote" / "Maps" / "MapCatalog.cs"
 PREVIEW_HTML = ROOT / "workshop" / "preview" / "vote.html"
+GENERATE_XML = ROOT / "tools" / "generate_vote_xml.py"
 
 INCLUDE_RE = re.compile(r"s2r://panorama/styles/custom_game/mapvote/([A-Za-z0-9_]+\.vcss)")
 VAR_RE = re.compile(r"\{s:([A-Za-z0-9_]+)\}")
@@ -25,6 +27,7 @@ HIDDEN_CLASS = re.compile(r"(?<![\w-])(?:hidden|Hidden)(?![\w-])")
 PROPERTY_RE = re.compile(r"(?:^|[{;])\s*([a-z][a-z0-9-]*)\s*:", re.M)
 MV_MAP_CLASS_RE = re.compile(r"\.mv-map-([a-z0-9_]+)\s*\{([^}]*)\}", re.S)
 VTEX_FILE_RE = re.compile(r'"m_fileName"\s+"string"\s+"([^"]+)"')
+KEYFRAMES_RE = re.compile(r"@keyframes\s+([^{\s]+)")
 
 BAD_CSS = re.compile(
     r"(?:"
@@ -39,13 +42,17 @@ BAD_CSS = re.compile(
     r"|(?:[{;]|^)\s*background-blur\s*:"
     r"|(?:[{;]|^)\s*vertical-align\s*:\s*center\b"
     r"|(?:[{;]|^)\s*font-size\s*:\s*[0-9.]+[a-z%]+\b"
+    r"|flow-children\s*:\s*right-wrap\b"
+    r"|height\s*:\s*width-percentage\b"
+    r"|pre-transform-scale2d\s*:"
     r")",
     re.I | re.M,
 )
 REJECTED_ATTRS = frozenset({"texturewidth", "textureheight", "style", "onactivate", "hittestchildren"})
-ALLOWED_TAGS = frozenset({"root", "styles", "include", "snippets", "Panel", "Label", "Image", "Button"})
+ALLOWED_TAGS = frozenset({"root", "styles", "include", "snippets", "Panel", "Label", "Button"})
 ALLOWED_ATTRS = frozenset({"id", "class", "hittest", "text", "src"})
 
+# Ruleset §5.1 — custom_hud_layout subset (stuff/PANORAMA_RULESET.md).
 KNOWN_PROPS = frozenset(
     {
         "width",
@@ -78,6 +85,7 @@ KNOWN_PROPS = frozenset(
         "border-right",
         "border-bottom",
         "border-left",
+        "border-color",
         "border-radius",
         "box-shadow",
         "color",
@@ -88,20 +96,16 @@ KNOWN_PROPS = frozenset(
         "text-align",
         "text-transform",
         "text-overflow",
-        "text-shadow",
         "white-space",
-        "line-height",
         "opacity",
         "brightness",
-        "saturation",
-        "contrast",
         "wash-color",
-        "blur",
         "world-blur",
         "visibility",
         "overflow",
         "z-index",
         "transform",
+        "clip",
         "transition-property",
         "transition-duration",
         "transition-timing-function",
@@ -113,16 +117,8 @@ KNOWN_PROPS = frozenset(
         "animation-iteration-count",
         "animation-delay",
         "ignore-parent-flow",
-        "tooltip-position",
+        "cursor",
         "sound",
-        "sound-optical",
-        "sound-pulse",
-        "img-shadow",
-        "ui-scale",
-        "pre-transform-scale2d",
-        "clip",
-        "hue-rotation",
-        "opacity-brush",
     }
 )
 
@@ -150,6 +146,8 @@ def collect_errors() -> list[str]:
         return [f"missing {VOTE_HUD_CS.relative_to(ROOT)}"]
 
     slot_count = csharp_const_int(VOTE_HUD_CS, "SlotCount")
+    catalog_cols = csharp_const_int(VOTE_HUD_CS, "CatalogCols")
+    catalog_rows = csharp_const_int(VOTE_HUD_CS, "CatalogRowCount")
     root_panel = csharp_const_string(VOTE_HUD_CS, "Panel")
 
     if MAP_CATALOG_CS.is_file():
@@ -159,11 +157,22 @@ def collect_errors() -> list[str]:
                 f"MapCatalog.MaxMaps ({max_maps}) must equal VoteHud.SlotCount ({slot_count})"
             )
 
+    expected_rows = (slot_count + catalog_cols - 1) // catalog_cols
+    if catalog_rows != expected_rows:
+        errors.append(
+            f"VoteHud.CatalogRowCount ({catalog_rows}) must equal "
+            f"ceil(SlotCount/CatalogCols) ({expected_rows})"
+        )
+
     expected_ids = {
         root_panel,
         "mv-grid",
         "mv-voted-row",
+        "mv-voted-strip",
+        "mv-catalog",
     }
+    for r in range(catalog_rows):
+        expected_ids.add(f"mv-crow-{r}")
     for i in range(slot_count):
         expected_ids.update(
             {
@@ -183,6 +192,17 @@ def collect_errors() -> list[str]:
         | {f"vn{i}" for i in range(slot_count)}
     )
 
+    if GENERATE_XML.is_file():
+        check = subprocess.run(
+            [sys.executable, str(GENERATE_XML), "--check"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if check.returncode != 0:
+            msg = (check.stderr or check.stdout or "vote.xml out of date").strip()
+            errors.append(msg)
+
     if not HUD_VCSS.is_file():
         errors.append(f"missing {HUD_VCSS.relative_to(ROOT)}")
     else:
@@ -199,19 +219,33 @@ def collect_errors() -> list[str]:
         for prop in PROPERTY_RE.findall(css):
             if prop not in KNOWN_PROPS:
                 errors.append(f"hud.vcss: unknown/unsupported property {prop!r}")
+        for m in KEYFRAMES_RE.finditer(css):
+            name = m.group(1)
+            if not (name.startswith("'") and name.endswith("'")) and not (
+                name.startswith('"') and name.endswith('"')
+            ):
+                line = css.count("\n", 0, m.start()) + 1
+                errors.append(f"hud.vcss:~{line}: @keyframes name must be quoted ({name!r})")
+
         for req in (
-            ".ph-off",
-            ".ph-card",
-            ".mv-bg",
+            ".is-off",
+            ".is-fading",
+            ".mv-glass",
+            ".mv-scrim-top",
+            ".mv-scrim-bottom",
             ".MapTile",
             ".MapShot",
             ".MapFade",
             ".MapGrid",
             ".VotedRow",
-            ".is-empty",
-            ".is-mine",
-            ".is-winner",
+            ".VotedStrip",
+            ".MapCatalog",
+            ".CatalogRow",
+            ".is-self",
+            ".is-done",
             ".mv-map-default",
+            ".vw-0",
+            ".rows-0",
         ):
             if req not in css_raw:
                 errors.append(f"hud.vcss: missing required selector/class {req}")
@@ -263,6 +297,18 @@ def collect_errors() -> list[str]:
                 errors.append(f"vote.xml: rejected attr {attr!r}")
         if tag == "Button" and "hittest" in el.attrib:
             errors.append("vote.xml: do not set hittest on Button")
+        if tag == "Panel" and el.attrib.get("hittest") != "false":
+            # Only panels that exist in the tree; Buttons are separate.
+            if "id" in el.attrib or "class" in el.attrib:
+                errors.append(
+                    f"vote.xml: Panel must have hittest=\"false\" "
+                    f"(id={el.attrib.get('id')!r})"
+                )
+        if tag == "Label" and el.attrib.get("hittest") != "false":
+            errors.append(
+                f"vote.xml: Label must have hittest=\"false\" "
+                f"(id={el.attrib.get('id')!r})"
+            )
         if tag == "include":
             src = el.attrib.get("src", "")
             m = INCLUDE_RE.search(src)
@@ -287,8 +333,8 @@ def collect_errors() -> list[str]:
         errors.append(f"vote.xml: missing root card id={root_panel!r}")
     else:
         classes = card.attrib.get("class", "").split()
-        if "ph-off" not in classes:
-            errors.append(f"vote.xml: #{root_panel} must start with ph-off")
+        if "is-off" not in classes:
+            errors.append(f"vote.xml: #{root_panel} must start with is-off")
 
     if "hud.vcss" not in includes:
         errors.append("vote.xml: must include mapvote/hud.vcss")

@@ -30,7 +30,7 @@ TEXT_SHADOW_RE = re.compile(
     r"text-shadow:\s*((?:#[0-9a-fA-F]+\s+-?[\d.]+px\s+-?[\d.]+px(?:\s+-?[\d.]+px)?\s*,?\s*)+);"
 )
 FONT_SIZE_RE = re.compile(r"font-size:\s*([0-9.]+)\s*;")
-BLUR_RE = re.compile(r"blur:\s*gaussian\(\s*([0-9.]+)\s*\)\s*;")
+BLUR_RE = re.compile(r"(?<![-\w])blur:\s*gaussian\(\s*([0-9.]+)\s*\)\s*;")
 WORLD_BLUR_RE = re.compile(r"world-blur:\s*[^;]+;")
 WASH_RE = re.compile(r"wash-color:\s*[^;]+;")
 SAT_RE = re.compile(r"saturation:\s*([0-9.]+)\s*;")
@@ -81,8 +81,8 @@ def translate_css(text: str) -> str:
     t = BOX_SHADOW_RE.sub(lambda m: f"box-shadow:{m.group(2)} {m.group(1)};", t)
     t = TEXT_SHADOW_RE.sub(lambda m: translate_text_shadow(m.group(1)), t)
     t = FONT_SIZE_RE.sub(r"font-size: \1px;", t)
-    t = BLUR_RE.sub(r"filter: blur(\1px);", t)
     t = WORLD_BLUR_RE.sub("backdrop-filter: blur(10px);", t)
+    t = BLUR_RE.sub(r"filter: blur(\1px);", t)
     t = WASH_RE.sub("", t)
     t = SOUND_RE.sub("", t)
     t = IMG_SHADOW_RE.sub("", t)
@@ -206,15 +206,24 @@ button {
   position: relative;
   height: 100%;
 }
-.VoteRoot.ph-off {
+.VoteRoot.is-off {
   /* Preview forces the card visible; game starts closed. */
+  display: block !important;
   opacity: 1 !important;
-  transform: none !important;
+}
+.VoteColumn {
+  position: relative;
+  z-index: 1;
+  height: 100%;
 }
 .VoteBody {
   position: relative;
   z-index: 1;
-  height: 100%;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.MapCatalog {
   max-width: 1420px;
   margin-left: auto;
   margin-right: auto;
@@ -223,18 +232,39 @@ button {
   overflow-x: auto;
   overflow-y: hidden;
   flex: 0 0 auto;
+  scrollbar-width: thin;
+}
+.VotedStrip {
+  display: flex;
+  flex-direction: row;
   flex-wrap: nowrap;
+  margin-left: auto;
+  margin-right: auto;
 }
 .MapGrid {
   overflow-y: auto;
   overflow-x: hidden;
-  align-content: flex-start;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.MapCatalog {
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+}
+.CatalogRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
 }
 .MapTile {
   position: relative;
   flex: 0 0 auto;
   box-sizing: border-box;
   width: 110px;
+  height: 193px;
   overflow: hidden;
 }
 .MapShot,
@@ -246,8 +276,17 @@ button {
 .MapShot {
   z-index: 0;
   transform-origin: center center;
+  background-size: auto 100% !important;
+  background-position: 50% 50% !important;
+  background-repeat: no-repeat !important;
 }
 .MapFade { z-index: 1; }
+.mv-scrim-top,
+.mv-scrim-bottom {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
 .MapVotes,
 .MapName {
   position: absolute;
@@ -256,7 +295,15 @@ button {
   z-index: 2;
   pointer-events: none;
 }
-.MapVotes { bottom: 40px; }
+.MapVotes {
+  bottom: 40px;
+  color: #ff9a1a !important;
+  font-weight: 700 !important;
+  font-size: 26px !important;
+}
+.MapFade {
+  background: linear-gradient(to bottom, #00000000 0%, #00000040 35%, #000000cc 65%, #000000ff 100%) !important;
+}
 .MapName {
   bottom: 6px;
   left: 5%;
@@ -304,7 +351,8 @@ button {
 }
 .pv-bar button:hover { background: #ffffff1c; }
 .pv-bar .pv-note { opacity: 0.85; }
-.is-empty { display: none !important; }
+.is-off { display: none !important; }
+.VoteRoot.is-off { display: block !important; }
 """
 
 VOTE_JS = r"""(() => {
@@ -360,12 +408,15 @@ VOTE_JS = r"""(() => {
     });
   };
 
+  const COLS = 10;
+  const ROW_COUNT = Math.ceil(SLOT / COLS);
+
   const clearTile = (tileId, shotId, voteVar, nameVar) => {
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
-    tile.classList.add("is-empty");
-    tile.classList.remove("is-mine", "is-winner");
+    tile.classList.add("is-off");
+    tile.classList.remove("is-self", "is-done");
     shot.className = "MapShot";
     shot.style.backgroundImage = "";
     setVar(voteVar, "");
@@ -377,12 +428,17 @@ VOTE_JS = r"""(() => {
     const shot = document.getElementById(shotId);
     if (!tile || !shot) return;
     const count = state.votes[map] || 0;
-    tile.classList.remove("is-empty");
-    tile.classList.toggle("is-mine", state.mine === map);
-    tile.classList.toggle("is-winner", state.winner === map);
+    tile.classList.remove("is-off");
+    tile.classList.toggle("is-self", state.mine === map);
+    tile.classList.toggle("is-done", state.winner === map);
     applyShot(shot, map);
     setVar(voteVar, String(count));
     setVar(nameVar, map);
+  };
+
+  const setLadder = (el, prefix, max, value) => {
+    if (!el) return;
+    for (let n = 0; n <= max; n++) el.classList.toggle(`${prefix}-${n}`, n === value);
   };
 
   const votedOrder = () => {
@@ -396,7 +452,15 @@ VOTE_JS = r"""(() => {
   const paint = () => {
     const voted = votedOrder();
     const row = document.getElementById("mv-voted-row");
-    if (row) row.classList.toggle("is-empty", voted.length === 0);
+    if (row) row.classList.toggle("is-off", voted.length === 0);
+    setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
+
+    const rowCount = state.maps.length === 0 ? 0 : Math.ceil(state.maps.length / COLS);
+    setLadder(document.getElementById("mv-catalog"), "rows", ROW_COUNT, rowCount);
+    for (let r = 0; r < ROW_COUNT; r++) {
+      const crow = document.getElementById(`mv-crow-${r}`);
+      if (crow) crow.classList.toggle("is-off", r >= rowCount);
+    }
 
     for (let i = 0; i < SLOT; i++) {
       if (i < voted.length) {
@@ -482,7 +546,7 @@ VOTE_JS = r"""(() => {
   bar.innerHTML = `
     <button type="button" data-act="reset">Reset demo</button>
     <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-note">CS2 vote cards · voted row + 10-across grid · maps/*.webp</span>
+    <span class="pv-note">CS2 vote cards · voted strip + catalog rows · maps/*.webp</span>
   `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {

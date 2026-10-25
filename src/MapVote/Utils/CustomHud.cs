@@ -63,10 +63,10 @@ namespace MapVote.Utils
             bool wasVisible = set.Contains(panelId);
             set.Add(panelId);
             ClearClosingRoot(player.Slot);
-            SetHasClass(player, panelId, "ph-off", false);
+            SetHasClass(player, panelId, "is-off", false);
             if (wasVisible)
             {
-                SetHasClass(player, panelId, "ph-fading", false);
+                SetHasClass(player, panelId, "is-fading", false);
             }
             else
             {
@@ -81,7 +81,7 @@ namespace MapVote.Utils
                 return;
             }
 
-            SetHasClass(player, panelId, "ph-fading", true);
+            SetHasClass(player, panelId, "is-fading", true);
             MarkClosingRoot(player.Slot);
             ForgetVisible(player.Slot, panelId);
         }
@@ -180,14 +180,14 @@ namespace MapVote.Utils
 
         private static void ScheduleFadeIn(CCSPlayerController player, string panelId)
         {
-            SetHasClass(player, panelId, "ph-fading", true);
+            SetHasClass(player, panelId, "is-fading", true);
             int slot = player.Slot;
             string id = panelId;
             Server.NextFrame(() =>
             {
                 if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } live && IsPanelVisible(live, id))
                 {
-                    SetHasClass(live, id, "ph-fading", false);
+                    SetHasClass(live, id, "is-fading", false);
                 }
             });
         }

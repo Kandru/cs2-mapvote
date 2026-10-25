@@ -19,7 +19,8 @@ HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game"
 CSS_BEGIN = "/* BEGIN mv-map-palette */"
 CSS_END = "/* END mv-map-palette */"
 
-# Final HUD thumb size: 350px wide, 16:9 (matches .MapTile).
+# Source thumb size: 350×197 (16:9). The HUD covers by full tile height (193px)
+# and centers — see .MapShot background-size in hud.vcss (no stretch).
 TARGET_WIDTH = 350
 TARGET_HEIGHT = 197  # round(350 * 9 / 16)
 DEFAULT_STEM = "default"

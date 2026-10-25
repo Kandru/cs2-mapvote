@@ -62,8 +62,8 @@ namespace MapVote.Utils
                 ClosingRootsBySlot.Remove(slot);
                 if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player)
                 {
-                    SetHasClass(player, VoteHud.Panel, "ph-off", true);
-                    SetHasClass(player, VoteHud.Panel, "ph-fading", false);
+                    SetHasClass(player, VoteHud.Panel, "is-off", true);
+                    SetHasClass(player, VoteHud.Panel, "is-fading", false);
                 }
             }
         }

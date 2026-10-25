@@ -8,16 +8,22 @@ namespace MapVote.Huds
     {
         public const string Panel = "Vote";
         public const int SlotCount = 50;
+        public const int CatalogCols = 10;
+        public const int CatalogRowCount = 5; // ceil(SlotCount / CatalogCols)
 
         private static VoteSession? _session;
         private static bool _revealing;
         private static string? _winner;
+        private static readonly int[] LastVotedWidth = new int[65];
+        private static readonly int[] LastCatalogRows = new int[65];
 
         public static void Bind(VoteSession session)
         {
             _session = session;
             _revealing = false;
             _winner = null;
+            Array.Fill(LastVotedWidth, -1);
+            Array.Fill(LastCatalogRows, -1);
         }
 
         public static void Clear()
@@ -25,11 +31,26 @@ namespace MapVote.Huds
             _session = null;
             _revealing = false;
             _winner = null;
+            Array.Fill(LastVotedWidth, -1);
+            Array.Fill(LastCatalogRows, -1);
         }
 
         public static void WriteDefaults(CCSPlayerController player)
         {
-            CustomHud.SetHasClass(player, "mv-voted-row", "is-empty", true);
+            if (player.Slot is >= 0 and < LastVotedWidth.Length)
+            {
+                LastVotedWidth[player.Slot] = -1;
+                LastCatalogRows[player.Slot] = -1;
+            }
+
+            CustomHud.SetHasClass(player, "mv-voted-row", "is-off", true);
+            SetVotedWidth(player, 0);
+            SetCatalogRows(player, 0);
+            for (int r = 0; r < CatalogRowCount; r++)
+            {
+                CustomHud.SetHasClass(player, $"mv-crow-{r}", "is-off", true);
+            }
+
             for (int i = 0; i < SlotCount; i++)
             {
                 PaintEmpty(player, Pool.Voted, i);
@@ -71,9 +92,19 @@ namespace MapVote.Huds
                 : null;
 
             IReadOnlyList<string> voted = _session.VotedOrder();
-            CustomHud.SetHasClass(player, "mv-voted-row", "is-empty", voted.Count == 0);
+            CustomHud.SetHasClass(player, "mv-voted-row", "is-off", voted.Count == 0);
+            SetVotedWidth(player, voted.Count);
             PaintPool(player, Pool.Voted, voted, mine);
-            PaintPool(player, Pool.Grid, _session.GridOrder(), mine);
+
+            IReadOnlyList<string> grid = _session.GridOrder();
+            int rowCount = grid.Count == 0 ? 0 : (grid.Count + CatalogCols - 1) / CatalogCols;
+            SetCatalogRows(player, rowCount);
+            for (int r = 0; r < CatalogRowCount; r++)
+            {
+                CustomHud.SetHasClass(player, $"mv-crow-{r}", "is-off", r >= rowCount);
+            }
+
+            PaintPool(player, Pool.Grid, grid, mine);
         }
 
         public static void BeginReveal(string winner, int votes)
@@ -126,6 +157,44 @@ namespace MapVote.Huds
         {
         }
 
+        private static void SetVotedWidth(CCSPlayerController player, int count)
+        {
+            int n = Math.Clamp(count, 0, SlotCount);
+            int slot = player.Slot;
+            int prev = LastVotedWidth[slot];
+            if (prev == n)
+            {
+                return;
+            }
+
+            if (prev >= 0)
+            {
+                CustomHud.SetHasClass(player, "mv-voted-strip", $"vw-{prev}", false);
+            }
+
+            CustomHud.SetHasClass(player, "mv-voted-strip", $"vw-{n}", true);
+            LastVotedWidth[slot] = n;
+        }
+
+        private static void SetCatalogRows(CCSPlayerController player, int rowCount)
+        {
+            int n = Math.Clamp(rowCount, 0, CatalogRowCount);
+            int slot = player.Slot;
+            int prev = LastCatalogRows[slot];
+            if (prev == n)
+            {
+                return;
+            }
+
+            if (prev >= 0)
+            {
+                CustomHud.SetHasClass(player, "mv-catalog", $"rows-{prev}", false);
+            }
+
+            CustomHud.SetHasClass(player, "mv-catalog", $"rows-{n}", true);
+            LastCatalogRows[slot] = n;
+        }
+
         private static void PaintPool(
             CCSPlayerController player,
             Pool pool,
@@ -154,9 +223,9 @@ namespace MapVote.Huds
             string? mine)
         {
             string tileId = TileId(pool, index);
-            CustomHud.SetHasClass(player, tileId, "is-empty", false);
-            CustomHud.SetHasClass(player, tileId, "is-mine", mine == map);
-            CustomHud.SetHasClass(player, tileId, "is-winner", _winner == map);
+            CustomHud.SetHasClass(player, tileId, "is-off", false);
+            CustomHud.SetHasClass(player, tileId, "is-self", mine == map);
+            CustomHud.SetHasClass(player, tileId, "is-done", _winner == map);
             CustomHud.SetText(player, Panel, VoteVar(pool, index), votes.ToString());
             CustomHud.SetText(player, Panel, NameVar(pool, index), map);
             CustomHud.SetMapImage(player, ShotId(pool, index), map);
@@ -165,9 +234,9 @@ namespace MapVote.Huds
         private static void PaintEmpty(CCSPlayerController player, Pool pool, int index)
         {
             string tileId = TileId(pool, index);
-            CustomHud.SetHasClass(player, tileId, "is-empty", true);
-            CustomHud.SetHasClass(player, tileId, "is-mine", false);
-            CustomHud.SetHasClass(player, tileId, "is-winner", false);
+            CustomHud.SetHasClass(player, tileId, "is-off", true);
+            CustomHud.SetHasClass(player, tileId, "is-self", false);
+            CustomHud.SetHasClass(player, tileId, "is-done", false);
             CustomHud.SetText(player, Panel, VoteVar(pool, index), string.Empty);
             CustomHud.SetText(player, Panel, NameVar(pool, index), string.Empty);
             CustomHud.SetMapImage(player, ShotId(pool, index), null);
@@ -193,9 +262,15 @@ namespace MapVote.Huds
             const string votedPrefix = "mv-voted-";
             if (buttonId.StartsWith(votedPrefix, StringComparison.Ordinal))
             {
+                // Ignore non-tile ids under the voted prefix (e.g. mv-voted-shot-0).
+                ReadOnlySpan<char> rest = buttonId.AsSpan(votedPrefix.Length);
+                if (rest.IsEmpty || !char.IsAsciiDigit(rest[0]))
+                {
+                    return false;
+                }
+
                 pool = Pool.Voted;
-                return int.TryParse(buttonId.AsSpan(votedPrefix.Length), out index)
-                    && index is >= 0 and < SlotCount;
+                return int.TryParse(rest, out index) && index is >= 0 and < SlotCount;
             }
 
             if (!buttonId.StartsWith("mv-", StringComparison.Ordinal)

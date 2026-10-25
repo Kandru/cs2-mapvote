@@ -172,8 +172,8 @@ namespace MapVote.Utils
                 }
             }
 
-            SetHasClass(player, VoteHud.Panel, "ph-fading", false);
-            SetHasClass(player, VoteHud.Panel, "ph-off", true);
+            SetHasClass(player, VoteHud.Panel, "is-fading", false);
+            SetHasClass(player, VoteHud.Panel, "is-off", true);
             MarkClosingRoot(slot);
             VoteHud.WriteDefaults(player);
             ClearSlotCaches(slot);

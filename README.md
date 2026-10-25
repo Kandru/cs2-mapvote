@@ -2,7 +2,7 @@
 
 Fullscreen Panorama end-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/).
 
-Players see a fullscreen CS2 end-of-match map vote: Valve portrait cards (110×175%, ~10 across), a top row of maps that already have votes, then a wrapping catalog that scrolls when needed. Vote counts are orange (count only). Unused slots stay collapsed. The game clock is left alone. On lock, the winning tile shows a green check, then the plugin changes the map.
+Players see a fullscreen CS2 end-of-match map vote: Valve portrait cards (110×193px, ~10 across), a top row of maps that already have votes (sorted by count), then a scrollable catalog in rows of 10. Unused slots stay collapsed. The overlay is transparent with a light frost. The game clock is left alone. On lock, the winning tile shows a green check, then the plugin changes the map.
 
 ## Requirements
 
@@ -49,7 +49,7 @@ Vote duration is `floor(mp_endmatch_votenextleveltime) - reveal_seconds`, with f
 
 ## Workshop layout
 
-Copy `workshop/content/` into your `csgo_addons/<addon>/` tree. Rename `vote.xml` → `vote_v1.vxml` to match `PanoramaVersion` in `Version.cs`, and point the stylesheet include at the versioned name if you version styles as well.
+Copy `workshop/content/` into your `csgo_addons/<addon>/` tree. Rename `vote.xml` → `vote_v2.vxml` to match `PanoramaVersion` in `Version.cs`, and point the stylesheet include at the versioned name if you version styles as well. Panorama binding rules live in `stuff/PANORAMA_RULESET.md`.
 
 ## Commands
 
