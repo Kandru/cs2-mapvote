@@ -17,9 +17,11 @@ HUD_VCSS = STYLES / "hud.vcss"
 HUD_CSS = STYLES / "hud.css"
 VOTE_XML = LAYOUTS / "vote.xml"
 VOTE_HUD_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteHud.cs"
+VOTE_IDS_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteIds.cs"
 MAP_CATALOG_CS = ROOT / "src" / "MapVote" / "Maps" / "MapCatalog.cs"
 PREVIEW_HTML = ROOT / "workshop" / "preview" / "vote.html"
 GENERATE_XML = ROOT / "tools" / "generate_vote_xml.py"
+CREDIT_TEXT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 
 INCLUDE_RE = re.compile(r"s2r://panorama/styles/custom_game/mapvote/([A-Za-z0-9_]+\.vcss)")
 VAR_RE = re.compile(r"\{s:([A-Za-z0-9_]+)\}")
@@ -142,49 +144,59 @@ def csharp_const_string(path: Path, name: str) -> str:
 def collect_errors() -> list[str]:
     errors: list[str] = []
 
+    if not VOTE_IDS_CS.is_file():
+        return [f"missing {VOTE_IDS_CS.relative_to(ROOT)}"]
     if not VOTE_HUD_CS.is_file():
         return [f"missing {VOTE_HUD_CS.relative_to(ROOT)}"]
 
-    slot_count = csharp_const_int(VOTE_HUD_CS, "SlotCount")
-    catalog_cols = csharp_const_int(VOTE_HUD_CS, "CatalogCols")
-    catalog_rows = csharp_const_int(VOTE_HUD_CS, "CatalogRowCount")
-    root_panel = csharp_const_string(VOTE_HUD_CS, "Panel")
+    slot_count = csharp_const_int(VOTE_IDS_CS, "SlotCount")
+    catalog_cols = csharp_const_int(VOTE_IDS_CS, "CatalogCols")
+    catalog_rows = csharp_const_int(VOTE_IDS_CS, "CatalogRowCount")
+    filter_types = csharp_const_int(VOTE_IDS_CS, "FilterTypeSlots")
+    filter_sorts = csharp_const_int(VOTE_IDS_CS, "FilterSortSlots")
+    root_panel = csharp_const_string(VOTE_IDS_CS, "Root")
 
     if MAP_CATALOG_CS.is_file():
         max_maps = csharp_const_int(MAP_CATALOG_CS, "MaxMaps")
         if max_maps != slot_count:
             errors.append(
-                f"MapCatalog.MaxMaps ({max_maps}) must equal VoteHud.SlotCount ({slot_count})"
+                f"MapCatalog.MaxMaps ({max_maps}) must equal VoteIds.SlotCount ({slot_count})"
             )
 
     expected_rows = (slot_count + catalog_cols - 1) // catalog_cols
     if catalog_rows != expected_rows:
         errors.append(
-            f"VoteHud.CatalogRowCount ({catalog_rows}) must equal "
+            f"VoteIds.CatalogRowCount ({catalog_rows}) must equal "
             f"ceil(SlotCount/CatalogCols) ({expected_rows})"
         )
 
     expected_ids = {
         root_panel,
         "mv-minimize",
-        "mv-grid",
         "mv-voted-section",
-        "mv-voted-row",
         "mv-voted-hint",
         "mv-voted-strip",
+        "mv-filters",
+        "mv-empty",
         "mv-catalog",
     }
     for r in range(catalog_rows):
         expected_ids.add(f"mv-crow-{r}")
+    for i in range(filter_types):
+        expected_ids.add(f"mv-ft-{i}")
+    for i in range(filter_sorts):
+        expected_ids.add(f"mv-fs-{i}")
     for i in range(slot_count):
         expected_ids.update(
             {
+                f"mv-slot-{i}",
                 f"mv-{i}",
                 f"mv-shot-{i}",
-                f"mv-votes-{i}",
+                f"mv-fav-{i}",
+                f"mv-voted-slot-{i}",
                 f"mv-voted-{i}",
                 f"mv-voted-shot-{i}",
-                f"mv-voted-votes-{i}",
+                f"mv-voted-fav-{i}",
             }
         )
 
@@ -193,7 +205,9 @@ def collect_errors() -> list[str]:
         | {f"n{i}" for i in range(slot_count)}
         | {f"vv{i}" for i in range(slot_count)}
         | {f"vn{i}" for i in range(slot_count)}
-        | {"mv_title", "mv_hint"}
+        | {f"ft{i}" for i in range(filter_types)}
+        | {f"fs{i}" for i in range(filter_sorts)}
+        | {"mv_title", "mv_hint", "mv_chip", "mv_empty"}
     )
 
     if GENERATE_XML.is_file():
@@ -237,6 +251,7 @@ def collect_errors() -> list[str]:
             ".mv-glass",
             ".mv-scrim-top",
             ".mv-scrim-bottom",
+            ".MapSlot",
             ".MapTile",
             ".MapShot",
             ".MapFade",
@@ -244,6 +259,12 @@ def collect_errors() -> list[str]:
             ".VotedSection",
             ".VotedRow",
             ".VotedStrip",
+            ".FilterBar",
+            ".FilterChip",
+            ".FavBtn",
+            ".FavIcon",
+            ".CreditBar",
+            ".CreditLabel",
             ".MapGridHost",
             ".MapGridFadeTop",
             ".MapCatalog",
@@ -326,6 +347,15 @@ def collect_errors() -> list[str]:
             found_ids.add(pid)
         text = el.attrib.get("text", "")
         found_vars.update(VAR_RE.findall(text))
+        if tag == "Label" and text:
+            if not VAR_RE.fullmatch(text.strip()) and text != CREDIT_TEXT:
+                errors.append(
+                    f"vote.xml: Label text must be {{s:…}} or the credit sentence "
+                    f"(got {text!r})"
+                )
+
+    if CREDIT_TEXT not in VOTE_XML.read_text(encoding="utf-8"):
+        errors.append(f"vote.xml: missing credit footer text {CREDIT_TEXT!r}")
 
     for child in list(root):
         if child.tag == "Panel" and "id" in child.attrib:

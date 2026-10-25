@@ -1,5 +1,19 @@
 {
   "rtv.already": "Du hast bereits für RTV gestimmt.",
   "rtv.progress": "RTV: {0}/{1}",
-  "rtv.success": "RTV erfolgreich — Match endet für die Map-Abstimmung."
+  "rtv.success": "RTV erfolgreich — Match endet für die Map-Abstimmung.",
+  "hud.title": "Stimme für die nächste Map",
+  "hud.winner": "Gewinnende Map",
+  "hud.hint": "Gib die erste Stimme ab",
+  "hud.chip": "Map-Vote",
+  "hud.empty": "Keine Maps für diesen Filter",
+  "filter.all": "Alle",
+  "filter.bomb": "Bomb",
+  "filter.hostage": "Hostage",
+  "filter.arms_race": "Arms Race",
+  "filter.danger_zone": "Danger Zone",
+  "filter.other": "Andere",
+  "sort.most_played": "Meist gespielt",
+  "sort.least_played": "Wenig gespielt",
+  "sort.favorites": "Favoriten"
 }

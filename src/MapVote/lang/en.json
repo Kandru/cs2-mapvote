@@ -1,5 +1,19 @@
 {
   "rtv.already": "You already voted to rock the vote.",
   "rtv.progress": "RTV: {0}/{1}",
-  "rtv.success": "RTV passed — ending the match for a map vote."
+  "rtv.success": "RTV passed — ending the match for a map vote.",
+  "hud.title": "Vote for the next map",
+  "hud.winner": "Winning map",
+  "hud.hint": "Cast the first vote",
+  "hud.chip": "Map Vote",
+  "hud.empty": "No maps match this filter",
+  "filter.all": "All",
+  "filter.bomb": "Bomb",
+  "filter.hostage": "Hostage",
+  "filter.arms_race": "Arms Race",
+  "filter.danger_zone": "Danger Zone",
+  "filter.other": "Other",
+  "sort.most_played": "Most played",
+  "sort.least_played": "Least played",
+  "sort.favorites": "Favorites"
 }

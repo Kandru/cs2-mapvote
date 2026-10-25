@@ -23,6 +23,20 @@ namespace MapVote.Utils
         private static readonly Dictionary<int, Dictionary<string, Dictionary<string, string>>> TextBySlot = [];
         private static readonly Dictionary<int, Dictionary<string, string>> ImageClassBySlot = [];
 
+        private static bool _budgetActive;
+        private static int _writes;
+
+        /// <summary>Native Set* calls since the last <see cref="BeginWriteBudget"/>.</summary>
+        public static int Writes => _writes;
+
+        public static void BeginWriteBudget()
+        {
+            _budgetActive = true;
+            _writes = 0;
+        }
+
+        public static void EndWriteBudget() => _budgetActive = false;
+
         public static bool IsPanelVisible(CCSPlayerController player, string panelId) =>
             player is { IsValid: true }
             && VisibleBySlot.TryGetValue(player.Slot, out HashSet<string>? set)
@@ -106,6 +120,7 @@ namespace MapVote.Utils
 
             hud.SetDialogVariableStringForPlayer(player, panelId, name, text);
             SetCached(TextBySlot, player.Slot, panelId, name, text);
+            NoteWrite();
         }
 
         public static bool SetHasClass(CCSPlayerController player, string panelId, string className, bool enabled)
@@ -127,7 +142,16 @@ namespace MapVote.Utils
 
             hud.SetHasClassForPlayer(player, panelId, className, enabled);
             SetCached(ClassBySlot, player.Slot, panelId, className, enabled);
+            NoteWrite();
             return true;
+        }
+
+        private static void NoteWrite()
+        {
+            if (_budgetActive)
+            {
+                _writes++;
+            }
         }
 
         public static void SetMapImage(CCSPlayerController player, string imagePanelId, string? mapName)

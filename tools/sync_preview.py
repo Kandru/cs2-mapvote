@@ -21,7 +21,7 @@ TAGS = {"Panel": "div", "Label": "div", "Button": "button", "Image": "div"}
 MAP_IMAGE_RE = re.compile(
     r'url\(\s*"s2r://panorama/images/custom_game/mapvote/maps/([A-Za-z0-9_]+)\.vtex"\s*\)'
 )
-OTHER_S2R_RE = re.compile(r'url\(\s*"s2r://[^"]+"\s*\)')
+S2R_URL_RE = re.compile(r'url\(\s*"s2r://([^"]+)"\s*\)')
 GRADIENT_RE = re.compile(r"gradient\(\s*(?:linear|radial)\s*,([^;]*?)\)\s*;", re.I)
 BOX_SHADOW_RE = re.compile(
     r"box-shadow:\s*(#[0-9a-fA-F]+)((?:\s+-?[\d.]+px){2,4})\s*;"
@@ -30,6 +30,7 @@ TEXT_SHADOW_RE = re.compile(
     r"text-shadow:\s*((?:#[0-9a-fA-F]+\s+-?[\d.]+px\s+-?[\d.]+px(?:\s+-?[\d.]+px)?\s*,?\s*)+);"
 )
 FONT_SIZE_RE = re.compile(r"font-size:\s*([0-9.]+)\s*;")
+FONT_FAMILY_RE = re.compile(r"font-family:\s*([^;]+);")
 BLUR_RE = re.compile(r"(?<![-\w])blur:\s*gaussian\(\s*([0-9.]+)\s*\)\s*;")
 WORLD_BLUR_RE = re.compile(r"world-blur:\s*[^;]+;")
 WASH_RE = re.compile(r"wash-color:\s*[^;]+;")
@@ -40,6 +41,9 @@ IGNORE_FLOW_RE = re.compile(r"ignore-parent-flow:\s*[^;]+;")
 IMG_SHADOW_RE = re.compile(r"img-shadow:\s*[^;]+;")
 PRE_SCALE_RE = re.compile(
     r"pre-transform-scale2d:\s*([0-9.]+)\s*,\s*([0-9.]+)\s*;"
+)
+SCALE3D_RE = re.compile(
+    r"transform:\s*scale3d\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*[0-9.]+\s*\)\s*;"
 )
 OVERFLOW_RE = re.compile(r"overflow:\s*([^;]+);")
 FIT_CHILDREN_RE = re.compile(r"(width|height):\s*fit-children\s*;")
@@ -55,13 +59,57 @@ HORIZ_RIGHT_RE = re.compile(r"horizontal-align:\s*right\s*;")
 HORIZ_LEFT_RE = re.compile(r"horizontal-align:\s*left\s*;")
 BG_IMG_OPACITY_RE = re.compile(r"background-img-opacity:\s*([0-9.]+)\s*;")
 
+# Stand-ins for stock Valve icons referenced by the HUD (browser cannot load s2r://).
+S2R_ICON_STANDINS = {
+    "panorama/images/icons/ui/favorite_no.vsvg": (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
+        "%3Cpath fill='none' stroke='%23ffffff' stroke-width='2' "
+        "d='M12 17.3 5.8 21l1.6-7.1L2 9.2l7.2-.6L12 2l2.8 6.6 7.2.6-5.4 4.7L18.2 21z'/%3E"
+        "%3C/svg%3E"
+    ),
+    "panorama/images/icons/ui/favorite_yes.vsvg": (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
+        "%3Cpath fill='%23ff9a1a' "
+        "d='M12 17.3 5.8 21l1.6-7.1L2 9.2l7.2-.6L12 2l2.8 6.6 7.2.6-5.4 4.7L18.2 21z'/%3E"
+        "%3C/svg%3E"
+    ),
+    "panorama/images/icons/ui/vote_check.vsvg": (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
+        "%3Cpath fill='%232bff00' d='M9.2 17.2 4.8 12.8l1.4-1.4 3 3 8-8 1.4 1.4z'/%3E"
+        "%3C/svg%3E"
+    ),
+}
+
 
 def translate_gradient(body: str) -> str:
-    stops = re.findall(r"(?:from|to)\(\s*(#[0-9a-fA-F]+)\s*\)", body)
-    mid = re.findall(r"color-stop\(\s*[\d.]+\s*,\s*(#[0-9a-fA-F]+)\s*\)", body)
-    cols = ([stops[0]] + mid + stops[1:]) if len(stops) >= 2 else stops
-    horiz = "100% 0%" in body or "100%  0%" in body
-    return f"linear-gradient(to {'right' if horiz else 'bottom'}, {', '.join(cols) or '#444'});"
+    """Panorama `gradient(linear, start, end, …)` → CSS `linear-gradient(...)`."""
+    pts = re.findall(r"(\d+(?:\.\d+)?)\s*%\s+(\d+(?:\.\d+)?)\s*%", body)
+    direction = "to bottom"
+    if len(pts) >= 2:
+        x0, y0 = float(pts[0][0]), float(pts[0][1])
+        x1, y1 = float(pts[1][0]), float(pts[1][1])
+        dx, dy = x1 - x0, y1 - y0
+        if abs(dx) >= abs(dy):
+            direction = "to right" if dx > 0 else "to left"
+        else:
+            direction = "to bottom" if dy > 0 else "to top"
+
+    stops: list[str] = []
+    from_m = re.search(r"from\(\s*(#[0-9a-fA-F]+)\s*\)", body)
+    if from_m:
+        stops.append(from_m.group(1))
+    for m in re.finditer(
+        r"color-stop\(\s*([\d.]+)\s*,\s*(#[0-9a-fA-F]+)\s*\)", body
+    ):
+        pct = float(m.group(1)) * 100
+        stops.append(f"{m.group(2)} {pct:g}%")
+    to_m = re.search(r"to\(\s*(#[0-9a-fA-F]+)\s*\)", body)
+    if to_m:
+        stops.append(to_m.group(1))
+    return f"linear-gradient({direction}, {', '.join(stops) or '#444'});"
 
 
 def translate_text_shadow(raw: str) -> str:
@@ -75,31 +123,80 @@ def translate_text_shadow(raw: str) -> str:
     return f"text-shadow: {', '.join(parts)};" if parts else "text-shadow: none;"
 
 
+def quote_font_family(raw: str) -> str:
+    """Return a full `font-family` (+ weight) declaration for a Panorama face name."""
+    name = raw.strip().strip("\"'")
+    if not name:
+        return "font-family: sans-serif;"
+    # Stratum2 is rarely installed; Barlow Condensed matches the condensed metric.
+    # Face weight is in the Panorama family name — browsers need an explicit weight.
+    stack = f'"{name}", "Barlow Condensed", "Arial Narrow", sans-serif'
+    # Panorama bakes weight into the face name; browsers need an explicit weight.
+    if "Bold" in name or name == "Stratum2":
+        return f"font-family: {stack}; font-weight: 700;"
+    if "Medium" in name:
+        return f"font-family: {stack}; font-weight: 500;"
+    return f"font-family: {stack}; font-weight: 400;"
+
+
+def translate_s2r(path: str) -> str:
+    path = path.strip()
+    if path in S2R_ICON_STANDINS:
+        return f'url("{S2R_ICON_STANDINS[path]}")'
+    m = re.fullmatch(
+        r"panorama/images/custom_game/mapvote/maps/([A-Za-z0-9_]+)\.vtex", path
+    )
+    if m:
+        return f'url("../content/panorama/images/custom_game/mapvote/maps/{m.group(1)}.png")'
+    return (
+        'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' '
+        'width=\'8\' height=\'8\'%3E%3C/svg%3E")'
+    )
+
+
 def translate_css(text: str) -> str:
+    """Map Panorama UI CSS → browser CSS. Keep selectors/values as close as possible."""
     t = text
     t = GRADIENT_RE.sub(lambda m: translate_gradient(m.group(1)), t)
+    # Panorama puts gradients on background-color; browsers need background-image.
+    t = re.sub(
+        r"background-color:\s*(linear-gradient\([^;]+\)\s*);",
+        r"background-image: \1;",
+        t,
+    )
     t = BOX_SHADOW_RE.sub(lambda m: f"box-shadow:{m.group(2)} {m.group(1)};", t)
     t = TEXT_SHADOW_RE.sub(lambda m: translate_text_shadow(m.group(1)), t)
     t = FONT_SIZE_RE.sub(r"font-size: \1px;", t)
+    t = FONT_FAMILY_RE.sub(lambda m: quote_font_family(m.group(1)), t)
     t = WORLD_BLUR_RE.sub("backdrop-filter: blur(10px);", t)
     t = BLUR_RE.sub(r"filter: blur(\1px);", t)
     t = WASH_RE.sub("", t)
     t = SOUND_RE.sub("", t)
     t = IMG_SHADOW_RE.sub("", t)
     t = PRE_SCALE_RE.sub(r"transform: scale(\1, \2);", t)
+    t = SCALE3D_RE.sub(r"transform: scale(\1, \2);", t)
     t = IGNORE_FLOW_RE.sub("position: absolute; inset: 0;", t)
     t = BG_IMG_OPACITY_RE.sub(
         lambda m: f"opacity: {m.group(1)}; /* background-img-opacity */", t
     )
 
-    # Compose filter from saturation / brightness when blur is absent on same rule.
-    # Simple pass: rewrite as filter pieces (may stack with blur — ok for preview).
     t = SAT_RE.sub(r"filter: saturate(\1); /* saturation */", t)
     t = BRIGHT_RE.sub(r"filter: brightness(\1); /* brightness */", t)
 
+    # Panorama flow → CSS flex / grid stack.
+    t = t.replace(
+        "flow-children: none;",
+        "display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);",
+    )
     t = t.replace("flow-children: down;", "display: flex; flex-direction: column;")
-    t = t.replace("flow-children: right-wrap;", "display: flex; flex-direction: row; flex-wrap: wrap;")
-    t = t.replace("flow-children: right;", "display: flex; flex-direction: row; flex-wrap: nowrap;")
+    t = t.replace(
+        "flow-children: right-wrap;",
+        "display: flex; flex-direction: row; flex-wrap: wrap;",
+    )
+    t = t.replace(
+        "flow-children: right;",
+        "display: flex; flex-direction: row; flex-wrap: nowrap;",
+    )
     t = t.replace("visibility: collapse;", "display: none;")
     t = WIDTH_PERCENTAGE_RE.sub(
         lambda m: f"aspect-ratio: 100 / {m.group(1)}; height: auto;",
@@ -107,9 +204,14 @@ def translate_css(text: str) -> str:
     )
     t = FIT_CHILDREN_RE.sub(r"\1: auto;", t)
     t = FILL_FLOW_RE.sub(
-        lambda m: "flex: 1 1 auto; min-height: 0;" if m.group(1) == "height" else "flex: 1 1 auto;",
+        lambda m: (
+            "flex: 1 1 auto; min-height: 0;"
+            if m.group(1) == "height"
+            else "flex: 1 1 0; min-width: 0;"
+        ),
         t,
     )
+
     def _overflow_css(raw: str) -> str:
         parts = raw.strip().split()
 
@@ -133,22 +235,18 @@ def translate_css(text: str) -> str:
         return f"overflow: {raw};"
 
     t = OVERFLOW_RE.sub(lambda m: _overflow_css(m.group(1)), t)
+    # Align works for both flex (self) and grid (self) children of flow-none stacks.
     t = VERT_MIDDLE_RE.sub("align-self: center;", t)
-    t = VERT_BOTTOM_RE.sub("align-self: flex-end;", t)
-    t = VERT_TOP_RE.sub("align-self: flex-start;", t)
-    t = HORIZ_CENTER_RE.sub("margin-left: auto; margin-right: auto;", t)
-    t = HORIZ_RIGHT_RE.sub("margin-left: auto;", t)
-    t = HORIZ_LEFT_RE.sub("margin-right: auto;", t)
+    t = VERT_BOTTOM_RE.sub("align-self: end;", t)
+    t = VERT_TOP_RE.sub("align-self: start;", t)
+    t = HORIZ_CENTER_RE.sub("justify-self: center; margin-left: auto; margin-right: auto;", t)
+    t = HORIZ_RIGHT_RE.sub("justify-self: end; margin-left: auto;", t)
+    t = HORIZ_LEFT_RE.sub("justify-self: start; margin-right: auto;", t)
 
-    # Real map images from content; other s2r → soft placeholder.
     t = MAP_IMAGE_RE.sub(
         r'url("../content/panorama/images/custom_game/mapvote/maps/\1.png")', t
     )
-    t = OTHER_S2R_RE.sub(
-        'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E'
-        '%3Ccircle cx=\'2\' cy=\'2\' r=\'1\' fill=\'%23ffffff11\'/%3E%3C/svg%3E")',
-        t,
-    )
+    t = S2R_URL_RE.sub(lambda m: translate_s2r(m.group(1)), t)
     return t
 
 
@@ -183,24 +281,29 @@ def render_node(node: ET.Element, out: list[str]) -> None:
 
 
 SHELL_CSS = """
-* { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid transparent; }
-html, body { height: 100%; }
+/* Browser host only. Visual layout comes from the translated hud.vcss below. */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap");
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
 body {
   min-height: 100vh;
   background: #0a0c10;
-  font-family: "Stratum2 Condensed", "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   color: #f2f5ff;
   overflow: hidden;
 }
 button {
   background: none;
+  border: 0 solid transparent;
   font: inherit;
   color: inherit;
   cursor: pointer;
   text-align: inherit;
-  position: relative;
+  padding: 0;
+  appearance: none;
 }
-/* Plate: true fullscreen — fills the viewport at any aspect (no letterbox bars). */
+
 .pv-plate {
   position: fixed;
   inset: 0;
@@ -213,280 +316,101 @@ button {
   position: absolute;
   inset: 0;
 }
-.VoteRoot {
-  position: relative;
-  height: 100%;
-}
+
+/* Preview forces the card open; game starts with is-off. */
 .VoteRoot.is-off {
-  /* Preview forces the card visible; game starts closed. */
-  display: block !important;
+  display: grid !important;
   opacity: 1 !important;
 }
-.VoteColumn {
-  position: relative;
-  z-index: 1;
-  height: 100%;
-}
-.VoteTopBar {
-  position: relative;
-  flex: 0 0 auto;
-  width: 100%;
-  height: 48px;
-}
-.VoteTitle {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-family: "Stratum2 Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
-  font-weight: 400;
-  font-size: 20px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  color: #ffffff;
-  pointer-events: none;
-}
-.MinimizeBtn {
-  position: absolute;
-  top: 50%;
-  right: 16px;
-  transform: translateY(-50%);
-  width: 108px;
-  height: 32px;
-  background: #00000099;
-  border: 1px solid #ffffff33 !important;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 6;
-}
-.MinimizeBtn:hover { background: #ffffff22; }
-.MinimizeLabel {
-  width: 100%;
-  line-height: 32px;
-  text-align: center;
-  font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: #fff;
-  pointer-events: none;
-  white-space: nowrap;
-}
-.VoteRoot.is-minimized .mv-glass,
-.VoteRoot.is-minimized .mv-scrim-top,
-.VoteRoot.is-minimized .mv-scrim-bottom,
-.VoteRoot.is-minimized .VoteBody,
-.VoteRoot.is-minimized .VoteTitle {
-  display: none !important;
-}
-.VoteRoot.is-minimized .MinimizeBtn {
-  background: #000000cc;
-  border-color: #ff9a1a !important;
-}
-.VoteRoot.is-minimized .MinimizeLabel {
-  color: #ff9a1a;
-}
-.VoteBody {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-.VotedSection {
-  flex: 0 0 auto;
-  width: 100%;
-  background: linear-gradient(to bottom, #000000b3, #00000066);
-  border-bottom: 1px solid #ffffff22;
-  padding: 8px 0 12px;
-}
-.VotedSection.has-votes { border-bottom: 2px solid #ff9a1a; }
-.VotedRow {
-  position: relative;
-  overflow-x: auto;
-  overflow-y: hidden;
-  flex: 0 0 auto;
-  height: 213px;
-  scrollbar-width: thin;
-}
-.VotedHint {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #a3acb6;
-  z-index: 1;
-  pointer-events: none;
-}
-.VotedStrip {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  margin-left: auto;
-  margin-right: auto;
-  height: 213px;
-}
-.MapGridHost {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-}
-.MapGrid {
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 100%;
-}
-.MapGridFadeTop,
-.MapGridFadeBottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-  z-index: 5;
-}
-.MapGridFadeTop {
-  top: 0;
-  height: 64px;
-  background: linear-gradient(to bottom, #000000f2, #00000000);
-}
-.MapGridFadeBottom {
-  bottom: 0;
-  height: 48px;
-  background: linear-gradient(to top, #000000e6, #00000000);
-}
-.MapCatalog {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 12px;
-  padding-right: 12px;
-  box-sizing: border-box;
-}
-.CatalogRow {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: stretch;
-  width: 100%;
-}
-.MapTile {
-  position: relative;
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  width: 110px;
-  height: 193px;
-  overflow: hidden;
-}
-.CatalogRow .MapTile {
-  flex: 1 1 0;
-  width: auto;
+
+/* Panorama flow-children: none → CSS grid stack: every direct child shares the cell. */
+.VoteRoot > *,
+.VoteTopBar > *,
+.VotedRow > *,
+.MapSlot > *,
+.MapTile > *,
+.MapGridHost > *,
+.FilterChip > *,
+.FavBtn > *,
+.CreditBar > * {
+  grid-area: 1 / 1;
   min-width: 0;
+  min-height: 0;
 }
-.MapShot,
-.MapFade {
-  position: absolute;
-  inset: 0;
-  display: block;
+
+.VoteColumn {
+  z-index: 1;
+  width: 100%;
+  height: 100%;
 }
-.MapShot {
-  z-index: 0;
-  transform-origin: center center;
-  background-size: auto 100% !important;
-  background-position: 50% 50% !important;
-  background-repeat: no-repeat !important;
-}
-.MapFade { z-index: 1; }
+.mv-glass,
 .mv-scrim-top,
 .mv-scrim-bottom {
-  position: absolute;
-  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
+
+/* Labels inside tiles / chips never capture clicks. */
+.MapName,
 .MapVotes,
-.MapName {
+.VotedHint,
+.FilterChipLabel,
+.MinimizeLabel,
+.CreditLabel,
+.VoteTitle,
+.MapEmpty,
+.MapWinnerCheck,
+.MapFade,
+.MapShot,
+.FavIcon {
+  pointer-events: none;
+}
+
+/*
+ * Panorama stacks flow-children:none via z-index. Chromium grid + transform on
+ * .MapShot can paint the shot above .MapFade — pin shot/fade absolutely.
+ */
+.MapTile {
+  position: relative;
+}
+.MapTile > .MapShot,
+.MapTile > .MapFade,
+.MapTile > .MapWinnerCheck {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.MapTile > .MapShot { z-index: 0; }
+.MapTile > .MapFade { z-index: 1; }
+.MapTile > .MapName,
+.MapTile > .MapVotes {
   position: absolute;
   left: 0;
   right: 0;
   z-index: 2;
-  pointer-events: none;
+  /* vertical-align:bottom → bottom edge (margin-bottom comes from hud.vcss). */
+  top: auto;
+  bottom: 0;
+  height: auto;
+  align-self: auto;
 }
-.MapVotes {
-  bottom: 40px;
-  color: #ff9a1a !important;
-  font-family: Stratum2, "Barlow Condensed", "Arial Narrow", sans-serif !important;
-  font-weight: 700 !important;
-  font-size: 26px !important;
-}
-.MapFade {
-  background: linear-gradient(to bottom, #00000000 0%, #00000040 35%, #000000cc 65%, #000000ff 100%) !important;
-}
-.MapName {
-  bottom: 6px;
-  left: 5%;
-  right: 5%;
-  width: auto;
-  height: 36px;
-  line-height: 36px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: "Stratum2 Medium Condensed", "Barlow Condensed", "Arial Narrow", sans-serif !important;
-  font-weight: 500 !important;
-  font-size: 16px !important;
-}
-/* Preview stand-in for Valve vote_check.vsvg — match #id-map-selection-btn__winner. */
-.MapWinnerCheck {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 50px;
-  height: 50px;
-  margin: -25px 0 0 -25px;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0 !important;
-  transform: scale(2) !important;
+.MapTile > .MapWinnerCheck { z-index: 3; }
+
+/* Map screenshots in the preview come from JS (preview/maps/*.webp). */
+.MapShot {
+  background-size: 343px 193px;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
   transform-origin: center center;
-  background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232bff00' d='M9.2 17.2 4.8 12.8l1.4-1.4 3 3 8-8 1.4 1.4z'/%3E%3C/svg%3E");
-  transition: transform 0.1s ease-in-out 0.35s, opacity 0.1s ease-in-out 0.35s;
 }
-.MapTile.is-done .MapWinnerCheck {
-  opacity: 1 !important;
-  transform: scale(1) !important;
-}
-.MapTile.is-lost {
-  filter: brightness(0.45);
-  border-color: transparent !important;
-  box-shadow: none !important;
-  transition: filter 0.5s ease-in-out;
-}
-.MapTile.is-done {
-  border: 2px solid #fff !important;
-  box-shadow: #ffffff 0px 0px 6px 0px !important;
-  animation: pv-winner-pulse 0.5s ease-in-out 1;
-}
-@keyframes pv-winner-pulse {
-  0% { border-color: #ffffff00; }
-  50% { border-width: 5px; border-color: #ffff00; }
-  100% { border-width: 2px; border-color: #ffffff; }
-}
-.pv-var { min-width: 0.5ch; }
+
+.pv-var { min-width: 0.5ch; display: inline-block; }
 .pv-bar {
   position: fixed;
   left: 12px;
-  bottom: 10px;
+  bottom: 40px;
   z-index: 20;
   display: flex;
   flex-wrap: wrap;
@@ -517,8 +441,6 @@ button {
   background: #ffffff22;
   margin: 0 2px;
 }
-.is-off { display: none !important; }
-.VoteRoot.is-off { display: block !important; }
 """
 
 VOTE_JS = r"""(() => {
@@ -546,12 +468,13 @@ VOTE_JS = r"""(() => {
 
   const applyShot = (el, map) => {
     const s = stem(map);
-    el.className = "MapShot";
+    // Keep MapShot class (and mv-map-* if present) so hud.vcss sizing wins.
+    el.classList.add("MapShot");
     el.style.backgroundImage = `url("maps/${s}.webp")`;
-    el.style.backgroundSize = "100% 100%";
+    // Match .MapShot in hud.vcss (343×193 cover crop, centered).
+    el.style.backgroundSize = "343px 193px";
     el.style.backgroundPosition = "50% 50%";
     el.style.backgroundRepeat = "no-repeat";
-    // Fallback if the webp 404s
     const probe = new Image();
     probe.onerror = () => {
       el.style.backgroundImage = 'url("maps/default.webp")';
@@ -559,15 +482,33 @@ VOTE_JS = r"""(() => {
     probe.src = `maps/${s}.webp`;
   };
 
+  const TYPES = [
+    { id: "all", label: "All", prefixes: null },
+    { id: "bomb", label: "Bomb", prefixes: ["de_"] },
+    { id: "hostage", label: "Hostage", prefixes: ["cs_"] },
+    { id: "arms_race", label: "Arms Race", prefixes: ["ar_"] },
+    { id: "danger_zone", label: "Danger Zone", prefixes: ["dz_"] },
+    { id: "other", label: "Other", prefixes: [] },
+  ];
+  const SORTS = [
+    { id: "most_played", label: "Most played" },
+    { id: "least_played", label: "Least played" },
+    { id: "favorites", label: "Favorites" },
+  ];
+
   const state = {
     maps: MAPS.slice(),
     votes: Object.fromEntries(MAPS.map((m) => [m, 0])),
+    plays: Object.fromEntries(MAPS.map((m, i) => [m, (MAPS.length - i) % 17])),
+    favorites: new Set(),
     firstVote: [],
     mine: null,
     mineSet: new Set(),
     mode: "single", // single = CS2 one-vote; multi = toggle many maps
     reveal: false,
     winner: null,
+    type: 0,
+    sort: -1,
   };
 
   const isMine = (map) =>
@@ -582,32 +523,98 @@ VOTE_JS = r"""(() => {
   const COLS = 10;
   const ROW_COUNT = Math.ceil(SLOT / COLS);
 
-  const clearTile = (tileId, shotId, voteVar, nameVar) => {
+  const clearTile = (slotId, tileId, shotId, favId, voteVar, nameVar) => {
+    const slot = document.getElementById(slotId);
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
-    if (!tile || !shot) return;
-    tile.classList.add("is-off");
+    const fav = document.getElementById(favId);
+    if (!slot || !tile || !shot) return;
+    slot.classList.add("is-off");
     tile.classList.remove("is-self", "is-done", "is-lost");
+    fav?.classList.remove("is-on");
     shot.className = "MapShot";
     shot.style.backgroundImage = "";
     setVar(voteVar, "");
     setVar(nameVar, "");
   };
 
-  const paintTile = (tileId, shotId, voteVar, nameVar, map) => {
+  const paintTile = (slotId, tileId, shotId, favId, voteVar, nameVar, map) => {
+    const slot = document.getElementById(slotId);
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
-    if (!tile || !shot) return;
+    const fav = document.getElementById(favId);
+    if (!slot || !tile || !shot) return;
     const count = state.votes[map] || 0;
     const isWinner = state.winner === map;
     const isLost = state.reveal && state.winner && !isWinner;
-    tile.classList.remove("is-off");
+    slot.classList.remove("is-off");
     tile.classList.toggle("is-self", !state.reveal && isMine(map));
     tile.classList.toggle("is-done", isWinner);
     tile.classList.toggle("is-lost", !!isLost);
+    fav?.classList.toggle("is-on", state.favorites.has(map));
     applyShot(shot, map);
     setVar(voteVar, String(count));
     setVar(nameVar, map);
+  };
+
+  const matchesType = (map, type) => {
+    if (!type || type.prefixes === null) return true;
+    if (type.prefixes.length === 0) {
+      return !TYPES.some(
+        (t) => t.prefixes && t.prefixes.length > 0 && t.prefixes.some((p) => map.startsWith(p))
+      );
+    }
+    return type.prefixes.some((p) => map.startsWith(p));
+  };
+
+  const filteredMaps = () => {
+    const type = TYPES[state.type] || TYPES[0];
+    let maps = state.maps.filter((m) => matchesType(m, type));
+    if (state.sort === 0) {
+      maps = maps
+        .slice()
+        .sort((a, b) => (state.plays[b] || 0) - (state.plays[a] || 0) || state.maps.indexOf(a) - state.maps.indexOf(b));
+    } else if (state.sort === 1) {
+      maps = maps
+        .slice()
+        .sort((a, b) => (state.plays[a] || 0) - (state.plays[b] || 0) || state.maps.indexOf(a) - state.maps.indexOf(b));
+    } else if (state.sort === 2) {
+      maps = maps
+        .slice()
+        .sort(
+          (a, b) =>
+            (state.favorites.has(b) ? 1 : 0) - (state.favorites.has(a) ? 1 : 0) ||
+            state.maps.indexOf(a) - state.maps.indexOf(b)
+        );
+    }
+    return maps;
+  };
+
+  const paintFilters = () => {
+    const bar = document.getElementById("mv-filters");
+    if (bar) bar.classList.remove("is-off");
+    for (let i = 0; i < 8; i++) {
+      const chip = document.getElementById(`mv-ft-${i}`);
+      if (!chip) continue;
+      if (i < TYPES.length) {
+        chip.classList.remove("is-off");
+        chip.classList.toggle("is-active", state.type === i);
+        setVar(`ft${i}`, TYPES[i].label);
+      } else {
+        chip.classList.add("is-off");
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      const chip = document.getElementById(`mv-fs-${i}`);
+      if (!chip) continue;
+      if (i < SORTS.length) {
+        chip.classList.remove("is-off");
+        chip.classList.toggle("is-active", state.sort === i);
+        setVar(`fs${i}`, SORTS[i].label);
+      } else {
+        chip.classList.add("is-off");
+      }
+    }
   };
 
   const setLadder = (el, prefix, max, value) => {
@@ -631,9 +638,15 @@ VOTE_JS = r"""(() => {
     if (hint) hint.classList.toggle("is-off", voted.length > 0 || state.reveal);
     setVar("mv_title", state.reveal ? "Winning map" : "Vote for the next map");
     setVar("mv_hint", "Cast the first vote");
+    setVar("mv_chip", "Map Vote");
+    setVar("mv_empty", "No maps match this filter");
     setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
+    paintFilters();
 
-    const rowCount = state.maps.length === 0 ? 0 : Math.ceil(state.maps.length / COLS);
+    const grid = filteredMaps();
+    const empty = document.getElementById("mv-empty");
+    if (empty) empty.classList.toggle("is-off", grid.length > 0);
+    const rowCount = grid.length === 0 ? 0 : Math.ceil(grid.length / COLS);
     setLadder(document.getElementById("mv-catalog"), "rows", ROW_COUNT, rowCount);
     for (let r = 0; r < ROW_COUNT; r++) {
       const crow = document.getElementById(`mv-crow-${r}`);
@@ -642,15 +655,30 @@ VOTE_JS = r"""(() => {
 
     for (let i = 0; i < SLOT; i++) {
       if (i < voted.length) {
-        paintTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`, voted[i]);
+        paintTile(
+          `mv-voted-slot-${i}`,
+          `mv-voted-${i}`,
+          `mv-voted-shot-${i}`,
+          `mv-voted-fav-${i}`,
+          `vv${i}`,
+          `vn${i}`,
+          voted[i]
+        );
       } else {
-        clearTile(`mv-voted-${i}`, `mv-voted-shot-${i}`, `vv${i}`, `vn${i}`);
+        clearTile(
+          `mv-voted-slot-${i}`,
+          `mv-voted-${i}`,
+          `mv-voted-shot-${i}`,
+          `mv-voted-fav-${i}`,
+          `vv${i}`,
+          `vn${i}`
+        );
       }
 
-      if (i < state.maps.length) {
-        paintTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`, state.maps[i]);
+      if (i < grid.length) {
+        paintTile(`mv-slot-${i}`, `mv-${i}`, `mv-shot-${i}`, `mv-fav-${i}`, `v${i}`, `n${i}`, grid[i]);
       } else {
-        clearTile(`mv-${i}`, `mv-shot-${i}`, `v${i}`, `n${i}`);
+        clearTile(`mv-slot-${i}`, `mv-${i}`, `mv-shot-${i}`, `mv-fav-${i}`, `v${i}`, `n${i}`);
       }
     }
   };
@@ -691,6 +719,28 @@ VOTE_JS = r"""(() => {
 
   const parseButton = (id) => {
     if (!id) return null;
+    if (id.startsWith("mv-voted-fav-")) {
+      const i = Number(id.slice("mv-voted-fav-".length));
+      const order = votedOrder();
+      if (!(Number.isInteger(i) && i >= 0 && i < order.length)) return null;
+      return { fav: order[i] };
+    }
+    if (id.startsWith("mv-fav-")) {
+      const i = Number(id.slice("mv-fav-".length));
+      const grid = filteredMaps();
+      if (!(Number.isInteger(i) && i >= 0 && i < grid.length)) return null;
+      return { fav: grid[i] };
+    }
+    if (id.startsWith("mv-ft-")) {
+      const i = Number(id.slice(6));
+      if (Number.isInteger(i) && i >= 0 && i < TYPES.length) return { type: i };
+      return null;
+    }
+    if (id.startsWith("mv-fs-")) {
+      const i = Number(id.slice(6));
+      if (Number.isInteger(i) && i >= 0 && i < SORTS.length) return { sort: i };
+      return null;
+    }
     if (id.startsWith("mv-voted-")) {
       const rest = id.slice("mv-voted-".length);
       if (!/^\d+$/.test(rest)) return null;
@@ -701,14 +751,22 @@ VOTE_JS = r"""(() => {
     }
     if (/^mv-\d+$/.test(id)) {
       const i = Number(id.slice(3));
-      if (!(Number.isInteger(i) && i >= 0 && i < state.maps.length)) return null;
-      return { map: state.maps[i], fromVoted: false };
+      const grid = filteredMaps();
+      if (!(Number.isInteger(i) && i >= 0 && i < grid.length)) return null;
+      return { map: grid[i], fromVoted: false };
     }
     return null;
   };
 
   const toggleMinimized = () => {
     document.getElementById("Vote")?.classList.toggle("is-minimized");
+  };
+
+  const toggleFavorite = (map) => {
+    if (!map) return;
+    if (state.favorites.has(map)) state.favorites.delete(map);
+    else state.favorites.add(map);
+    paint();
   };
 
   document.getElementById("Vote")?.addEventListener("click", (ev) => {
@@ -719,7 +777,22 @@ VOTE_JS = r"""(() => {
       return;
     }
     const hit = parseButton(btn.id);
-    if (hit) cast(hit.map, hit.fromVoted);
+    if (!hit) return;
+    if (hit.fav) {
+      toggleFavorite(hit.fav);
+      return;
+    }
+    if (hit.type !== undefined) {
+      state.type = hit.type;
+      paint();
+      return;
+    }
+    if (hit.sort !== undefined) {
+      state.sort = state.sort === hit.sort ? -1 : hit.sort;
+      paint();
+      return;
+    }
+    if (hit.map) cast(hit.map, hit.fromVoted);
   });
 
   const clearVotes = () => {

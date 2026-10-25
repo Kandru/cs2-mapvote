@@ -1,8 +1,6 @@
-/* MapVote HUD — port of CS2 end-of-match vote styles (ruleset-safe).
-   Sources: stuff/panorama/styles/endofmatch-voting.css
-            stuff/panorama/styles/endofmatch.css
-            stuff/panorama/styles/mainmenu_play.css (.map-selection-btn*)
-   Layout extras (50 maps, scroll, voted strip) keep Valve tile metrics. */
+/* MapVote HUD — CS2 end-of-match vote (ruleset-safe).
+   Contract: vote.xml / VoteIds.cs  Palette: surface #12171ee8→#0b0f14f2, accent #ff9a1a
+   Deviation: background-position 50% 50% on .MapShot only — centers the 343×193 cover crop (§5.1). */
 
 .HudScreen
 {
@@ -15,6 +13,7 @@
 {
 	width: 100%;
 	height: 100%;
+	flow-children: none;
 	opacity: 1.0;
 	transition-property: opacity;
 	transition-duration: 0.25s;
@@ -33,32 +32,26 @@
 	visibility: collapse;
 }
 
-/* Light frost (~5%) — darkening comes from Valve .eom / .eom-layout scrims below. */
 .mv-glass
 {
 	width: 100%;
 	height: 100%;
 	background-color: #0000000d;
 	world-blur: gaussian( 1 );
-	ignore-parent-flow: true;
 }
 
-/* .eom-layout */
 .mv-scrim-top
 {
 	width: 100%;
 	height: 100%;
 	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000e0 ), to( #00000000 ) );
-	ignore-parent-flow: true;
 }
 
-/* .eom */
 .mv-scrim-bottom
 {
 	width: 100%;
 	height: 100%;
 	background-color: gradient( linear, 0% 100%, 0% 0%, from( #000000a0 ), color-stop( 0.5, #00000000 ), to( #00000000 ) );
-	ignore-parent-flow: true;
 }
 
 .VoteColumn
@@ -68,35 +61,33 @@
 	flow-children: down;
 }
 
-/* Top chrome: title centered in the old spacer band, minimize top-right. */
 .VoteTopBar
 {
 	width: 100%;
-	height: 48px;
+	height: fit-children;
 	flow-children: none;
+	padding-top: 4px;
+	padding-bottom: 4px;
 }
 
-/* Valve directive: stratum-regular-condensed + fontSize-l (20). */
 .VoteTitle
 {
 	width: 100%;
-	height: 100%;
+	height: fit-children;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
-	font-family: Stratum2 Condensed;
-	font-weight: normal;
+	font-family: Stratum2 Bold Condensed;
 	font-size: 20;
 	letter-spacing: 1.6px;
 	text-transform: uppercase;
 	color: #ffffff;
 }
 
-/* CS2-ish chip: toggles the vote stage; stays visible when minimized. */
 .MinimizeBtn
 {
 	width: 108px;
-	height: 32px;
+	height: 28px;
 	horizontal-align: right;
 	vertical-align: middle;
 	margin-right: 16px;
@@ -106,7 +97,7 @@
 	flow-children: none;
 	transition-property: background-color, brightness;
 	transition-duration: 0.15s;
-	transition-timing-function: ease-in-out;
+	transition-timing-function: ease-out;
 }
 
 .MinimizeBtn:hover
@@ -122,7 +113,6 @@
 	sound: "UIPanorama.generic_button_press";
 }
 
-/* Button label: width 100%, vertical-align middle, no height 100% (ruleset §5.3). */
 .MinimizeLabel
 {
 	width: 100%;
@@ -141,7 +131,8 @@
 .VoteRoot.is-minimized .mv-scrim-top,
 .VoteRoot.is-minimized .mv-scrim-bottom,
 .VoteRoot.is-minimized .VoteBody,
-.VoteRoot.is-minimized .VoteTitle
+.VoteRoot.is-minimized .VoteTitle,
+.VoteRoot.is-minimized .CreditBar
 {
 	visibility: collapse;
 }
@@ -157,17 +148,14 @@
 	color: #ff9a1a;
 }
 
-/* Full-bleed stage — scrollbar on screen edge; cards centered. */
 .VoteBody
 {
 	width: 100%;
 	height: fill-parent-flow( 1.0 );
 	flow-children: down;
-	/* #id-map-selection-container margin-top: 12px */
 	padding-top: 12px;
 }
 
-/* Leading / voted strip — always present (CS2 vote stage energy). */
 .VotedSection
 {
 	width: 100%;
@@ -175,7 +163,7 @@
 	padding-top: 8px;
 	padding-bottom: 12px;
 	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000b3 ), to( #00000066 ) );
-	border-bottom: 1px solid #ffffff22;
+	border-bottom: 1px solid #ffffff14;
 }
 
 .VotedSection.has-votes
@@ -187,7 +175,6 @@
 {
 	width: 100%;
 	height: 213px;
-	/* Horizontal strip only — never a vertical scrollbar. */
 	overflow: scroll clip;
 	flow-children: none;
 	horizontal-align: center;
@@ -199,13 +186,11 @@
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
-	font-family: Stratum2 Condensed;
-	font-weight: normal;
+	font-family: Stratum2 Bold Condensed;
 	font-size: 14;
 	color: #a3acb6;
 	letter-spacing: 1px;
 	text-transform: uppercase;
-	ignore-parent-flow: true;
 	z-index: 1;
 }
 
@@ -276,7 +261,101 @@
 .VotedStrip.vw-49 { width: 6174px; }
 .VotedStrip.vw-50 { width: 6300px; }
 
-/* Catalog host: full-width scroll + soft edge fades (no hard clip). */
+.FilterBar
+{
+	width: 100%;
+	height: 36px;
+	flow-children: right;
+	horizontal-align: center;
+	padding-left: 12px;
+	padding-right: 12px;
+	margin-bottom: 4px;
+}
+
+.FilterBar.is-off
+{
+	visibility: collapse;
+}
+
+.FilterTypeRow,
+.FilterSortRow
+{
+	height: 36px;
+	flow-children: right;
+	vertical-align: middle;
+}
+
+.FilterSortRow
+{
+	margin-left: 16px;
+}
+
+.FilterChip
+{
+	height: 28px;
+	min-width: 72px;
+	padding-left: 12px;
+	padding-right: 12px;
+	margin-right: 8px;
+	vertical-align: middle;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff14;
+	border-radius: 3px;
+	flow-children: none;
+	transition-property: background-color, brightness;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+	wash-color: none;
+}
+
+.FilterChip.is-off
+{
+	visibility: collapse;
+}
+
+.FilterChip:hover
+{
+	background-color: #ffffff1c;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.FilterChip:active
+{
+	background-color: #ffffff2e;
+	brightness: 0.9;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.FilterChip.is-active
+{
+	background-color: #ff9a1a22;
+	border: 1px solid #ff9a1a;
+}
+
+.FilterChip.is-active:hover
+{
+	background-color: #ff9a1a44;
+}
+
+.FilterChipLabel
+{
+	width: 100%;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-family: Stratum2 Bold Condensed;
+	font-size: 14;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #e8eef4;
+	white-space: nowrap;
+}
+
+.FilterChip.is-active .FilterChipLabel
+{
+	color: #ffd27a;
+}
+
 .MapGridHost
 {
 	width: 100%;
@@ -289,6 +368,26 @@
 	width: 100%;
 	height: 100%;
 	overflow: squish scroll;
+	flow-children: down;
+}
+
+.MapEmpty
+{
+	width: 100%;
+	height: 36px;
+	horizontal-align: center;
+	text-align: center;
+	font-family: Stratum2 Bold Condensed;
+	font-size: 16;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #a3acb6;
+	margin-top: 24px;
+}
+
+.MapEmpty.is-off
+{
+	visibility: collapse;
 }
 
 .MapGridFadeTop
@@ -296,7 +395,6 @@
 	width: 100%;
 	height: 64px;
 	vertical-align: top;
-	ignore-parent-flow: true;
 	z-index: 5;
 	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000f2 ), color-stop( 0.45, #00000099 ), to( #00000000 ) );
 }
@@ -306,14 +404,12 @@
 	width: 100%;
 	height: 48px;
 	vertical-align: bottom;
-	ignore-parent-flow: true;
 	z-index: 5;
 	background-color: gradient( linear, 0% 100%, 0% 0%, from( #000000e6 ), color-stop( 0.5, #00000066 ), to( #00000000 ) );
 }
 
 .MapCatalog
 {
-	/* Full stage width — tiles flex so every aspect fills edge-to-edge (no side bars). */
 	width: 100%;
 	flow-children: down;
 	overflow: noclip noclip;
@@ -342,54 +438,55 @@
 	visibility: collapse;
 }
 
-/* ---- .map-selection-btn + .map-selection-btn--vote ---- */
+.MapSlot
+{
+	width: 110px;
+	height: 213px;
+	horizontal-align: center;
+	flow-children: none;
+	margin: 0px 8px 0px 8px;
+}
+
+.CatalogRow .MapSlot
+{
+	width: fill-parent-flow( 1.0 );
+}
+
+.MapSlot.is-off
+{
+	visibility: collapse;
+}
+
 .MapTile
 {
-	/* Voted strip keeps Valve 110×193; catalog overrides width below. */
-	width: 110px;
+	width: 100%;
 	height: 193px;
-	horizontal-align: center;
-	margin: 10px 8px 10px 8px;
-	/* base .map-selection-btn border, then --vote clears shadow */
+	vertical-align: middle;
 	border: 0px solid #cacaca1a;
 	box-shadow: none;
 	wash-color: none;
 	overflow: clip;
 	flow-children: none;
-	/* base transition (box-shadow omitted — ruleset) */
-	transition-property: border, brightness, opacity;
+	transition-property: brightness, opacity;
 	transition-duration: 0.25s;
-	transition-timing-function: ease-in-out;
+	transition-timing-function: ease-out;
 }
 
-/* 10-across catalog: equal share of the full row at any resolution / aspect. */
-.CatalogRow .MapTile
-{
-	width: fill-parent-flow( 1.0 );
-}
-
-.MapTile.is-off
-{
-	visibility: collapse;
-}
-
-/* .map-selection-btn--vote:selected */
 .MapTile.is-self
 {
 	border: 2px solid #ffffff;
 	box-shadow: #ffffff 0px 0px 6px 0px;
 }
 
-/* .map-selection-btn--vote--rndm — non-winners darken when the vote locks. */
 .MapTile.is-lost
 {
 	wash-color: #000000;
 	brightness: 0.55;
 	border: 0px solid #cacaca1a;
 	box-shadow: none;
-	transition-property: wash-color, brightness, border, opacity;
+	transition-property: wash-color, brightness, opacity;
 	transition-duration: 0.5s;
-	transition-timing-function: ease-in-out;
+	transition-timing-function: ease-out;
 }
 
 .MapTile:hover
@@ -408,81 +505,118 @@
 	transform: scale3d( 1.0, 1.0, 1.0 );
 }
 
-/* .map-selection-btn__screenshot — 16:9 at tile height, centered; sides crop as width flexes. */
 .MapShot
 {
 	width: 100%;
 	height: 100%;
 	z-index: 0;
-	ignore-parent-flow: true;
 	transform: scale3d( 1.0, 1.0, 1.0 );
 	background-repeat: no-repeat;
 	background-size: 343px 193px;
 	background-position: 50% 50%;
 	transition-property: transform, opacity;
 	transition-duration: 0.25s, 2.0s;
-	transition-timing-function: ease-in-out;
+	transition-timing-function: ease-out;
 }
 
-/* endofmatch-voting: Hover screenshot → 1.2 */
 .MapTile:hover .MapShot
 {
 	transform: scale3d( 1.2, 1.2, 1.0 );
 }
 
-/* play: selected screenshot → 1.2 */
 .MapTile.is-self .MapShot
 {
 	transform: scale3d( 1.2, 1.2, 1.0 );
 }
 
-/* Shadow mask on top of the shot (Valve .map-selection-btn__gradient).
-   Soft at the top, hard black at the bottom so name + count stay readable. */
 .MapFade
 {
 	width: 100%;
 	height: 100%;
 	z-index: 1;
-	ignore-parent-flow: true;
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #00000000 ), color-stop( 0.35, #00000040 ), color-stop( 0.65, #000000cc ), to( #000000ff ) );
+	/* Valve .map-selection-btn__gradient (endofmatch-voting.css) */
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #00000020 ), to( #000000ff ) );
 }
 
-/* Label.map-selection-item-count — Stratum2 bold 26; amber from CS2 HTML count. */
 .MapVotes
 {
 	width: 100%;
 	z-index: 2;
-	ignore-parent-flow: true;
 	vertical-align: bottom;
 	horizontal-align: center;
 	margin: 0px;
 	margin-bottom: 40px;
 	font-family: Stratum2;
-	font-weight: bold;
 	font-size: 26;
 	color: #ff9a1a;
 	text-align: center;
 }
 
-/* MapGroupName: stratum-medium-condensed; --vote Label size 16. */
 .MapName
 {
 	width: 90%;
 	height: 36px;
 	z-index: 2;
-	ignore-parent-flow: true;
-	margin: 0px 4px 0px 4px;
+	margin: 0px 4px 6px 4px;
 	vertical-align: bottom;
 	horizontal-align: center;
 	text-align: center;
-	font-family: Stratum2 Medium Condensed;
+	font-family: Stratum2 Bold Condensed;
 	font-size: 16;
 	color: #ffffff;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-/* Valve pulse-random (map-selection-btn__gradient--whiteout) — winner flash. */
+.FavBtn
+{
+	width: 28px;
+	height: 28px;
+	horizontal-align: right;
+	vertical-align: top;
+	/* MapTile is 193px centered in 213px MapSlot → 10px top gap; +4px inset. */
+	margin-top: 14px;
+	margin-right: 4px;
+	z-index: 4;
+	flow-children: none;
+	wash-color: none;
+	background-color: #00000066;
+	border-radius: 3px;
+	transition-property: background-color, brightness;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.FavBtn:hover
+{
+	background-color: #00000099;
+	brightness: 1.1;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.FavBtn:active
+{
+	brightness: 0.85;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.FavIcon
+{
+	width: 20px;
+	height: 20px;
+	horizontal-align: center;
+	vertical-align: middle;
+	background-image: url( "s2r://panorama/images/icons/ui/favorite_no.vsvg" );
+	background-size: 20px 20px;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+}
+
+.FavBtn.is-on .FavIcon
+{
+	background-image: url( "s2r://panorama/images/icons/ui/favorite_yes.vsvg" );
+}
+
 @keyframes 'mv-winner-pulse'
 {
 	0%
@@ -501,7 +635,6 @@
 	}
 }
 
-/* Winner tile = selected chrome + one-shot yellow pulse, then white border. */
 .MapTile.is-done
 {
 	wash-color: none;
@@ -510,23 +643,20 @@
 	box-shadow: #ffffff 0px 0px 6px 0px;
 	animation-name: 'mv-winner-pulse';
 	animation-duration: 0.5s;
-	animation-timing-function: ease-in-out;
+	animation-timing-function: ease-out;
 	animation-iteration-count: 1;
 }
 
-/* Winner shot stays zoomed like :selected. */
 .MapTile.is-done .MapShot
 {
 	transform: scale3d( 1.2, 1.2, 1.0 );
 }
 
-/* #id-map-selection-btn__winner — resting (hidden, scaled up). */
 .MapWinnerCheck
 {
 	width: 50px;
 	height: 50px;
 	z-index: 3;
-	ignore-parent-flow: true;
 	vertical-align: middle;
 	horizontal-align: center;
 	background-image: url( "s2r://panorama/images/icons/ui/vote_check.vsvg" );
@@ -538,7 +668,7 @@
 	transform: scale3d( 2.0, 2.0, 1.0 );
 	transition-property: transform, opacity;
 	transition-duration: 0.1s;
-	transition-timing-function: ease-in-out;
+	transition-timing-function: ease-out;
 }
 
 @keyframes 'mv-check-appear'
@@ -556,17 +686,36 @@
 	}
 }
 
-/* #id-map-selection-btn__winner.appear */
 .MapTile.is-done .MapWinnerCheck
 {
 	opacity: 1.0;
 	transform: scale3d( 1.0, 1.0, 1.0 );
 	animation-name: 'mv-check-appear';
 	animation-duration: 0.1s;
-	animation-timing-function: ease-in-out;
+	animation-timing-function: ease-out;
 	animation-iteration-count: 1;
 	animation-delay: 0.35s;
-	animation-fill-mode: backwards;
+}
+
+.CreditBar
+{
+	width: 100%;
+	height: 30px;
+	background-color: #0b0f14f2;
+	flow-children: none;
+}
+
+.CreditLabel
+{
+	width: 100%;
+	height: 30px;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-family: Stratum2 Bold Condensed;
+	font-size: 22;
+	color: #ffffff;
+	white-space: nowrap;
 }
 
 /* BEGIN mv-map-palette */

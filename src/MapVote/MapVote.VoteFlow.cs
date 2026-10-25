@@ -36,7 +36,13 @@ namespace MapVote
                 static m => m.Origin,
                 StringComparer.Ordinal);
 
-            VoteHud.Bind(_session);
+            VoteHud.Bind(
+                _session,
+                Config.Filters,
+                _archive,
+                _plays,
+                (player, key) => Localization.ForPlayerSafe(Localizer, player, key),
+                state => _saves.Enqueue(state));
             _voteActive = true;
             _revealActive = false;
             _pendingWinner = null;
@@ -108,6 +114,7 @@ namespace MapVote
                 return;
             }
 
+            _plays.Increment(Config, winner, warn: msg => PluginLog.Info($"[plays] {msg}"));
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
             PluginLog.Info($"changing map: {command}");
             AddTimer(0.5f, () => Server.ExecuteCommand(command));
