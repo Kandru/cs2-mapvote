@@ -43,11 +43,13 @@ def tile(pool: str, index: int, vote_var: str, name_var: str, indent: str) -> st
         tile_id = f"mv-{index}"
         shot_id = f"mv-shot-{index}"
         fav_id = f"mv-fav-{index}"
+    # Default shot behind the id'd overlay (missing map class → default shows).
     return "\n".join(
         [
             f'{indent}<Panel id="{slot_id}" class="MapSlot is-off" hittest="false">',
             f'{indent}\t<Button id="{tile_id}" class="MapTile">',
-            f'{indent}\t\t<Panel id="{shot_id}" class="MapShot mv-map-default" hittest="false" />',
+            f'{indent}\t\t<Panel class="MapShot mv-map-default" hittest="false" />',
+            f'{indent}\t\t<Panel id="{shot_id}" class="MapShot" hittest="false" />',
             f'{indent}\t\t<Panel class="MapFade" hittest="false" />',
             f'{indent}\t\t<Label class="MapName stratum-bold-condensed" text="{{s:{name_var}}}" hittest="false" />',
             f'{indent}\t\t<Label class="MapVotes stratum-bold" text="{{s:{vote_var}}}" hittest="false" />',
@@ -61,11 +63,11 @@ def tile(pool: str, index: int, vote_var: str, name_var: str, indent: str) -> st
     )
 
 
-def chip(kind: str, index: int, var: str, indent: str) -> str:
-    chip_id = f"mv-{kind}-{index}"
+def chip(kind: str, index: int, var: str, indent: str, *, chip_id: str | None = None) -> str:
+    cid = chip_id or f"mv-{kind}-{index}"
     return "\n".join(
         [
-            f'{indent}<Button id="{chip_id}" class="FilterChip is-off">',
+            f'{indent}<Button id="{cid}" class="FilterChip is-off">',
             f'{indent}\t<Label class="FilterChipLabel stratum-bold-condensed" text="{{s:{var}}}" hittest="false" />',
             f"{indent}</Button>",
         ]
@@ -162,8 +164,12 @@ def build() -> str:
         ]
     )
 
-    for i in range(FILTER_TYPE_SLOTS):
-        lines.append(chip("ft", i, f"ft{i}", "\t\t\t\t\t\t\t"))
+    # All, then favorites sort, then remaining type chips.
+    indent_chip = "\t\t\t\t\t\t\t"
+    lines.append(chip("ft", 0, "ft0", indent_chip))
+    lines.append(chip("sort-fav", 0, "sfav", indent_chip, chip_id="mv-sort-fav"))
+    for i in range(1, FILTER_TYPE_SLOTS):
+        lines.append(chip("ft", i, f"ft{i}", indent_chip))
 
     lines.extend(
         [
@@ -173,7 +179,7 @@ def build() -> str:
     )
 
     for i in range(FILTER_SORT_SLOTS):
-        lines.append(chip("fs", i, f"fs{i}", "\t\t\t\t\t\t\t"))
+        lines.append(chip("fs", i, f"fs{i}", indent_chip))
 
     lines.extend(
         [

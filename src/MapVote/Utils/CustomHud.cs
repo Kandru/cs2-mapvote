@@ -9,7 +9,6 @@ namespace MapVote.Utils
     /// <summary>Single-layout <see cref="CCSCustomHudLayout"/> driver for the map vote overlay.</summary>
     public static partial class CustomHud
     {
-        public const string DefaultMapClass = MapImageClasses.Default;
         public const double FadeSeconds = 1.0;
 
         private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(FadeSeconds);
@@ -154,18 +153,18 @@ namespace MapVote.Utils
             }
         }
 
-        public static void SetMapImage(CCSPlayerController player, string imagePanelId, string? mapName) =>
-            SwapImageClass(player, imagePanelId, MapImageClasses.ClassFor(mapName));
-
-        public static void OnTick() => VoteHud.OnTick();
-
-        private static void SwapImageClass(CCSPlayerController player, string imagePanelId, string next)
+        /// <summary>
+        /// Sets the overlay map-shot class. Empty names clear it so the id-less
+        /// <c>mv-map-default</c> panel behind the shot shows through.
+        /// </summary>
+        public static void SetMapImage(CCSPlayerController player, string imagePanelId, string? mapName)
         {
             if (player is not { IsValid: true })
             {
                 return;
             }
 
+            string? next = string.IsNullOrWhiteSpace(mapName) ? null : MapImageClasses.ClassFor(mapName);
             if (!ImageClassBySlot.TryGetValue(player.Slot, out Dictionary<string, string>? map))
             {
                 ImageClassBySlot[player.Slot] = map = new(StringComparer.Ordinal);
@@ -177,25 +176,24 @@ namespace MapVote.Utils
                 return;
             }
 
-            if (prev is not null)
-            {
-                if (!SetHasClass(player, imagePanelId, prev, false))
-                {
-                    return;
-                }
-            }
-            else if (next != DefaultMapClass && !SetHasClass(player, imagePanelId, DefaultMapClass, false))
+            if (prev is not null && !SetHasClass(player, imagePanelId, prev, false))
             {
                 return;
             }
 
-            if (!SetHasClass(player, imagePanelId, next, true))
+            if (next is null)
             {
+                map.Remove(imagePanelId);
                 return;
             }
 
-            map[imagePanelId] = next;
+            if (SetHasClass(player, imagePanelId, next, true))
+            {
+                map[imagePanelId] = next;
+            }
         }
+
+        public static void OnTick() => VoteHud.OnTick();
 
         private static void ScheduleFadeIn(CCSPlayerController player, string panelId)
         {

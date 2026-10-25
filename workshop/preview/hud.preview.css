@@ -122,12 +122,12 @@ button {
 /* 28px chip/btn − 1px border × 2 → 26px content box */
 .MinimizeLabel,
 .FilterChipLabel {
-  width: 100%;
+  width: fit-content;
   height: 26px !important;
   display: block !important;
   text-align: center !important;
   line-height: 26px !important;
-  margin: 0 !important;
+  margin: 0 auto !important;
   transform: none;
 }
 .VoteTitle .pv-var,
@@ -246,7 +246,7 @@ button {
 /* ---- hud_v1.vcss (translated) ---- */
 /* MapVote HUD — CS2 end-of-match vote (ruleset-safe).
    Contract: vote_v1.xml / VoteIds.cs  Palette: surface #12171ee8→#0b0f14f2, accent #ff9a1a
-   Deviation: background-position 50% 50% on .MapShot only — centers the 343×193 cover crop (§5.1). */
+   Deviation: background-position 50% 50% on .MapShot only — centers the 350×197 cover crop (§5.1). */
 
 .HudScreen
 {
@@ -283,7 +283,6 @@ button {
 	width: 100%;
 	height: 100%;
 	background-color: #0000000d;
-	backdrop-filter: blur(10px);
 }
 
 /* One pass: top vignette plus a darker foot. Replaces two fullscreen gradients. */
@@ -325,12 +324,13 @@ button {
 
 .MinimizeBtn
 {
-	width: 108px;
+	width: auto;
 	height: 28px;
 	justify-self: end; margin-left: auto;
 	align-self: center;
 	margin-right: 16px;
-	padding: 0px;
+	padding-left: 12px;
+	padding-right: 12px;
 	background-color: #00000099;
 	border: 1px solid #ffffff33;
 	border-radius: 3px;
@@ -356,7 +356,7 @@ button {
 
 .MinimizeLabel
 {
-	width: 100%;
+	width: auto;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -368,11 +368,27 @@ button {
 	white-space: nowrap;
 }
 
+/* Tuck without collapsing scroll/flow trees (repeat collapse crashes the layout). */
 .VoteRoot.is-minimized .mv-glass,
 .VoteRoot.is-minimized .mv-scrim,
-.VoteRoot.is-minimized .VoteBody,
 .VoteRoot.is-minimized .VoteTitle,
 .VoteRoot.is-minimized .CreditBar
+{
+	display: none;
+}
+
+.VoteRoot.is-minimized .VoteBody,
+.VoteRoot.is-minimized .MapGridHost
+{
+	height: 0px;
+	padding-top: 0px;
+	opacity: 0.0;
+	overflow: hidden;
+}
+
+.VoteRoot.is-minimized .MapTile,
+.VoteRoot.is-minimized .FavBtn,
+.VoteRoot.is-minimized .FilterChip
 {
 	display: none;
 }
@@ -585,8 +601,8 @@ button {
 
 .FilterChip
 {
+	width: auto;
 	height: 28px;
-	min-width: 72px;
 	padding-left: 12px;
 	padding-right: 12px;
 	margin-right: 8px;
@@ -646,7 +662,7 @@ button {
 
 .FilterChipLabel
 {
-	width: 100%;
+	width: auto;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -807,7 +823,7 @@ button {
 	z-index: 0;
 	transform: scale(1.0, 1.0);
 	background-repeat: no-repeat;
-	background-size: 343px 193px;
+	background-size: 350px 197px;
 	background-position: 50% 50%;
 	transition-property: transform;
 	transition-duration: 0.25s;
@@ -999,425 +1015,266 @@ button {
 .mv-map-stock-ar_baggage
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-ar_pool_day
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-ar_shoots
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-ar_shoots_night
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-cs_agency
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-cs_alpine
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-cs_assault
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-cs_italy
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-cs_militia
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-cs_office
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-cs_shelter
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_ancient
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_ancient_night
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_anubis
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_assembly
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_basalt
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_boulder
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_brewery
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_cache
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_canals
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_cbble
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_cbble_csgo
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_debris
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_dogtown
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_dust2
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_edin
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_eldorado
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_fachwerk
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_golden
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_grail
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_inferno
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_jura
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_lake
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_memento
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_mills
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_mirage
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_nuke
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_overpass
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_palacio
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_palais
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_poseidon
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_rooftop
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_safehouse
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_sanctum
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_shortdust
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_stronghold
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_sugarcane
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_thera
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_train
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_transit
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_tuscan
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_vertigo
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-stock-de_whistle
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 /* END mv-map-stock */
@@ -1427,201 +1284,126 @@ button {
 .mv-map-default
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/default.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-cs_militia_css
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/cs_militia_css.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_bikinibottom
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_bikinibottom.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_brewery
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_brewery.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_cbble_united
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_cbble_united.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_debris
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_debris.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_dogtown
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_dogtown.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_dust2_n
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_dust2_n.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_echolab
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_echolab.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_extraction_s2
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_extraction_s2.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_flick
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_flick.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_ganny
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_ganny.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_golden
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_golden.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_palacio
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_palacio.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_rails
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_rails.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_safehouse
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_safehouse.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-de_splat
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/de_splat.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-drawbridge
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/drawbridge.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-dust2
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/dust2.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-foroglio
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/foroglio.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-idk
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/idk.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-poseidon
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/poseidon.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-shortdust
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/shortdust.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-texture_jungle
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/texture_jungle.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 .mv-map-transit
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/transit.png");
-	background-size: 100% 100%;
-	background-position: center center;
-	background-repeat: no-repeat;
 }
 
 /* END mv-map-palette */

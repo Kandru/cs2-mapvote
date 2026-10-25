@@ -11,6 +11,9 @@ namespace MapVote.Huds
         public const string Filters = "mv-filters";
         public const string Empty = "mv-empty";
         public const string Catalog = "mv-catalog";
+        /// <summary>Favorites sort chip (next to All). Not an <c>mv-fav-*</c> tile star.</summary>
+        public const string FavoritesSort = "mv-sort-fav";
+        public const string FavoritesSortVar = "sfav";
 
         public const int SlotCount = 100;
         public const int CatalogCols = 10;

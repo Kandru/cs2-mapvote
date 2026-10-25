@@ -286,9 +286,6 @@ def rewrite_css(stems: list[str]) -> None:
         lines.append(
             f'\tbackground-image: url("s2r://panorama/images/custom_game/mapvote/maps/{stem}.vtex");'
         )
-        lines.append("\tbackground-size: 100% 100%;")
-        lines.append("\tbackground-position: center center;")
-        lines.append("\tbackground-repeat: no-repeat;")
         lines.append("}")
         lines.append("")
     lines.append(CSS_END)

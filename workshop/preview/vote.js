@@ -23,16 +23,15 @@
 
   const applyShot = (el, map) => {
     const s = stem(map);
-    // Keep MapShot class (and mv-map-* if present) so hud.vcss sizing wins.
     el.classList.add("MapShot");
     el.style.backgroundImage = `url("maps/${s}.webp")`;
-    // Match .MapShot in hud.vcss (343×193 cover crop, centered).
-    el.style.backgroundSize = "343px 193px";
+    el.style.backgroundSize = "350px 197px";
     el.style.backgroundPosition = "50% 50%";
     el.style.backgroundRepeat = "no-repeat";
     const probe = new Image();
+    // Clear overlay on miss so the default MapShot sibling shows through.
     probe.onerror = () => {
-      el.style.backgroundImage = 'url("maps/default.webp")';
+      el.style.backgroundImage = "";
     };
     probe.src = `maps/${s}.webp`;
   };
@@ -171,15 +170,34 @@
         chip.classList.remove("is-disabled", "is-active");
       }
     }
+
+    const favSortIndex = SORTS.findIndex((s) => s.id === "favorites");
+    const favChip = document.getElementById("mv-sort-fav");
+    if (favChip) {
+      if (favSortIndex >= 0) {
+        const disabled = !sortEnabled(SORTS[favSortIndex]);
+        favChip.classList.remove("is-off");
+        favChip.classList.toggle("is-disabled", disabled);
+        favChip.classList.toggle("is-active", state.sort === favSortIndex);
+        setVar("sfav", SORTS[favSortIndex].label);
+      } else {
+        favChip.classList.add("is-off");
+        favChip.classList.remove("is-disabled", "is-active");
+      }
+    }
+
+    // mv-fs-* chips paint non-favorites sorts only (favorites lives next to All).
+    const otherSorts = SORTS.map((s, i) => ({ s, i })).filter(({ s }) => s.id !== "favorites");
     for (let i = 0; i < 4; i++) {
       const chip = document.getElementById(`mv-fs-${i}`);
       if (!chip) continue;
-      if (i < SORTS.length) {
-        const disabled = !sortEnabled(SORTS[i]);
+      if (i < otherSorts.length) {
+        const { s, i: sortIndex } = otherSorts[i];
+        const disabled = !sortEnabled(s);
         chip.classList.remove("is-off");
         chip.classList.toggle("is-disabled", disabled);
-        chip.classList.toggle("is-active", state.sort === i);
-        setVar(`fs${i}`, SORTS[i].label);
+        chip.classList.toggle("is-active", state.sort === sortIndex);
+        setVar(`fs${i}`, s.label);
       } else {
         chip.classList.add("is-off");
         chip.classList.remove("is-disabled", "is-active");
@@ -306,9 +324,14 @@
       if (Number.isInteger(i) && i >= 0 && i < TYPES.length) return { type: i };
       return null;
     }
+    if (id === "mv-sort-fav") {
+      const i = SORTS.findIndex((s) => s.id === "favorites");
+      return i >= 0 ? { sort: i } : null;
+    }
     if (id.startsWith("mv-fs-")) {
       const i = Number(id.slice(6));
-      if (Number.isInteger(i) && i >= 0 && i < SORTS.length) return { sort: i };
+      const otherSorts = SORTS.map((s, idx) => ({ s, idx })).filter(({ s }) => s.id !== "favorites");
+      if (Number.isInteger(i) && i >= 0 && i < otherSorts.length) return { sort: otherSorts[i].idx };
       return null;
     }
     if (id.startsWith("mv-voted-")) {

@@ -61,17 +61,7 @@ namespace MapVote
                 warn: msg => PluginLog.Info($"[players] {msg}"),
                 debug: msg => PluginLog.Debug($"[players] {msg}"));
 
-            RegisterListener<Listeners.OnMapStart>(OnMapStart);
-            RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
-            RegisterListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
-            RegisterListener<Listeners.OnTick>(OnTick);
-            RegisterListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
-
-            RegisterEventHandler<EventCsIntermission>(OnIntermission);
-            RegisterEventHandler<EventRoundAnnounceMatchPoint>(OnMatchPoint);
-            RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
-            RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
-            RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
+            RegisterHooks();
 
             if (hotReload)
             {
@@ -85,11 +75,35 @@ namespace MapVote
             EndVoteUi();
             _saves.FlushSync();
             CustomHud.Shutdown();
+            UnregisterHooks();
+        }
+
+        private void RegisterHooks()
+        {
+            RegisterListener<Listeners.OnMapStart>(OnMapStart);
+            RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
+            RegisterListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
+            RegisterListener<Listeners.OnTick>(OnTick);
+            RegisterListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
+            RegisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
+            RegisterEventHandler<EventRoundAnnounceMatchPoint>(OnMatchPoint);
+            RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+            RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+            RegisterEventHandler<EventRoundEnd>(OnRoundEnd);
+        }
+
+        private void UnregisterHooks()
+        {
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
             RemoveListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
             RemoveListener<Listeners.OnTick>(OnTick);
             RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
+            DeregisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
+            DeregisterEventHandler<EventRoundAnnounceMatchPoint>(OnMatchPoint);
+            DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+            DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+            DeregisterEventHandler<EventRoundEnd>(OnRoundEnd);
         }
 
         private void OnTick()

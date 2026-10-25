@@ -34,11 +34,11 @@ namespace MapVote
             return HookResult.Continue;
         }
 
-        private HookResult OnIntermission(EventCsIntermission @event, GameEventInfo info)
+        private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
         {
             if (Config.Enabled && !_voteActive && !_revealActive && _catalogWaitTimer is null)
             {
-                PluginLog.Debug("intermission: starting vote");
+                PluginLog.Debug("win panel: starting vote");
                 StartVote();
             }
 

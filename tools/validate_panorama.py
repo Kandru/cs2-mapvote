@@ -205,6 +205,7 @@ def collect_errors() -> list[str]:
         "mv-voted-hint",
         "mv-voted-strip",
         "mv-filters",
+        "mv-sort-fav",
         "mv-empty",
         "mv-catalog",
     }
@@ -235,7 +236,7 @@ def collect_errors() -> list[str]:
         | {f"vn{i}" for i in range(slot_count)}
         | {f"ft{i}" for i in range(filter_types)}
         | {f"fs{i}" for i in range(filter_sorts)}
-        | {"mv_title", "mv_hint", "mv_chip", "mv_empty"}
+        | {"mv_title", "mv_hint", "mv_chip", "mv_empty", "sfav"}
     )
 
     if GENERATE_XML.is_file():
