@@ -9,4 +9,6 @@ __pycache__/
 *.pyc
 .DS_Store
 workshop/content/panorama/images/custom_game/mapvote/
+!workshop/content/panorama/images/custom_game/mapvote/default.png
+!workshop/content/panorama/images/custom_game/mapvote/default.vtex
 stuff/panorama/
