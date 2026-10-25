@@ -10,6 +10,7 @@ namespace MapVote
         private void OnMapStart(string mapName)
         {
             _rtvVoters.Clear();
+            _rtvPassed = false;
             _steamBySlot.Clear();
             EndVoteUi();
             CustomHud.ResetRound();

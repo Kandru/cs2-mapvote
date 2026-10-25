@@ -33,6 +33,7 @@ namespace MapVote
         private string? _pendingWinner;
         private MapOrigin _pendingOrigin;
         private readonly HashSet<ulong> _rtvVoters = [];
+        private bool _rtvPassed;
         private readonly Dictionary<int, ulong> _steamBySlot = [];
 
         public void OnConfigParsed(PluginConfig config)
