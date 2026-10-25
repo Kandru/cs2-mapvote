@@ -2,6 +2,7 @@
   "rtv.already": "Du hast bereits für RTV gestimmt.",
   "rtv.progress": "RTV: {0}/{1}",
   "rtv.success": "RTV erfolgreich — Match endet für die Map-Abstimmung.",
+  "rtv.closed": "Eine Map-Abstimmung läuft bereits.",
   "hud.title": "Stimme für die nächste Map",
   "hud.winner": "Gewinnende Map",
   "hud.hint": "Gib die erste Stimme ab",

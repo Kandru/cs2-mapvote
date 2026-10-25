@@ -24,29 +24,41 @@ namespace MapVote
         private VoteTiming _timing;
         private CssTimer? _openTimer;
         private CssTimer? _revealTimer;
+        private CssTimer? _catalogWaitTimer;
+        private CssTimer? _changelevelTimer;
+        private DateTime _catalogWaitDeadlineUtc;
         private bool _voteActive;
         private bool _revealActive;
+        private int _changelevelGeneration;
         private string? _pendingWinner;
         private MapOrigin _pendingOrigin;
         private readonly HashSet<ulong> _rtvVoters = [];
+        private readonly Dictionary<int, ulong> _steamBySlot = [];
 
-        public void OnConfigParsed(PluginConfig config) => Config = config;
+        public void OnConfigParsed(PluginConfig config)
+        {
+            Config = config;
+            PluginLog.Bind(() => Config.Debug);
+        }
 
         public override void Load(bool hotReload)
         {
-            _catalog = new MapCatalog(PluginLog.CatalogSink(() => Config.Debug));
+            PluginLog.Bind(() => Config.Debug);
+            PluginLog.Debug($"load hotReload={hotReload}");
+
+            _catalog = new MapCatalog(PluginLog.CatalogSink());
             _archive = new PlayerArchive();
             _plays = new MapPlayCounts();
             _archive.EnsureLoaded(
                 Config,
                 warn: msg => PluginLog.Info($"[players] {msg}"),
-                debug: Config.Debug ? msg => PluginLog.Info($"[players] {msg}") : null);
+                debug: msg => PluginLog.Debug($"[players] {msg}"));
             _plays.Load(Config, warn: msg => PluginLog.Info($"[plays] {msg}"));
             _saves = new PlayerSaveQueue(
                 _archive,
                 Config,
                 warn: msg => PluginLog.Info($"[players] {msg}"),
-                debug: msg => PluginLog.Info($"[players] {msg}"));
+                debug: msg => PluginLog.Debug($"[players] {msg}"));
 
             RegisterListener<Listeners.OnMapStart>(OnMapStart);
             RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
@@ -68,6 +80,7 @@ namespace MapVote
 
         public override void Unload(bool hotReload)
         {
+            PluginLog.Debug($"unload (hotReload={hotReload})");
             EndVoteUi();
             _saves.FlushSync();
             CustomHud.Shutdown();

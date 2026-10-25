@@ -63,9 +63,9 @@ namespace MapVote.Players
         public void Enqueue(PlayerState state)
         {
             string steamId = state.SteamId;
-            if (steamId.Length == 0)
+            if (steamId.Length == 0 || !PlayerFiles.TrySafeFileName(steamId, out _))
             {
-                _warn($"skip save: empty steam id (user '{state.Username}')");
+                _warn($"skip save: invalid steam id '{steamId}' (user '{state.Username}')");
                 return;
             }
 
@@ -75,6 +75,7 @@ namespace MapVote.Players
             }
 
             _queue.Enqueue(steamId);
+            _debug($"enqueue save {state.Username} ({steamId})");
         }
 
         public void Pump()
@@ -174,29 +175,38 @@ namespace MapVote.Players
             catch (Exception ex)
             {
                 _warn($"failed to serialize player {state.SteamId}: {ex.Message}");
+                Requeue(steamId);
                 return true;
             }
 
+            // Enqueue already validated SteamID64; FilePath is safe here.
             long version = ++_version;
             _inFlight[state.SteamId] = version;
             EnsureWriter();
-            if (!_writes.Writer.TryWrite(new PendingWrite(
-                    state.SteamId,
-                    PlayerFiles.FilePath(_directory, state.SteamId),
-                    bytes,
-                    version)))
+            string path = PlayerFiles.FilePath(_directory, state.SteamId);
+            if (!_writes.Writer.TryWrite(new PendingWrite(state.SteamId, path, bytes, version)))
             {
                 _inFlight.TryRemove(KeyValuePair.Create(state.SteamId, version));
+                Requeue(steamId);
                 return true;
             }
 
             state.Dirty = false;
-            if (_config.Debug)
+            _debug($"autosave {state.Username} ({state.SteamId}) favorites={state.Favorites.Count}");
+            return true;
+        }
+
+        private void Requeue(string steamId)
+        {
+            if (_closed)
             {
-                _debug($"autosave {state.Username} ({state.SteamId}) favorites={state.Favorites.Count}");
+                return;
             }
 
-            return true;
+            if (_queued.Add(steamId))
+            {
+                _queue.Enqueue(steamId);
+            }
         }
 
         private void DrainFailed()
@@ -214,6 +224,7 @@ namespace MapVote.Players
                     && _archive.TryGet(failed.SteamId) is { } state)
                 {
                     state.Dirty = true;
+                    Requeue(failed.SteamId);
                 }
             }
         }
@@ -236,6 +247,7 @@ namespace MapVote.Players
                         continue;
                     }
 
+                    // 0 → claim this write; WriterClosed (or any other) → stop the loop.
                     if (Interlocked.CompareExchange(ref _writing, write.Version, 0) != 0)
                     {
                         return;

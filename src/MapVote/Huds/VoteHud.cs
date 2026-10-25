@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API.Core;
 using MapVote.Config;
+using MapVote.Maps;
 using MapVote.Players;
 using MapVote.Utils;
 using MapVote.Voting;
@@ -16,7 +17,8 @@ namespace MapVote.Huds
         public const int FilterTypeSlots = VoteIds.FilterTypeSlots;
         public const int FilterSortSlots = VoteIds.FilterSortSlots;
 
-        private const int PaintWriteBudget = 64;
+        private const int MaxSlots = 65;
+        private const int PaintWriteBudget = 128;
 
         private static VoteSession? _session;
         private static FiltersConfig _filters = new();
@@ -27,14 +29,14 @@ namespace MapVote.Huds
         private static bool _revealing;
         private static string? _winner;
 
-        private static readonly int[] LastVotedWidth = new int[65];
-        private static readonly int[] LastCatalogRows = new int[65];
-        private static readonly bool[] Minimized = new bool[65];
-        private static readonly bool[] Dirty = new bool[65];
-        private static readonly int[] TypeSelection = new int[65];
-        private static readonly int[] SortSelection = new int[65];
-        private static readonly string?[,] VotedMaps = new string?[65, SlotCount];
-        private static readonly string?[,] GridMaps = new string?[65, SlotCount];
+        private static readonly int[] LastVotedWidth = new int[MaxSlots];
+        private static readonly int[] LastCatalogRows = new int[MaxSlots];
+        private static readonly bool[] Minimized = new bool[MaxSlots];
+        private static readonly bool[] Dirty = new bool[MaxSlots];
+        private static readonly int[] TypeSelection = new int[MaxSlots];
+        private static readonly int[] SortSelection = new int[MaxSlots];
+        private static readonly string?[,] VotedMaps = new string?[MaxSlots, SlotCount];
+        private static readonly string?[,] GridMaps = new string?[MaxSlots, SlotCount];
 
         public static void Bind(
             VoteSession session,
@@ -50,14 +52,9 @@ namespace MapVote.Huds
             _plays = plays;
             _text = text;
             _enqueueSave = enqueueSave;
+            ResetAllSlots();
             _revealing = false;
             _winner = null;
-            Array.Fill(LastVotedWidth, -1);
-            Array.Fill(LastCatalogRows, -1);
-            Array.Fill(Minimized, false);
-            Array.Fill(Dirty, false);
-            Array.Fill(TypeSelection, 0);
-            Array.Fill(SortSelection, -1);
         }
 
         public static void Clear()
@@ -69,30 +66,14 @@ namespace MapVote.Huds
             _enqueueSave = null;
             _revealing = false;
             _winner = null;
-            Array.Fill(LastVotedWidth, -1);
-            Array.Fill(LastCatalogRows, -1);
-            Array.Fill(Minimized, false);
-            Array.Fill(Dirty, false);
-            Array.Fill(TypeSelection, 0);
-            Array.Fill(SortSelection, -1);
-            for (int s = 0; s < 65; s++)
-            {
-                for (int i = 0; i < SlotCount; i++)
-                {
-                    VotedMaps[s, i] = null;
-                    GridMaps[s, i] = null;
-                }
-            }
+            ResetAllSlots();
         }
 
         public static void WriteDefaults(CCSPlayerController player)
         {
-            if (player.Slot is >= 0 and < LastVotedWidth.Length)
+            if (player.Slot is >= 0 and < MaxSlots)
             {
-                LastVotedWidth[player.Slot] = -1;
-                LastCatalogRows[player.Slot] = -1;
-                Minimized[player.Slot] = false;
-                Dirty[player.Slot] = false;
+                ResetSlotState(player.Slot);
             }
 
             CustomHud.SetText(player, Panel, "mv_title", T(player, "hud.title"));
@@ -134,7 +115,15 @@ namespace MapVote.Huds
             }
         }
 
-        public static void OpenFor(CCSPlayerController player)
+        public static void ReleaseSlot(int slot)
+        {
+            if (slot is >= 0 and < MaxSlots)
+            {
+                ResetSlotState(slot);
+            }
+        }
+
+        public static void OpenFor(CCSPlayerController player, bool captureMouse = true)
         {
             if (_session is null || !PlayerUtil.IsHumanViewer(player))
             {
@@ -143,7 +132,20 @@ namespace MapVote.Huds
 
             WriteDefaults(player);
             Paint(player);
-            HudMenu.Open(player, new HudMenuOpenOptions { OnButton = OnButton });
+            HudMenu.Open(player, new HudMenuOpenOptions { OnButton = OnButton, CaptureMouse = captureMouse });
+            PluginLog.Debug($"hud open slot={player.Slot}");
+        }
+
+        public static void PaintRevealFor(CCSPlayerController player, string winner)
+        {
+            if (_session is null || !PlayerUtil.IsHumanViewer(player))
+            {
+                return;
+            }
+
+            _revealing = true;
+            _winner = winner;
+            ApplyRevealPaint(player);
         }
 
         public static void PaintAll()
@@ -155,7 +157,7 @@ namespace MapVote.Huds
 
             ForEachOpen(player =>
             {
-                if (player.Slot is >= 0 and < Dirty.Length)
+                if (player.Slot is >= 0 and < MaxSlots)
                 {
                     Dirty[player.Slot] = true;
                 }
@@ -166,7 +168,7 @@ namespace MapVote.Huds
 
         public static void Paint(CCSPlayerController player)
         {
-            if (_session is null || !PlayerUtil.IsHumanViewer(player) || player.Slot is < 0 or >= Dirty.Length)
+            if (_session is null || !PlayerUtil.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
@@ -192,29 +194,18 @@ namespace MapVote.Huds
 
             ForEachOpen(player =>
             {
-                if (player.Slot is >= 0 and < Dirty.Length && Dirty[player.Slot])
+                if (player.Slot is >= 0 and < MaxSlots && Dirty[player.Slot])
                 {
                     Paint(player);
                 }
             });
         }
 
-        public static void BeginReveal(string winner, int votes)
+        public static void BeginReveal(string winner)
         {
-            _ = votes;
             _revealing = true;
             _winner = winner;
-
-            ForEachOpen(player =>
-            {
-                HudMenu.DropCapture(player);
-                if (player.Slot is >= 0 and < Dirty.Length)
-                {
-                    Dirty[player.Slot] = true;
-                }
-
-                Paint(player);
-            });
+            ForEachOpen(ApplyRevealPaint);
         }
 
         public static void CloseAll()
@@ -227,9 +218,20 @@ namespace MapVote.Huds
             Clear();
         }
 
+        private static void ApplyRevealPaint(CCSPlayerController player)
+        {
+            HudMenu.DropCapture(player);
+            if (player.Slot is >= 0 and < MaxSlots)
+            {
+                Dirty[player.Slot] = true;
+            }
+
+            Paint(player);
+        }
+
         public static void OnButton(CCSPlayerController player, string buttonId)
         {
-            if (_session is null || !_session.IsOpen || player.Slot is < 0 or >= Dirty.Length)
+            if (_session is null || !_session.IsOpen || player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
@@ -284,6 +286,7 @@ namespace MapVote.Huds
 
             if (_session.Cast(player.AuthorizedSteamID.SteamId64, votedMap))
             {
+                PluginLog.Debug($"cast {player.AuthorizedSteamID.SteamId64} → {votedMap}");
                 PaintAll();
             }
         }
@@ -421,7 +424,7 @@ namespace MapVote.Huds
             IReadOnlyList<string> source = _session.GridOrder();
             for (int i = 0; i < source.Count; i++)
             {
-                if (MatchesType(source[i], type, _filters.Types))
+                if (MapTypeFilter.MatchesType(source[i], type, _filters.Types))
                 {
                     return true;
                 }
@@ -447,7 +450,7 @@ namespace MapVote.Huds
             if (_filters.Enabled && typeCount > 0 && activeType > 0 && activeType <= typeCount)
             {
                 FilterTypeConfig type = _filters.Types[activeType - 1];
-                maps = maps.Where(m => MatchesType(m, type, _filters.Types)).ToList();
+                maps = maps.Where(m => MapTypeFilter.MatchesType(m, type, _filters.Types)).ToList();
             }
 
             int activeSort = SortSelection[player.Slot];
@@ -475,43 +478,6 @@ namespace MapVote.Huds
             }
 
             return maps;
-        }
-
-        private static bool MatchesType(string map, FilterTypeConfig type, List<FilterTypeConfig> all)
-        {
-            // "other" with no prefixes: maps not claimed by any earlier typed entry.
-            if (type.Prefixes.Count == 0)
-            {
-                foreach (FilterTypeConfig earlier in all)
-                {
-                    if (ReferenceEquals(earlier, type))
-                    {
-                        break;
-                    }
-
-                    if (earlier.Prefixes.Count > 0 && PrefixMatch(map, earlier.Prefixes))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            return PrefixMatch(map, type.Prefixes);
-        }
-
-        private static bool PrefixMatch(string map, List<string> prefixes)
-        {
-            foreach (string prefix in prefixes)
-            {
-                if (prefix.Length > 0 && map.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static int IndexOf(IReadOnlyList<string> source, string map)
@@ -617,7 +583,7 @@ namespace MapVote.Huds
 
         private static void ToggleMinimized(CCSPlayerController player)
         {
-            if (player.Slot is < 0 or >= Minimized.Length)
+            if (player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
@@ -629,6 +595,11 @@ namespace MapVote.Huds
 
         private static void SetVotedWidth(CCSPlayerController player, int count)
         {
+            if (player.Slot is < 0 or >= MaxSlots)
+            {
+                return;
+            }
+
             int n = Math.Clamp(count, 0, SlotCount);
             int slot = player.Slot;
             int prev = LastVotedWidth[slot];
@@ -648,6 +619,11 @@ namespace MapVote.Huds
 
         private static void SetCatalogRows(CCSPlayerController player, int rowCount)
         {
+            if (player.Slot is < 0 or >= MaxSlots)
+            {
+                return;
+            }
+
             int n = Math.Clamp(rowCount, 0, CatalogRowCount);
             int slot = player.Slot;
             int prev = LastCatalogRows[slot];
@@ -676,6 +652,7 @@ namespace MapVote.Huds
             {
                 if (CustomHud.Writes >= PaintWriteBudget)
                 {
+                    InvalidateRememberFrom(player, pool, i);
                     return;
                 }
 
@@ -686,6 +663,14 @@ namespace MapVote.Huds
                 }
 
                 PaintTile(player, pool, i, order[i], _session!.CountOf(order[i]), mine, favorites);
+            }
+        }
+
+        private static void InvalidateRememberFrom(CCSPlayerController player, Pool pool, int startIndex)
+        {
+            for (int i = startIndex; i < SlotCount; i++)
+            {
+                Remember(player, pool, i, null);
             }
         }
 
@@ -734,7 +719,7 @@ namespace MapVote.Huds
 
         private static void Remember(CCSPlayerController player, Pool pool, int index, string? map)
         {
-            if (player.Slot is < 0 or >= 65)
+            if (player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
@@ -746,6 +731,39 @@ namespace MapVote.Huds
             else
             {
                 GridMaps[player.Slot, index] = map;
+            }
+        }
+
+        private static void ResetSlotState(int slot)
+        {
+            LastVotedWidth[slot] = -1;
+            LastCatalogRows[slot] = -1;
+            Minimized[slot] = false;
+            Dirty[slot] = false;
+            TypeSelection[slot] = 0;
+            SortSelection[slot] = -1;
+            for (int i = 0; i < SlotCount; i++)
+            {
+                VotedMaps[slot, i] = null;
+                GridMaps[slot, i] = null;
+            }
+        }
+
+        private static void ResetAllSlots()
+        {
+            Array.Fill(LastVotedWidth, -1);
+            Array.Fill(LastCatalogRows, -1);
+            Array.Fill(Minimized, false);
+            Array.Fill(Dirty, false);
+            Array.Fill(TypeSelection, 0);
+            Array.Fill(SortSelection, -1);
+            for (int s = 0; s < MaxSlots; s++)
+            {
+                for (int i = 0; i < SlotCount; i++)
+                {
+                    VotedMaps[s, i] = null;
+                    GridMaps[s, i] = null;
+                }
             }
         }
 

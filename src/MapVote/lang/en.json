@@ -2,6 +2,7 @@
   "rtv.already": "You already voted to rock the vote.",
   "rtv.progress": "RTV: {0}/{1}",
   "rtv.success": "RTV passed — ending the match for a map vote.",
+  "rtv.closed": "A map vote is already in progress.",
   "hud.title": "Vote for the next map",
   "hud.winner": "Winning map",
   "hud.hint": "Cast the first vote",

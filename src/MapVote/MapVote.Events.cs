@@ -10,9 +10,11 @@ namespace MapVote
         private void OnMapStart(string mapName)
         {
             _rtvVoters.Clear();
+            _steamBySlot.Clear();
             EndVoteUi();
             CustomHud.ResetRound();
             _catalog.RequestRefresh(force: true);
+            PluginLog.Debug($"map start {mapName}");
         }
 
         private void OnMapEnd()
@@ -33,8 +35,9 @@ namespace MapVote
 
         private HookResult OnIntermission(EventCsIntermission @event, GameEventInfo info)
         {
-            if (Config.Enabled && !_voteActive)
+            if (Config.Enabled && !_voteActive && !_revealActive && _catalogWaitTimer is null)
             {
+                PluginLog.Debug("intermission: starting vote");
                 StartVote();
             }
 
@@ -44,13 +47,30 @@ namespace MapVote
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
         {
             CCSPlayerController? player = @event.Userid;
-            if (player is { IsValid: true } && player.AuthorizedSteamID is { SteamId64: > 0 } steam)
+            if (player is not { IsValid: true })
             {
+                return HookResult.Continue;
+            }
+
+            if (player.AuthorizedSteamID is { SteamId64: > 0 } steam)
+            {
+                if (player.Slot is >= 0)
+                {
+                    _steamBySlot[player.Slot] = steam.SteamId64;
+                }
+
                 PlayerState state = _archive.GetOrCreate(steam.SteamId64.ToString());
                 if (string.IsNullOrEmpty(state.Username) || state.Username == state.SteamId)
                 {
                     state.Username = player.PlayerName ?? state.SteamId;
                 }
+
+                PluginLog.Debug($"connect: {state.Username} ({steam.SteamId64}) slot={player.Slot}");
+            }
+
+            if (_voteActive || _revealActive)
+            {
+                OpenVoteHudForJoiner(player);
             }
 
             return HookResult.Continue;
@@ -75,9 +95,9 @@ namespace MapVote
                 queued++;
             }
 
-            if (queued > 0 && Config.Debug)
+            if (queued > 0)
             {
-                PluginLog.Info($"[players] round end: queued {queued} dirty player(s)");
+                PluginLog.Debug($"[players] round end: queued {queued} dirty player(s)");
             }
 
             return HookResult.Continue;
@@ -91,18 +111,34 @@ namespace MapVote
                 return HookResult.Continue;
             }
 
-            if (player.AuthorizedSteamID is { } steam)
+            ulong? steamId = player.AuthorizedSteamID?.SteamId64;
+            if (steamId is null or 0
+                && player.Slot is >= 0
+                && _steamBySlot.TryGetValue(player.Slot, out ulong cached))
             {
-                _rtvVoters.Remove(steam.SteamId64);
-                if (_session is { IsOpen: true } && _session.RemovePlayer(steam.SteamId64))
+                steamId = cached;
+            }
+
+            if (player.Slot is >= 0)
+            {
+                _steamBySlot.Remove(player.Slot);
+                VoteHud.ReleaseSlot(player.Slot);
+            }
+
+            if (steamId is > 0)
+            {
+                _rtvVoters.Remove(steamId.Value);
+                if (_session is { IsOpen: true } && _session.RemovePlayer(steamId.Value))
                 {
                     VoteHud.PaintAll();
                 }
 
-                if (_archive.TryGet(steam.SteamId64.ToString()) is { Dirty: true } state)
+                if (_archive.TryGet(steamId.Value.ToString()) is { Dirty: true } state)
                 {
                     _saves.Enqueue(state);
                 }
+
+                PluginLog.Debug($"disconnect: {steamId} slot={player.Slot}");
             }
 
             CustomHud.ReleasePlayer(player);

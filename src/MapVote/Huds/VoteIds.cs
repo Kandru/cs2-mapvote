@@ -12,9 +12,9 @@ namespace MapVote.Huds
         public const string Empty = "mv-empty";
         public const string Catalog = "mv-catalog";
 
-        public const int SlotCount = 50;
+        public const int SlotCount = 100;
         public const int CatalogCols = 10;
-        public const int CatalogRowCount = 5;
+        public const int CatalogRowCount = 10;
         public const int FilterTypeSlots = 8;
         public const int FilterSortSlots = 4;
 

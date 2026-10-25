@@ -1,13 +1,17 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using CounterStrikeSharp.API.Modules.Extensions;
 using MapVote.Config;
 
 namespace MapVote.Players
 {
     /// <summary>On-disk player JSON paths and (de)serialization (trimmed from cs2-challenges).</summary>
-    internal static class PlayerFiles
+    internal static partial class PlayerFiles
     {
         public static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
+        [GeneratedRegex("^[0-9]{17}$", RegexOptions.CultureInvariant)]
+        private static partial Regex SteamId64();
 
         public static string DirectoryPath(PluginConfig config) =>
             Path.Combine(Path.GetDirectoryName(config.GetConfigPath()) ?? ".", "players");
@@ -15,11 +19,27 @@ namespace MapVote.Players
         public static string FilePath(PluginConfig config, string steamId) =>
             FilePath(DirectoryPath(config), steamId);
 
-        public static string FilePath(string directory, string steamId) =>
-            Path.Combine(directory, $"{SafeFileName(steamId)}.json");
+        public static string FilePath(string directory, string steamId)
+        {
+            if (!TrySafeFileName(steamId, out string fileName))
+            {
+                throw new ArgumentException("SteamID64 required.", nameof(steamId));
+            }
 
-        private static string SafeFileName(string steamId) =>
-            string.Concat(steamId.Split(Path.GetInvalidFileNameChars()));
+            return Path.Combine(directory, $"{fileName}.json");
+        }
+
+        public static bool TrySafeFileName(string steamId, out string fileName)
+        {
+            fileName = string.Empty;
+            if (string.IsNullOrEmpty(steamId) || !SteamId64().IsMatch(steamId))
+            {
+                return false;
+            }
+
+            fileName = steamId;
+            return true;
+        }
 
         public static PlayerState? DeserializeBytes(ReadOnlySpan<byte> bytes)
         {

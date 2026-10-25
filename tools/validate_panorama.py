@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the MapVote Panorama addon (workshop/content/panorama): XML + hud.vcss + images."""
+"""Validate the MapVote Panorama addon (workshop/content/panorama): XML + versioned hud.vcss + images."""
 from __future__ import annotations
 
 import re
@@ -8,17 +8,22 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from mapvote_layout import HUD_CSS_NAME, HUD_VCSS_NAME, PANORAMA_VERSION, VOTE_XML_NAME
+
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "workshop" / "content" / "panorama"
 LAYOUTS = CONTENT / "layout" / "custom_game" / "mapvote"
 STYLES = CONTENT / "styles" / "custom_game" / "mapvote"
 IMAGES = CONTENT / "images" / "custom_game" / "mapvote" / "maps"
-HUD_VCSS = STYLES / "hud.vcss"
-HUD_CSS = STYLES / "hud.css"
-VOTE_XML = LAYOUTS / "vote.xml"
+HUD_VCSS = STYLES / HUD_VCSS_NAME
+HUD_CSS = STYLES / HUD_CSS_NAME
+VOTE_XML = LAYOUTS / VOTE_XML_NAME
 VOTE_HUD_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteHud.cs"
 VOTE_IDS_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteIds.cs"
 MAP_CATALOG_CS = ROOT / "src" / "MapVote" / "Maps" / "MapCatalog.cs"
+VERSION_CS = ROOT / "src" / "MapVote" / "Version.cs"
 PREVIEW_HTML = ROOT / "workshop" / "preview" / "vote.html"
 GENERATE_XML = ROOT / "tools" / "generate_vote_xml.py"
 CREDIT_TEXT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
@@ -28,6 +33,18 @@ VAR_RE = re.compile(r"\{s:([A-Za-z0-9_]+)\}")
 HIDDEN_CLASS = re.compile(r"(?<![\w-])(?:hidden|Hidden)(?![\w-])")
 PROPERTY_RE = re.compile(r"(?:^|[{;])\s*([a-z][a-z0-9-]*)\s*:", re.M)
 MV_MAP_CLASS_RE = re.compile(r"\.mv-map-([a-z0-9_]+)\s*\{([^}]*)\}", re.S)
+MV_MAP_STOCK_CLASS_RE = re.compile(r"\.mv-map-stock-([a-z0-9_]+)\s*\{([^}]*)\}", re.S)
+STOCK_BLOCK_RE = re.compile(
+    r"/\*\s*BEGIN mv-map-stock\s*\*/(.*?)/\*\s*END mv-map-stock\s*\*/",
+    re.S,
+)
+PALETTE_BLOCK_RE = re.compile(
+    r"/\*\s*BEGIN mv-map-palette\s*\*/(.*?)/\*\s*END mv-map-palette\s*\*/",
+    re.S,
+)
+STOCK_URL_RE = re.compile(
+    r'url\(\s*"s2r://panorama/images/map_icons/screenshots/360p/([a-z0-9_]+)_png\.vtex"\s*\)'
+)
 VTEX_FILE_RE = re.compile(r'"m_fileName"\s+"string"\s+"([^"]+)"')
 KEYFRAMES_RE = re.compile(r"@keyframes\s+([^{\s]+)")
 
@@ -148,6 +165,17 @@ def collect_errors() -> list[str]:
         return [f"missing {VOTE_IDS_CS.relative_to(ROOT)}"]
     if not VOTE_HUD_CS.is_file():
         return [f"missing {VOTE_HUD_CS.relative_to(ROOT)}"]
+
+    if VERSION_CS.is_file():
+        try:
+            cs_version = csharp_const_string(VERSION_CS, "PanoramaVersion")
+            if cs_version != PANORAMA_VERSION:
+                errors.append(
+                    f"Version.cs PanoramaVersion ({cs_version!r}) must equal "
+                    f"mapvote_layout.PANORAMA_VERSION ({PANORAMA_VERSION!r})"
+                )
+        except SystemExit as ex:
+            errors.append(str(ex))
 
     slot_count = csharp_const_int(VOTE_IDS_CS, "SlotCount")
     catalog_cols = csharp_const_int(VOTE_IDS_CS, "CatalogCols")
@@ -281,7 +309,30 @@ def collect_errors() -> list[str]:
         elif not HUD_CSS.is_symlink() or HUD_CSS.resolve() != HUD_VCSS.resolve():
             errors.append("hud.css must be a symlink to hud.vcss")
 
-        for stem, body in MV_MAP_CLASS_RE.findall(css):
+        stock_block = STOCK_BLOCK_RE.search(css_raw)
+        palette_block = PALETTE_BLOCK_RE.search(css_raw)
+        if stock_block is None:
+            errors.append("hud.vcss: missing /* BEGIN mv-map-stock */ … /* END mv-map-stock */ block")
+        if palette_block is None:
+            errors.append("hud.vcss: missing /* BEGIN mv-map-palette */ … /* END mv-map-palette */ block")
+
+        for stem, body in MV_MAP_STOCK_CLASS_RE.findall(stock_block.group(1) if stock_block else ""):
+            if "background-image" not in body:
+                errors.append(f".mv-map-stock-{stem}: missing background-image")
+                continue
+            m = STOCK_URL_RE.search(body)
+            if not m or m.group(1) != stem:
+                errors.append(
+                    f".mv-map-stock-{stem}: must use "
+                    f's2r://panorama/images/map_icons/screenshots/360p/{stem}_png.vtex'
+                )
+
+        for stem, body in MV_MAP_CLASS_RE.findall(palette_block.group(1) if palette_block else ""):
+            if stem.startswith("stock_"):
+                errors.append(f".mv-map-{stem}: stock classes belong in mv-map-stock block")
+                continue
+            if "background-image" not in body:
+                errors.append(f".mv-map-{stem}: missing background-image")
             png = IMAGES / f"{stem}.png"
             vtex = IMAGES / f"{stem}.vtex"
             if not png.is_file():
@@ -294,8 +345,6 @@ def collect_errors() -> list[str]:
                 expected = f"panorama/images/custom_game/mapvote/maps/{stem}.png"
                 if not m or m.group(1) != expected:
                     errors.append(f"{vtex.relative_to(ROOT)}: m_fileName must be {expected!r}")
-            if "background-image" not in body:
-                errors.append(f".mv-map-{stem}: missing background-image")
 
     if not VOTE_XML.is_file():
         errors.append(f"missing {VOTE_XML.relative_to(ROOT)}")

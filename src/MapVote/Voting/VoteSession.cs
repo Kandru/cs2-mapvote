@@ -30,7 +30,7 @@ namespace MapVote.Voting
 
         public bool Cast(ulong playerId, string mapName)
         {
-            if (!IsOpen || !_counts.ContainsKey(mapName))
+            if (!IsOpen || string.IsNullOrEmpty(mapName) || !_counts.ContainsKey(mapName))
             {
                 return false;
             }

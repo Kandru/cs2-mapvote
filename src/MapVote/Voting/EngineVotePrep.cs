@@ -14,9 +14,16 @@ namespace MapVote.Voting
             ConVars.EnsureMinInt("mp_match_restart_delay", totalSeconds);
         }
 
+        /// <summary>Re-enable Valve's end-match vote when the custom vote cannot start.</summary>
+        public static void RestoreValveVote()
+        {
+            Server.ExecuteCommand("mp_endmatch_votenextmap 1");
+        }
+
         public static string ChangelevelCommand(MapOrigin origin, string map) =>
             origin == MapOrigin.Workshop
                 ? $"ds_workshop_changelevel {map}"
                 : $"changelevel {map}";
     }
 }
+

@@ -6,13 +6,21 @@ namespace MapVote.Maps
     /// <summary>Minimal Source RCON client for localhost map listing.</summary>
     public sealed class RconClient : IDisposable
     {
+        internal const int ServerDataResponseValue = 0;
+        internal const int ServerDataAuthResponse = 2;
+        internal const int ServerDataExecCommand = 2;
+        internal const int ServerDataAuth = 3;
+        internal const int MaxPacketLength = 64 * 1024;
+        internal const int MaxBodyLength = 1024 * 1024;
+
         private readonly string _ip;
         private readonly int _port;
         private readonly string _password;
         private readonly int _timeoutMs;
         private TcpClient? _tcp;
-        private NetworkStream? _stream;
+        private Stream? _stream;
         private int _requestId;
+        private readonly bool _ownsStream;
 
         public RconClient(string ip, int port, string password, int timeoutMs = 1000)
         {
@@ -20,6 +28,18 @@ namespace MapVote.Maps
             _port = port;
             _password = password;
             _timeoutMs = timeoutMs;
+            _ownsStream = true;
+        }
+
+        /// <summary>Test hook: drive the protocol against an in-memory stream.</summary>
+        internal RconClient(Stream stream, string password = "test")
+        {
+            _ip = "127.0.0.1";
+            _port = 0;
+            _password = password;
+            _timeoutMs = 1000;
+            _stream = stream;
+            _ownsStream = false;
         }
 
         public void Connect()
@@ -30,7 +50,10 @@ namespace MapVote.Maps
                 SendTimeout = _timeoutMs,
             };
             _tcp.Connect(_ip, _port);
-            _stream = _tcp.GetStream();
+            NetworkStream network = _tcp.GetStream();
+            network.ReadTimeout = _timeoutMs;
+            network.WriteTimeout = _timeoutMs;
+            _stream = network;
             Authenticate();
         }
 
@@ -42,31 +65,75 @@ namespace MapVote.Maps
             }
 
             _requestId++;
-            byte[] packet = CreatePacket(_requestId, 2, command);
+            int commandId = _requestId;
+            byte[] packet = CreatePacket(commandId, ServerDataExecCommand, command);
             _stream.Write(packet, 0, packet.Length);
-            (_, _, string body) = ReceiveResponse();
-            return body;
+
+            _requestId++;
+            int sentinelId = _requestId;
+            byte[] sentinel = CreatePacket(sentinelId, ServerDataResponseValue, string.Empty);
+            _stream.Write(sentinel, 0, sentinel.Length);
+
+            StringBuilder body = new();
+            while (true)
+            {
+                (int requestId, _, string chunk) = ReceiveResponse();
+                if (requestId == sentinelId)
+                {
+                    break;
+                }
+
+                if (requestId == commandId)
+                {
+                    if (body.Length + chunk.Length > MaxBodyLength)
+                    {
+                        throw new InvalidOperationException("RCON response body too large.");
+                    }
+
+                    body.Append(chunk);
+                }
+            }
+
+            return body.ToString();
         }
 
         public void Dispose()
         {
-            _stream?.Dispose();
-            _tcp?.Dispose();
-        }
-
-        private void Authenticate()
-        {
-            _requestId++;
-            byte[] auth = CreatePacket(_requestId, 3, _password);
-            _stream!.Write(auth, 0, auth.Length);
-            (int requestId, _, _) = ReceiveResponse();
-            if (requestId == -1)
+            if (_ownsStream)
             {
-                throw new InvalidOperationException("RCON authentication failed.");
+                _stream?.Dispose();
+                _tcp?.Dispose();
             }
         }
 
-        private static byte[] CreatePacket(int requestId, int packetType, string body)
+        internal void Authenticate()
+        {
+            if (_stream is null)
+            {
+                throw new InvalidOperationException("RCON not connected.");
+            }
+
+            _requestId++;
+            int authId = _requestId;
+            byte[] auth = CreatePacket(authId, ServerDataAuth, _password);
+            _stream.Write(auth, 0, auth.Length);
+
+            while (true)
+            {
+                (int requestId, int responseType, _) = ReceiveResponse();
+                if (requestId == -1)
+                {
+                    throw new InvalidOperationException("RCON authentication failed.");
+                }
+
+                if (responseType == ServerDataAuthResponse && requestId == authId)
+                {
+                    return;
+                }
+            }
+        }
+
+        internal static byte[] CreatePacket(int requestId, int packetType, string body)
         {
             byte[] bodyBytes = Encoding.UTF8.GetBytes(body);
             int packetSize = 4 + 4 + bodyBytes.Length + 2;
@@ -80,11 +147,16 @@ namespace MapVote.Maps
             return packet;
         }
 
-        private (int RequestId, int ResponseType, string Body) ReceiveResponse()
+        internal (int RequestId, int ResponseType, string Body) ReceiveResponse()
         {
             byte[] lengthBytes = new byte[4];
             ReadExact(lengthBytes);
             int packetLength = BitConverter.ToInt32(lengthBytes, 0);
+            if (packetLength < 10 || packetLength > MaxPacketLength)
+            {
+                throw new InvalidOperationException($"RCON packet length out of range: {packetLength}.");
+            }
+
             byte[] response = new byte[packetLength];
             ReadExact(response);
             int requestId = BitConverter.ToInt32(response, 0);

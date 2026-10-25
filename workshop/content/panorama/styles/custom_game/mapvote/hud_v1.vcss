@@ -203,6 +203,7 @@
 }
 
 /* Slot pitch = 110px tile + 8px + 8px margin = 126px */
+/* BEGIN vw-ladder */
 .VotedStrip.vw-0 { width: 0px; }
 .VotedStrip.vw-1 { width: 126px; }
 .VotedStrip.vw-2 { width: 252px; }
@@ -254,6 +255,57 @@
 .VotedStrip.vw-48 { width: 6048px; }
 .VotedStrip.vw-49 { width: 6174px; }
 .VotedStrip.vw-50 { width: 6300px; }
+.VotedStrip.vw-51 { width: 6426px; }
+.VotedStrip.vw-52 { width: 6552px; }
+.VotedStrip.vw-53 { width: 6678px; }
+.VotedStrip.vw-54 { width: 6804px; }
+.VotedStrip.vw-55 { width: 6930px; }
+.VotedStrip.vw-56 { width: 7056px; }
+.VotedStrip.vw-57 { width: 7182px; }
+.VotedStrip.vw-58 { width: 7308px; }
+.VotedStrip.vw-59 { width: 7434px; }
+.VotedStrip.vw-60 { width: 7560px; }
+.VotedStrip.vw-61 { width: 7686px; }
+.VotedStrip.vw-62 { width: 7812px; }
+.VotedStrip.vw-63 { width: 7938px; }
+.VotedStrip.vw-64 { width: 8064px; }
+.VotedStrip.vw-65 { width: 8190px; }
+.VotedStrip.vw-66 { width: 8316px; }
+.VotedStrip.vw-67 { width: 8442px; }
+.VotedStrip.vw-68 { width: 8568px; }
+.VotedStrip.vw-69 { width: 8694px; }
+.VotedStrip.vw-70 { width: 8820px; }
+.VotedStrip.vw-71 { width: 8946px; }
+.VotedStrip.vw-72 { width: 9072px; }
+.VotedStrip.vw-73 { width: 9198px; }
+.VotedStrip.vw-74 { width: 9324px; }
+.VotedStrip.vw-75 { width: 9450px; }
+.VotedStrip.vw-76 { width: 9576px; }
+.VotedStrip.vw-77 { width: 9702px; }
+.VotedStrip.vw-78 { width: 9828px; }
+.VotedStrip.vw-79 { width: 9954px; }
+.VotedStrip.vw-80 { width: 10080px; }
+.VotedStrip.vw-81 { width: 10206px; }
+.VotedStrip.vw-82 { width: 10332px; }
+.VotedStrip.vw-83 { width: 10458px; }
+.VotedStrip.vw-84 { width: 10584px; }
+.VotedStrip.vw-85 { width: 10710px; }
+.VotedStrip.vw-86 { width: 10836px; }
+.VotedStrip.vw-87 { width: 10962px; }
+.VotedStrip.vw-88 { width: 11088px; }
+.VotedStrip.vw-89 { width: 11214px; }
+.VotedStrip.vw-90 { width: 11340px; }
+.VotedStrip.vw-91 { width: 11466px; }
+.VotedStrip.vw-92 { width: 11592px; }
+.VotedStrip.vw-93 { width: 11718px; }
+.VotedStrip.vw-94 { width: 11844px; }
+.VotedStrip.vw-95 { width: 11970px; }
+.VotedStrip.vw-96 { width: 12096px; }
+.VotedStrip.vw-97 { width: 12222px; }
+.VotedStrip.vw-98 { width: 12348px; }
+.VotedStrip.vw-99 { width: 12474px; }
+.VotedStrip.vw-100 { width: 12600px; }
+/* END vw-ladder */
 
 .FilterBar
 {
@@ -409,12 +461,19 @@
 	padding-right: 12px;
 }
 
+/* BEGIN rows-ladder */
 .MapCatalog.rows-0 { height: 0px; }
 .MapCatalog.rows-1 { height: 213px; }
 .MapCatalog.rows-2 { height: 426px; }
 .MapCatalog.rows-3 { height: 639px; }
 .MapCatalog.rows-4 { height: 852px; }
 .MapCatalog.rows-5 { height: 1065px; }
+.MapCatalog.rows-6 { height: 1278px; }
+.MapCatalog.rows-7 { height: 1491px; }
+.MapCatalog.rows-8 { height: 1704px; }
+.MapCatalog.rows-9 { height: 1917px; }
+.MapCatalog.rows-10 { height: 2130px; }
+/* END rows-ladder */
 
 .CatalogRow
 {
@@ -688,6 +747,434 @@
 	color: #a3acb6;
 	white-space: nowrap;
 }
+
+/* BEGIN mv-map-stock */
+
+.mv-map-stock-ar_baggage
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/ar_baggage_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-ar_pool_day
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/ar_pool_day_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-ar_shoots
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/ar_shoots_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-ar_shoots_night
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/ar_shoots_night_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-cs_agency
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/cs_agency_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-cs_alpine
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/cs_alpine_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-cs_assault
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/cs_assault_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-cs_italy
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/cs_italy_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-cs_militia
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/cs_militia_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-cs_office
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/cs_office_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-cs_shelter
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/cs_shelter_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_ancient
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_ancient_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_ancient_night
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_ancient_night_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_anubis
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_anubis_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_assembly
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_assembly_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_basalt
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_basalt_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_boulder
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_boulder_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_brewery
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_brewery_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_cache
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_cache_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_canals
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_canals_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_cbble
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_cbble_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_cbble_csgo
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_cbble_csgo_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_debris
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_debris_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_dogtown
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_dogtown_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_dust2
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_dust2_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_edin
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_edin_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_eldorado
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_eldorado_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_fachwerk
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_fachwerk_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_golden
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_golden_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_grail
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_grail_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_inferno
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_inferno_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_jura
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_jura_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_lake
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_lake_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_memento
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_memento_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_mills
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_mills_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_mirage
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_mirage_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_nuke
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_nuke_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_overpass
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_overpass_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_palacio
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_palacio_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_palais
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_palais_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_poseidon
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_poseidon_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_rooftop
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_rooftop_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_safehouse
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_safehouse_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_sanctum
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_sanctum_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_shortdust
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_shortdust_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_stronghold
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_stronghold_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_sugarcane
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_sugarcane_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_thera
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_thera_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_train
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_train_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_transit
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_transit_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_tuscan
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_tuscan_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_vertigo
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_vertigo_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.mv-map-stock-de_whistle
+{
+	background-image: url("s2r://panorama/images/map_icons/screenshots/360p/de_whistle_png.vtex");
+	background-size: 100% 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+/* END mv-map-stock */
 
 /* BEGIN mv-map-palette */
 

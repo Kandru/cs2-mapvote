@@ -2,26 +2,32 @@ namespace MapVote.Utils
 {
     public static class PluginLog
     {
+        private static Func<bool>? _debugEnabled;
+
+        public static void Bind(Func<bool> debugEnabled) => _debugEnabled = debugEnabled;
+
         public static void Info(string message) => Console.WriteLine($"[MapVote] {message}");
 
-        public static void Debug(bool enabled, string message)
+        public static void Debug(string message)
         {
-            if (enabled)
+            if (_debugEnabled?.Invoke() == true)
             {
-                Info(message);
+                Console.WriteLine($"[MapVote] debug: {message}");
             }
         }
 
-        /// <summary>Always logs failures; optionally logs the rest when <paramref name="debug"/> returns true.</summary>
-        public static Action<string> CatalogSink(Func<bool> debug) => message =>
+        /// <summary>Always logs failures, empty password, and truncation; routine catalog noise is debug-only.</summary>
+        public static Action<string> CatalogSink() => message =>
         {
-            if (debug()
-                || message.Contains("fail", StringComparison.OrdinalIgnoreCase)
-                || message.Contains("empty", StringComparison.OrdinalIgnoreCase)
+            if (message.Contains("fail", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("rcon_password", StringComparison.OrdinalIgnoreCase)
                 || message.Contains("truncat", StringComparison.OrdinalIgnoreCase))
             {
                 Info(message);
+                return;
             }
+
+            Debug(message);
         };
     }
 }

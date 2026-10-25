@@ -9,7 +9,7 @@ namespace MapVote.Utils
     /// <summary>Single-layout <see cref="CCSCustomHudLayout"/> driver for the map vote overlay.</summary>
     public static partial class CustomHud
     {
-        public const string DefaultMapClass = "mv-map-default";
+        public const string DefaultMapClass = MapImageClasses.Default;
         public const double FadeSeconds = 1.0;
 
         private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(FadeSeconds);
@@ -154,13 +154,8 @@ namespace MapVote.Utils
             }
         }
 
-        public static void SetMapImage(CCSPlayerController player, string imagePanelId, string? mapName)
-        {
-            string next = string.IsNullOrWhiteSpace(mapName)
-                ? DefaultMapClass
-                : $"mv-map-{MapNameFilter.SanitizeCssStem(mapName)}";
-            SwapImageClass(player, imagePanelId, next);
-        }
+        public static void SetMapImage(CCSPlayerController player, string imagePanelId, string? mapName) =>
+            SwapImageClass(player, imagePanelId, MapImageClasses.ClassFor(mapName));
 
         public static void OnTick() => VoteHud.OnTick();
 

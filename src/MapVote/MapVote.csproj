@@ -21,4 +21,8 @@
     <None Update="lang\**\*.*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="MapVote.Tests" />
+  </ItemGroup>
+
 </Project>

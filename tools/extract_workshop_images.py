@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract the best map image from workshop / map VPKs into the MapVote Panorama addon."""
+"""Extract map images for MapVote: workshop VPKs → palette; GAME_DIR/pak01 → stock CSS + preview."""
 from __future__ import annotations
 
 import argparse
@@ -12,12 +12,20 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from mapvote_layout import HUD_VCSS_NAME
+
 ROOT = Path(__file__).resolve().parents[1]
 IMAGES = ROOT / "workshop" / "content" / "panorama" / "images" / "custom_game" / "mapvote" / "maps"
-HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / "hud.vcss"
+HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
+PREVIEW_MAPS = ROOT / "workshop" / "preview" / "maps"
 
 CSS_BEGIN = "/* BEGIN mv-map-palette */"
 CSS_END = "/* END mv-map-palette */"
+STOCK_SHOT_RE = re.compile(
+    r"^panorama/images/map_icons/screenshots/(1080p|720p|360p)/([a-z0-9][a-z0-9_]{0,48})_png\.vtex_c$"
+)
 
 # Source thumb size: 350×197 (16:9). The HUD covers by full tile height (193px)
 # and centers — see .MapShot background-size in hud.vcss (no stretch).
@@ -289,34 +297,40 @@ def rewrite_css(stems: list[str]) -> None:
     HUD_VCSS.write_text(pattern.sub(block, text), encoding="utf-8")
 
 
-def resize_to_tile(png_path: Path) -> None:
-    """Center-crop to 16:9, then scale to TARGET_WIDTH × TARGET_HEIGHT."""
+def _pillow_image():
     try:
         from PIL import Image
     except ImportError as ex:
-        raise SystemExit("Pillow is required for image resize (pip install Pillow)") from ex
+        raise SystemExit("Pillow is required (pip install Pillow)") from ex
+    return Image
 
+
+def center_crop_tile(img):
+    """Center-crop to 16:9 and scale to TARGET_WIDTH × TARGET_HEIGHT."""
+    Image = _pillow_image()
+    src = img.convert("RGBA")
+    sw, sh = src.size
+    if sw <= 0 or sh <= 0:
+        raise RuntimeError(f"invalid image size {sw}x{sh}")
+
+    target_ratio = TARGET_WIDTH / TARGET_HEIGHT
+    src_ratio = sw / sh
+    if src_ratio > target_ratio:
+        new_w = int(round(sh * target_ratio))
+        left = (sw - new_w) // 2
+        src = src.crop((left, 0, left + new_w, sh))
+    elif src_ratio < target_ratio:
+        new_h = int(round(sw / target_ratio))
+        top = (sh - new_h) // 2
+        src = src.crop((0, top, sw, top + new_h))
+
+    return src.resize((TARGET_WIDTH, TARGET_HEIGHT), Image.Resampling.LANCZOS)
+
+
+def resize_to_tile(png_path: Path) -> None:
+    Image = _pillow_image()
     with Image.open(png_path) as img:
-        src = img.convert("RGBA")
-        sw, sh = src.size
-        if sw <= 0 or sh <= 0:
-            raise RuntimeError(f"invalid image size {sw}x{sh}: {png_path}")
-
-        target_ratio = TARGET_WIDTH / TARGET_HEIGHT
-        src_ratio = sw / sh
-        if src_ratio > target_ratio:
-            # Too wide — crop sides.
-            new_w = int(round(sh * target_ratio))
-            left = (sw - new_w) // 2
-            src = src.crop((left, 0, left + new_w, sh))
-        elif src_ratio < target_ratio:
-            # Too tall — crop top/bottom.
-            new_h = int(round(sw / target_ratio))
-            top = (sh - new_h) // 2
-            src = src.crop((0, top, sw, top + new_h))
-
-        out = src.resize((TARGET_WIDTH, TARGET_HEIGHT), Image.Resampling.LANCZOS)
-        out.save(png_path, format="PNG", optimize=True)
+        center_crop_tile(img).save(png_path, format="PNG", optimize=True)
 
 
 def find_cli(explicit: str | None) -> Path:
@@ -355,6 +369,109 @@ def decompile_vtex(cli: Path, vtex_c: Path, png_out: Path) -> None:
     best = max(pngs, key=lambda p: p.stat().st_size)
     png_out.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(best, png_out)
+
+
+def resolve_pak01(game_dir: Path) -> Path:
+    """Accept pak01_dir.vpk, game/csgo, or game/."""
+    path = game_dir.expanduser().resolve()
+    if path.is_file():
+        if path.name.lower() == "pak01_dir.vpk":
+            return path
+        raise SystemExit(f"expected pak01_dir.vpk, got file: {path}")
+
+    candidates = [
+        path / "pak01_dir.vpk",
+        path / "csgo" / "pak01_dir.vpk",
+        path / "game" / "csgo" / "pak01_dir.vpk",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    raise SystemExit(
+        "pak01_dir.vpk not found. Pass GAME_DIR as the csgo folder "
+        f"(…/game/csgo) or the VPK itself. Tried under {path}"
+    )
+
+
+def stock_shots_by_map(entries: list[VpkEntry]) -> dict[str, dict[str, VpkEntry]]:
+    """map_name → {res → entry} for official screenshot vtex_c files."""
+    by_map: dict[str, dict[str, VpkEntry]] = {}
+    for entry in entries:
+        path = entry.path.replace("\\", "/").lower()
+        if "radar" in path or "overhead" in path:
+            continue
+        match = STOCK_SHOT_RE.match(path)
+        if not match:
+            continue
+        res, stem = match.group(1), match.group(2)
+        by_map.setdefault(stem, {})[res] = entry
+    return by_map
+
+
+def write_preview_webp(png_path: Path, stem: str) -> None:
+    Image = _pillow_image()
+    PREVIEW_MAPS.mkdir(parents=True, exist_ok=True)
+    with Image.open(png_path) as img:
+        center_crop_tile(img).convert("RGB").save(
+            PREVIEW_MAPS / f"{stem}.webp", format="WEBP", quality=85, method=4
+        )
+
+
+def process_stock_pak(cli: Path, pak: Path) -> list[str]:
+    """Discover official 360p screenshots, rewrite stock CSS, extract preview WebPs."""
+    from generate_stock_map_css import rewrite_hud_stock_css, write_stock_list
+
+    print(f"[stock] scanning {pak}")
+    ver, tree, entries = parse_vpk_dir(pak)
+    tree_size = len(tree)
+    shots = stock_shots_by_map(entries)
+    if not shots:
+        raise SystemExit(f"no map_icons/screenshots/*_png.vtex_c found in {pak}")
+
+    # Stock CSS only lists maps that ship a 360p icon (the URL the HUD uses).
+    stems_360 = sorted(name for name, res_map in shots.items() if "360p" in res_map)
+    if not stems_360:
+        raise SystemExit(f"no 360p stock screenshots found in {pak}")
+
+    write_stock_list(stems_360, STOCK_LIST)
+    count = rewrite_hud_stock_css(stems_360)
+    print(f"[stock] wrote {count} stock map classes → {HUD_VCSS.relative_to(ROOT)}")
+    print(f"[stock] updated {STOCK_LIST.relative_to(ROOT)}")
+
+    extracted = 0
+    for stem in stems_360:
+        res_map = shots[stem]
+        chosen: VpkEntry | None = None
+        chosen_res = ""
+        for res in ("1080p", "720p", "360p"):
+            if res in res_map:
+                chosen = res_map[res]
+                chosen_res = res
+                break
+        if chosen is None:
+            continue
+
+        with tempfile.TemporaryDirectory(prefix="mapvote-stock-") as tmp:
+            tmp_path = Path(tmp)
+            vtex_c = tmp_path / Path(chosen.path).name
+            decoded = tmp_path / f"{stem}.png"
+            try:
+                extract_entry(pak, ver, tree_size, chosen, vtex_c)
+                decompile_vtex(cli, vtex_c, decoded)
+                reason = image_reject_reason(decoded)
+                if reason:
+                    print(f"[stock]  {stem}: skip {chosen_res} ({reason})")
+                    continue
+                write_preview_webp(decoded, stem)
+            except Exception as ex:
+                print(f"[stock]  {stem}: failed ({ex})")
+                continue
+
+        extracted += 1
+        print(f"[stock]  {stem} ← {chosen_res} ({chosen.length} bytes) → preview/maps/{stem}.webp")
+
+    print(f"[stock] extracted {extracted}/{len(stems_360)} preview images → {PREVIEW_MAPS.relative_to(ROOT)}")
+    return stems_360
 
 
 def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
@@ -407,26 +524,11 @@ def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
         print(f"[images]  {map_name} ← {chosen.path} ({chosen.length} bytes)")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("workshop_dir", type=Path, help="Folder of workshop packages or map VPKs")
-    parser.add_argument(
-        "--cli",
-        default=os.environ.get("SOURCE2VIEWER_CLI"),
-        help="Path to Source2Viewer-CLI",
-    )
-    args = parser.parse_args()
-    root = args.workshop_dir.expanduser().resolve()
-    if not root.exists():
-        print(f"path does not exist: {root}", file=sys.stderr)
-        return 1
-
-    cli = find_cli(args.cli)
+def process_workshop(cli: Path, root: Path) -> None:
     IMAGES.mkdir(parents=True, exist_ok=True)
 
     if not (IMAGES / f"{DEFAULT_STEM}.png").is_file() or not (IMAGES / f"{DEFAULT_STEM}.vtex").is_file():
-        print(f"{DEFAULT_STEM}.png / {DEFAULT_STEM}.vtex are required under {IMAGES}", file=sys.stderr)
-        return 1
+        raise SystemExit(f"{DEFAULT_STEM}.png / {DEFAULT_STEM}.vtex are required under {IMAGES}")
 
     # Keep the committed default thumb at the HUD tile size.
     resize_to_tile(IMAGES / f"{DEFAULT_STEM}.png")
@@ -438,18 +540,76 @@ def main() -> int:
         except Exception as ex:
             print(f"[images] ERROR {vpk}: {ex}", file=sys.stderr)
 
-    stems = [DEFAULT_STEM] + sorted(s for s in written if s != DEFAULT_STEM)
-    # Keep previously extracted maps still on disk
-    for png in sorted(IMAGES.glob("*.png")):
+    # Workshop palette uses .mv-map-{stem}; stock CSS uses .mv-map-stock-{stem}.
+    # Same map names are allowed in both — runtime prefers workshop when both exist.
+    stems = {DEFAULT_STEM}
+    stems.update(s for s in written if s != DEFAULT_STEM)
+    for png in IMAGES.glob("*.png"):
         stem = png.stem
-        if stem not in stems and (IMAGES / f"{stem}.vtex").is_file():
-            stems.append(stem)
-    stems = [DEFAULT_STEM] + sorted({s for s in stems if s != DEFAULT_STEM})
-    rewrite_css(stems)
+        if stem != DEFAULT_STEM and (IMAGES / f"{stem}.vtex").is_file():
+            stems.add(stem)
+    ordered = [DEFAULT_STEM] + sorted(s for s in stems if s != DEFAULT_STEM)
+    rewrite_css(ordered)
+    from map_image_classes import write_stems_cs
+
+    write_stems_cs(workshop=[s for s in ordered if s != DEFAULT_STEM])
     print(
-        f"[images] updated {len(stems)} CSS classes "
+        f"[images] updated {len(ordered)} CSS classes "
         f"({TARGET_WIDTH}x{TARGET_HEIGHT}) in {HUD_VCSS.relative_to(ROOT)}"
     )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "workshop_dir",
+        nargs="?",
+        type=Path,
+        default=None,
+        help="Folder of workshop packages or map VPKs (or set WORKSHOP_DIR)",
+    )
+    parser.add_argument(
+        "--game-dir",
+        type=Path,
+        default=None,
+        help="CS2 game/csgo folder (or pak01_dir.vpk) for official stock screenshots",
+    )
+    parser.add_argument(
+        "--cli",
+        default=os.environ.get("SOURCE2VIEWER_CLI"),
+        help="Path to Source2Viewer-CLI",
+    )
+    args = parser.parse_args()
+
+    workshop = args.workshop_dir
+    if workshop is None and os.environ.get("WORKSHOP_DIR"):
+        workshop = Path(os.environ["WORKSHOP_DIR"])
+    game_dir = args.game_dir
+    if game_dir is None and os.environ.get("GAME_DIR"):
+        game_dir = Path(os.environ["GAME_DIR"])
+
+    if workshop is None and game_dir is None:
+        print(
+            "Usage: extract_workshop_images.py [WORKSHOP_DIR] [--game-dir GAME_DIR]\n"
+            "  WORKSHOP_DIR  workshop packages / map VPKs → mv-map-palette\n"
+            "  GAME_DIR      game/csgo (pak01_dir.vpk) → stock CSS + preview/maps",
+            file=sys.stderr,
+        )
+        return 1
+
+    cli = find_cli(args.cli)
+
+    if game_dir is not None:
+        pak = resolve_pak01(game_dir)
+        process_stock_pak(cli, pak)
+
+    if workshop is not None:
+        root = workshop.expanduser().resolve()
+        if not root.exists():
+            print(f"path does not exist: {root}", file=sys.stderr)
+            return 1
+        process_workshop(cli, root)
+
     return 0
 
 

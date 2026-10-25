@@ -3,24 +3,93 @@ using CounterStrikeSharp.API.Core;
 using MapVote.Huds;
 using MapVote.Maps;
 using MapVote.Utils;
+using PlayerUtil = MapVote.Utils.Players;
 using MapVote.Voting;
+using TimerFlags = CounterStrikeSharp.API.Modules.Timers.TimerFlags;
 
 namespace MapVote
 {
     public partial class MapVote
     {
+        private const float CatalogWaitIntervalSeconds = 0.25f;
+        private const float CatalogWaitMaxSeconds = 2f;
+        private const float ChangelevelDelaySeconds = 0.5f;
+
+        private bool VoteBusy => _voteActive || _revealActive || _catalogWaitTimer is not null;
+
         private void StartVote()
         {
+            if (VoteBusy)
+            {
+                PluginLog.Debug("vote start ignored: already active");
+                return;
+            }
+
             if (_catalog.IsStale(TimeSpan.FromSeconds(Math.Max(1, Config.CatalogMaxAgeSeconds))))
             {
                 _catalog.RequestRefresh(force: true);
             }
 
             List<MapEntry> maps = SelectCandidates();
-            if (maps.Count == 0)
+            if (maps.Count > 0)
+            {
+                BeginVote(maps);
+                return;
+            }
+
+            // Empty after the stale refresh kick-off — wait for the async load.
+            _catalog.RequestRefresh(force: true);
+            if (!_catalog.IsLoading)
+            {
+                GiveUpCatalogWait("catalog empty and not loading");
+                return;
+            }
+
+            _catalogWaitDeadlineUtc = DateTime.UtcNow.AddSeconds(CatalogWaitMaxSeconds);
+            PluginLog.Debug("vote waiting for catalog refresh");
+            _catalogWaitTimer = AddTimer(CatalogWaitIntervalSeconds, OnCatalogWaitTick, TimerFlags.REPEAT);
+        }
+
+        private void OnCatalogWaitTick()
+        {
+            if (_catalogWaitTimer is null)
             {
                 return;
             }
+
+            List<MapEntry> maps = SelectCandidates();
+            if (maps.Count > 0)
+            {
+                KillCatalogWaitTimer();
+                PluginLog.Debug("catalog wait succeeded");
+                BeginVote(maps);
+                return;
+            }
+
+            if (!_catalog.IsLoading || DateTime.UtcNow >= _catalogWaitDeadlineUtc)
+            {
+                string reason = !_catalog.IsLoading
+                    ? "catalog empty and not loading"
+                    : "catalog still empty after wait";
+                GiveUpCatalogWait(reason);
+            }
+        }
+
+        private void GiveUpCatalogWait(string reason)
+        {
+            KillCatalogWaitTimer();
+            PluginLog.Info($"vote skipped: {reason}; restoring Valve end-match vote");
+            EngineVotePrep.RestoreValveVote();
+        }
+
+        private void BeginVote(List<MapEntry> maps)
+        {
+            if (_voteActive || _revealActive)
+            {
+                return;
+            }
+
+            KillCatalogWaitTimer();
 
             _timing = VoteClock.Resolve(
                 ConVars.ReadFloat("mp_endmatch_votenextleveltime"),
@@ -47,7 +116,7 @@ namespace MapVote
             _revealActive = false;
             _pendingWinner = null;
 
-            foreach (CCSPlayerController player in Players.GetHumans())
+            foreach (CCSPlayerController player in PlayerUtil.GetHumans())
             {
                 VoteHud.OpenFor(player);
             }
@@ -62,22 +131,14 @@ namespace MapVote
             IReadOnlyList<MapEntry> source = _catalog.Maps;
             if (source.Count == 0)
             {
-                PluginLog.Info("vote skipped: no maps loaded.");
                 return [];
             }
 
             string current = Server.MapName.ToLowerInvariant();
-            List<MapEntry> maps = source
+            return source
                 .Where(m => !Config.ExcludeCurrentMap || !string.Equals(m.Name, current, StringComparison.Ordinal))
                 .Take(MapCatalog.MaxMaps)
                 .ToList();
-
-            if (maps.Count == 0)
-            {
-                PluginLog.Info("vote skipped: empty candidate list after filters.");
-            }
-
-            return maps;
         }
 
         private void BeginReveal(Dictionary<string, MapOrigin> origins)
@@ -91,13 +152,12 @@ namespace MapVote
             _session.Lock();
 
             string winner = _session.Winner ?? _session.Maps[0];
-            int votes = _session.CountOf(winner);
             _pendingWinner = winner;
             _pendingOrigin = origins.GetValueOrDefault(winner, MapOrigin.Local);
             _revealActive = true;
 
-            VoteHud.BeginReveal(winner, votes);
-            PluginLog.Info($"vote locked: winner={winner} votes={votes}");
+            VoteHud.BeginReveal(winner);
+            PluginLog.Info($"vote locked: winner={winner} votes={_session.CountOf(winner)}");
 
             _revealTimer?.Kill();
             _revealTimer = AddTimer(_timing.RevealSeconds, ChangeToWinner);
@@ -109,20 +169,34 @@ namespace MapVote
             MapOrigin origin = _pendingOrigin;
             EndVoteUi();
 
-            if (string.IsNullOrWhiteSpace(winner))
+            if (string.IsNullOrWhiteSpace(winner) || !MapNameFilter.IsValidMapName(winner))
             {
+                PluginLog.Info($"changelevel refused: invalid winner '{winner}'");
                 return;
             }
 
             _plays.Increment(Config, winner, warn: msg => PluginLog.Info($"[plays] {msg}"));
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
             PluginLog.Info($"changing map: {command}");
-            AddTimer(0.5f, () => Server.ExecuteCommand(command));
+            int generation = ++_changelevelGeneration;
+            _changelevelTimer?.Kill();
+            _changelevelTimer = AddTimer(ChangelevelDelaySeconds, () =>
+            {
+                if (generation != _changelevelGeneration)
+                {
+                    return;
+                }
+
+                _changelevelTimer = null;
+                Server.ExecuteCommand(command);
+            });
         }
 
         private void EndVoteUi()
         {
             KillOpenTimers();
+            KillCatalogWaitTimer();
+            KillChangelevelTimer();
             _revealTimer?.Kill();
             _revealTimer = null;
             _voteActive = false;
@@ -135,6 +209,43 @@ namespace MapVote
         {
             _openTimer?.Kill();
             _openTimer = null;
+        }
+
+        private void KillCatalogWaitTimer()
+        {
+            _catalogWaitTimer?.Kill();
+            _catalogWaitTimer = null;
+        }
+
+        private void KillChangelevelTimer()
+        {
+            _changelevelTimer?.Kill();
+            _changelevelTimer = null;
+            _changelevelGeneration++;
+        }
+
+        private void OpenVoteHudForJoiner(CCSPlayerController player)
+        {
+            if (_session is null)
+            {
+                return;
+            }
+
+            if (_revealActive)
+            {
+                VoteHud.OpenFor(player, captureMouse: false);
+                if (_pendingWinner is not null)
+                {
+                    VoteHud.PaintRevealFor(player, _pendingWinner);
+                }
+
+                return;
+            }
+
+            if (_voteActive)
+            {
+                VoteHud.OpenFor(player);
+            }
         }
     }
 }

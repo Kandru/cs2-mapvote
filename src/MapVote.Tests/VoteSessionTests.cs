@@ -46,6 +46,16 @@ public class VoteSessionTests
         Assert.Equal(1, session.CountOf("a"));
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Cast_EmptyOrNullMap_ReturnsFalse(string? map)
+    {
+        VoteSession session = new(["a", "b"]);
+        Assert.False(session.Cast(1, map!));
+        Assert.Equal(0, session.CountOf("a"));
+    }
+
     [Fact]
     public void RemovePlayer_DropsVoteAndOrderEntry()
     {

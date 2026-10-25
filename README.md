@@ -27,10 +27,16 @@ Uses `mcr.microsoft.com/dotnet/sdk:10.0` — no project Dockerfile.
 # One-time: download VRF CLI 20 into tools/.cache/
 # https://github.com/ValveResourceFormat/ValveResourceFormat/releases/download/20.0/cli-linux-x64.zip
 make images WORKSHOP_DIR=/path/to/workshop/content/730
-# Override binary: make images WORKSHOP_DIR=... SOURCE2VIEWER_CLI=/path/to/Source2Viewer-CLI
+make images GAME_DIR=/path/to/Steam/steamapps/common/Counter-Strike\ Global\ Offensive/game/csgo
+make images WORKSHOP_DIR=… GAME_DIR=…/game/csgo
+# Override binary: make images … SOURCE2VIEWER_CLI=/path/to/Source2Viewer-CLI
 ```
 
-The script opens each VPK directory and tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, images that are too dark (mean luma under 40), and images that are much taller than they are wide, then takes the next candidate. The chosen PNG is center-cropped to 16:9, resized to **350×197**, written with a companion `.vtex`, and added to the `mv-map-*` CSS palette. Maps with no usable screenshot keep `default.png` (`mv-map-default`). Requires Pillow. Republish the workshop addon after extracting new maps.
+**Workshop (`WORKSHOP_DIR`):** opens each VPK and tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, images that are too dark (mean luma under 40), and images that are much taller than they are wide, then takes the next candidate. The chosen PNG is center-cropped to 16:9, resized to **350×197**, written with a companion `.vtex`, and added as `.mv-map-{name}` in the workshop palette. Maps with no usable screenshot keep `default.png` (`mv-map-default`).
+
+**Official maps (`GAME_DIR`):** reads `pak01_dir.vpk` (pass the `game/csgo` folder or the VPK itself), discovers `panorama/images/map_icons/screenshots/360p/{map}_png.vtex`, regenerates `tools/stock_maps.txt` and `.mv-map-stock-{name}` CSS (Valve `s2r://…/360p/…` URLs), and extracts preview WebPs into `workshop/preview/maps/`. Stock and workshop classes can share a map name; the HUD prefers the workshop image when both exist.
+
+Requires Pillow. Republish the workshop addon after extracting new workshop maps (stock CSS only needs a republish when the stock class list changes).
 
 ## Config
 

@@ -5,6 +5,7 @@ UID       := $(shell id -u)
 GID       := $(shell id -g)
 DEBUG_OUTPUT := $(shell sed -n 's/.*<OutputPath>\(.*\)<\/OutputPath>.*/\1/p' $(PROJECT))
 WORKSHOP_DIR ?=
+GAME_DIR ?=
 SOURCE2VIEWER_CLI ?= $(CURDIR)/tools/.cache/Source2Viewer-CLI
 
 # Optional absolute OutputPath in the csproj (for example a local game-server
@@ -58,12 +59,17 @@ clean: dirs ## Remove build artifacts
 panorama: ## Validate HUD Panorama XML/CSS and sync browser preview
 	python3 tools/validate_panorama.py
 
-images: ## Extract map images from WORKSHOP_DIR into workshop/content
-	@if [ -z "$(WORKSHOP_DIR)" ]; then \
-		echo "Usage: make images WORKSHOP_DIR=/path/to/workshop/or/maps"; \
+images: ## Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csgo)
+	@if [ -z "$(WORKSHOP_DIR)" ] && [ -z "$(GAME_DIR)" ]; then \
+		echo "Usage:"; \
+		echo "  make images WORKSHOP_DIR=/path/to/workshop/or/maps"; \
+		echo "  make images GAME_DIR=/path/to/game/csgo"; \
+		echo "  make images WORKSHOP_DIR=… GAME_DIR=…/game/csgo"; \
 		exit 1; \
 	fi
-	SOURCE2VIEWER_CLI="$(SOURCE2VIEWER_CLI)" python3 tools/extract_workshop_images.py "$(WORKSHOP_DIR)"
+	SOURCE2VIEWER_CLI="$(SOURCE2VIEWER_CLI)" python3 tools/extract_workshop_images.py \
+		$(if $(WORKSHOP_DIR),"$(WORKSHOP_DIR)",) \
+		$(if $(GAME_DIR),--game-dir "$(GAME_DIR)",)
 
 test: dirs panorama ## Run unit tests
 	$(DOCKER_RUN) dotnet test $(TEST_PROJECT) -c Release --nologo

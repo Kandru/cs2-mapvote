@@ -20,6 +20,9 @@ namespace MapVote.Maps
         [GeneratedRegex("^[a-z0-9][a-z0-9_]{0,48}$", RegexOptions.CultureInvariant)]
         private static partial Regex ValidMapName();
 
+        public static bool IsValidMapName(string mapName) =>
+            !string.IsNullOrEmpty(mapName) && ValidMapName().IsMatch(mapName);
+
         public static string? NormalizeLocalLine(string line)
         {
             if (string.IsNullOrWhiteSpace(line))

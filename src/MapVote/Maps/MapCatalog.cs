@@ -4,7 +4,7 @@ namespace MapVote.Maps
 {
     public sealed class MapCatalog
     {
-        public const int MaxMaps = 50;
+        public const int MaxMaps = 100;
 
         private readonly Action<string> _log;
         private readonly object _gate = new();
@@ -18,6 +18,11 @@ namespace MapVote.Maps
         public IReadOnlyList<MapEntry> Maps
         {
             get { lock (_gate) { return _maps; } }
+        }
+
+        public bool IsLoading
+        {
+            get { lock (_gate) { return _loading; } }
         }
 
         public bool IsStale(TimeSpan maxAge)
@@ -58,6 +63,7 @@ namespace MapVote.Maps
                 return;
             }
 
+            _log($"catalog refresh started (force={force})");
             _ = Task.Run(() => LoadWorker(port, password));
         }
 
