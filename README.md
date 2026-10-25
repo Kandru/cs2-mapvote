@@ -45,7 +45,7 @@ make images WORKSHOP_DIR=… GAME_DIR=…/game/csgo
 # Override binary: make images … SOURCE2VIEWER_CLI=/path/to/Source2Viewer-CLI
 ```
 
-**Workshop (`WORKSHOP_DIR`):** opens each VPK and tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, images that are too dark (mean luma under 40), and images that are much taller than they are wide, then takes the next candidate. The chosen PNG is center-cropped to 16:9, resized to **350×197**, written with a companion `.vtex`, and added as `.mv-map-{name}` in the workshop palette. Maps with no usable screenshot keep `default.png` (`mv-map-default`).
+**Workshop (`WORKSHOP_DIR`):** opens each VPK and tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, preferring shots that are not too dark (mean luma under 40) and not much taller than wide. If nothing preferred remains, it falls back to the first too-dark screenshot, then the first portrait/tall screenshot (full width kept, vertically centered crop into 16:9) so you still get a PNG, `.vtex`, and `.mv-map-{name}` to replace by hand. Output is resized to **350×197**. Maps with no screenshot keep `default.png` (`mv-map-default`).
 
 **Official maps (`GAME_DIR`):** reads `pak01_dir.vpk` (pass the `game/csgo` folder or the VPK itself), discovers `panorama/images/map_icons/screenshots/360p/{map}_png.vtex`, regenerates `tools/stock_maps.txt` and `.mv-map-stock-{name}` CSS (Valve `s2r://…/360p/…` URLs), and extracts preview WebPs into `workshop/preview/maps/`. Stock and workshop classes can share a map name; the HUD prefers the workshop image when both exist.
 

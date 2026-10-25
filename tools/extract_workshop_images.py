@@ -212,7 +212,7 @@ def image_candidates(entries: list[VpkEntry], map_name: str) -> list[VpkEntry]:
 
 
 def image_reject_reason(png_path: Path) -> str | None:
-    """Return why this decoded image should not be used, or None if it is fine."""
+    """Return why this decoded image should not be preferred, or None if it is fine."""
     try:
         from PIL import Image, ImageStat
     except ImportError as ex:
@@ -228,8 +228,7 @@ def image_reject_reason(png_path: Path) -> str | None:
             return f"too tall ({width}x{height})"
         # Sample so a 4K shot does not dominate the check.
         sample = rgb.resize((64, max(1, round(64 / aspect))), Image.Resampling.BOX)
-        luma = sample.convert("L")
-        mean = ImageStat.Stat(luma).mean[0]
+        mean = ImageStat.Stat(sample.convert("L")).mean[0]
         if mean < MIN_MEAN_LUMA:
             return f"too dark (mean luma {mean:.0f})"
     return None
@@ -303,7 +302,7 @@ def _pillow_image():
 
 
 def center_crop_tile(img):
-    """Center-crop to 16:9 and scale to TARGET_WIDTH × TARGET_HEIGHT."""
+    """Center-crop to 16:9 (full width if tall) and scale to TARGET_WIDTH × TARGET_HEIGHT."""
     Image = _pillow_image()
     src = img.convert("RGBA")
     sw, sh = src.size
@@ -477,11 +476,6 @@ def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
     tree_size = len(tree)
     maps = map_names_from_entries(entries)
     if not maps:
-        # Fallback: filename stem for maps/de_foo.vpk
-        stem = vpk.stem
-        if stem.endswith("_dir"):
-            stem = stem[: -len("_dir")]
-        # Prefer map names from paths even if empty — skip unknown packages
         print(f"[images]  no map names in {vpk.name}, skip")
         return
 
@@ -491,9 +485,12 @@ def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
             print(f"[images]  {map_name}: no screenshot")
             continue
         chosen: VpkEntry | None = None
+        label = ""
         with tempfile.TemporaryDirectory(prefix="mapvote-extract-") as tmp:
             tmp_path = Path(tmp)
             png = IMAGES / f"{map_name}.png"
+            # Prefer first too-dark backup; else first too-tall (center_crop_tile keeps full width).
+            backup: tuple[str, VpkEntry, Path] | None = None
             for index, entry in enumerate(candidates):
                 work = tmp_path / str(index)
                 work.mkdir()
@@ -506,19 +503,28 @@ def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
                 except Exception as ex:
                     print(f"[images]  {map_name}: skip {entry.path} ({ex})")
                     continue
-                if reason:
-                    print(f"[images]  {map_name}: skip {entry.path} ({reason})")
-                    continue
+                if reason is None:
+                    shutil.copy2(decoded, png)
+                    resize_to_tile(png)
+                    chosen, label = entry, entry.path
+                    break
+                print(f"[images]  {map_name}: skip {entry.path} ({reason})")
+                if reason.startswith("too dark") and (backup is None or backup[0] == "tall"):
+                    backup = ("too dark", entry, decoded)
+                elif reason.startswith("too tall") and backup is None:
+                    backup = ("tall", entry, decoded)
+            if chosen is None and backup is not None:
+                kind, entry, decoded = backup
                 shutil.copy2(decoded, png)
                 resize_to_tile(png)
-                chosen = entry
-                break
+                chosen, label = entry, f"fallback ({kind}) {entry.path}"
+
         if chosen is None:
             print(f"[images]  {map_name}: no usable screenshot")
             continue
         write_vtex(map_name)
         written[map_name] = png
-        print(f"[images]  {map_name} ← {chosen.path} ({chosen.length} bytes)")
+        print(f"[images]  {map_name} ← {label} ({chosen.length} bytes)")
 
 
 def process_workshop(cli: Path, root: Path) -> None:
