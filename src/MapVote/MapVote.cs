@@ -1,4 +1,6 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Extensions;
 using MapVote.Config;
 using MapVote.Maps;
 using MapVote.Players;
@@ -34,11 +36,13 @@ namespace MapVote
         private readonly HashSet<ulong> _rtvVoters = [];
         private bool _rtvPassed;
         private bool _nativeVoteArmed;
+        private bool _unloaded;
         private readonly Dictionary<int, ulong> _steamBySlot = [];
 
         public void OnConfigParsed(PluginConfig config)
         {
             Config = config;
+            EnsureMapsVotable();
             PluginLog.Bind(() => Config.Debug);
         }
 
@@ -46,8 +50,9 @@ namespace MapVote
         {
             PluginLog.Bind(() => Config.Debug);
             PluginLog.Debug($"load hotReload={hotReload}");
+            _unloaded = false;
 
-            _catalog = new MapCatalog(PluginLog.CatalogSink());
+            _catalog = new MapCatalog(PluginLog.CatalogSink(), OnCatalogLoaded);
             _archive = new PlayerArchive();
             _plays = new MapPlayCounts();
             LoadPersistence();
@@ -72,6 +77,7 @@ namespace MapVote
         public override void Unload(bool hotReload)
         {
             PluginLog.Debug($"unload (hotReload={hotReload})");
+            _unloaded = true;
             EndVoteUi();
             SavePersistence();
             CustomHud.Shutdown();
@@ -81,6 +87,46 @@ namespace MapVote
             RemoveListener<Listeners.OnTick>(OnTick);
             RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
         }
+
+        private void OnCatalogLoaded(IReadOnlyList<MapEntry> maps) =>
+            // RCON worker thread → main thread for config I/O and Server APIs.
+            Server.NextFrame(() => SyncMapsVotable(maps));
+
+        private void SyncMapsVotable(IReadOnlyList<MapEntry> maps)
+        {
+            if (_unloaded)
+            {
+                return;
+            }
+
+            try
+            {
+                Config.Reload();
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Info($"config reload before maps_votable sync failed: {ex.Message}");
+            }
+
+            EnsureMapsVotable();
+            if (!MapVisibility.TrySync(Config.MapsVotable, maps))
+            {
+                return;
+            }
+
+            try
+            {
+                Config.Update();
+                PluginLog.Debug($"maps_votable synced ({Config.MapsVotable.Count} keys)");
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Info($"maps_votable config update failed: {ex.Message}");
+            }
+        }
+
+        private void EnsureMapsVotable() =>
+            Config.MapsVotable ??= new Dictionary<string, bool>(StringComparer.Ordinal);
 
         private void OnTick()
         {

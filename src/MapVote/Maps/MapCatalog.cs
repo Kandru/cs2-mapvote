@@ -7,12 +7,17 @@ namespace MapVote.Maps
         public const int MaxMaps = 100;
 
         private readonly Action<string> _log;
+        private readonly Action<IReadOnlyList<MapEntry>>? _onLoaded;
         private readonly object _gate = new();
         private IReadOnlyList<MapEntry> _maps = [];
         private bool _loading;
         private bool _loggedMissingPassword;
 
-        public MapCatalog(Action<string> log) => _log = log;
+        public MapCatalog(Action<string> log, Action<IReadOnlyList<MapEntry>>? onLoaded = null)
+        {
+            _log = log;
+            _onLoaded = onLoaded;
+        }
 
         public IReadOnlyList<MapEntry> Maps
         {
@@ -68,12 +73,6 @@ namespace MapVote.Maps
                     MapNameFilter.NormalizeMapgroupLine);
 
                 List<MapEntry> maps = Merge(local, workshop);
-                if (maps.Count > MaxMaps)
-                {
-                    int original = maps.Count;
-                    maps.RemoveRange(MaxMaps, maps.Count - MaxMaps);
-                    _log($"map list truncated from {original} to {MaxMaps}.");
-                }
 
                 lock (_gate)
                 {
@@ -81,6 +80,7 @@ namespace MapVote.Maps
                 }
 
                 _log($"loaded {maps.Count} maps (local={local.Count}, workshop={workshop.Count}).");
+                _onLoaded?.Invoke(maps);
             }
             catch (Exception ex)
             {

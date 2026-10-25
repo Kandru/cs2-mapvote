@@ -16,6 +16,10 @@ namespace MapVote.Config
 
         [JsonPropertyName("filters")]
         public FiltersConfig Filters { get; set; } = new();
+
+        // Keys: map_{name} (local) / ws_{name} (workshop). true = shown; false = hidden. Stale keys kept.
+        [JsonPropertyName("maps_votable")]
+        public Dictionary<string, bool> MapsVotable { get; set; } = new(StringComparer.Ordinal);
     }
 
     public sealed class EndmatchConfig

@@ -19,12 +19,12 @@ namespace MapVote
 
         /// <summary>
         /// Snapshot end-match cvars before intermission. Prefer our overlay unless the
-        /// catalog is known empty (then enable the Valve vote).
+        /// catalog is known empty / all maps disabled (then enable the Valve vote).
         /// </summary>
         private void ArmEngineVote()
         {
             VoteTiming timing = VoteClock.Resolve(Config.Endmatch);
-            if (_catalog.IsLoading || _catalog.Maps.Count > 0)
+            if (_catalog.IsLoading || MapVisibility.AnyShown(_catalog.Maps, Config.MapsVotable))
             {
                 EngineVotePrep.PrepareCustomVote(timing.EngineHoldSeconds);
                 _nativeVoteArmed = false;
@@ -39,7 +39,7 @@ namespace MapVote
 
             EngineVotePrep.PrepareNativeVote(timing.OpenSeconds);
             _nativeVoteArmed = true;
-            PluginLog.Info($"catalog empty; enabling Valve end-match vote ({timing.OpenSeconds}s)");
+            PluginLog.Info($"catalog empty or no votable maps; enabling Valve end-match vote ({timing.OpenSeconds}s)");
         }
 
         private void StartVote()
@@ -159,21 +159,25 @@ namespace MapVote
 
         private List<MapEntry> SelectCandidates()
         {
-            IReadOnlyList<MapEntry> source = _catalog.Maps;
-            if (source.Count == 0)
+            IReadOnlyList<MapEntry> catalog = _catalog.Maps;
+            if (catalog.Count == 0)
             {
                 return [];
             }
 
-            if (!Config.Endmatch.ExcludeCurrentMap)
+            string? exclude = Config.Endmatch.ExcludeCurrentMap
+                ? Server.MapName.ToLowerInvariant()
+                : null;
+            List<MapEntry> maps = MapVisibility.Shown(catalog, Config.MapsVotable, exclude);
+            if (maps.Count <= MapCatalog.MaxMaps)
             {
-                return source.ToList();
+                return maps;
             }
 
-            string current = Server.MapName.ToLowerInvariant();
-            return source
-                .Where(m => !string.Equals(m.Name, current, StringComparison.Ordinal))
-                .ToList();
+            int original = maps.Count;
+            maps.RemoveRange(MapCatalog.MaxMaps, maps.Count - MapCatalog.MaxMaps);
+            PluginLog.Info($"map list truncated from {original} to {MapCatalog.MaxMaps}.");
+            return maps;
         }
 
         private void BeginReveal(Dictionary<string, MapOrigin> origins)

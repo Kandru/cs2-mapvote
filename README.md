@@ -66,6 +66,7 @@ Requires Pillow. Republish the workshop addon after extracting new workshop maps
 | `filters.enabled` | `true` | Type / sort chip bar |
 | `filters.types` | bomb/hostage/… | Prefix (or glob) groups for type chips |
 | `filters.sorts` | most/least/favorites | Sort chips: `id`, `by` (`plays`/`name`/`favorite`), `order` (`asc`/`desc`), optional `only` |
+| `maps_votable` | (auto) | Per-map vote enable flags. Keys `map_{name}` (server) / `ws_{name}` (workshop); `true` shows, `false` hides. New maps default to `true`; keys for removed maps stay in the file |
 
 ## Workshop layout
 
