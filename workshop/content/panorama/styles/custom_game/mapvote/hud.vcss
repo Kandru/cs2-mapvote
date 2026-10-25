@@ -40,18 +40,12 @@
 	world-blur: gaussian( 1 );
 }
 
-.mv-scrim-top
+/* One pass: top vignette plus a darker foot. Replaces two fullscreen gradients. */
+.mv-scrim
 {
 	width: 100%;
 	height: 100%;
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000e0 ), to( #00000000 ) );
-}
-
-.mv-scrim-bottom
-{
-	width: 100%;
-	height: 100%;
-	background-color: gradient( linear, 0% 100%, 0% 0%, from( #000000a0 ), color-stop( 0.5, #00000000 ), to( #00000000 ) );
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000e0 ), color-stop( 0.22, #0000008a ), color-stop( 0.5, #00000070 ), color-stop( 0.78, #00000078 ), to( #000000a0 ) );
 }
 
 .VoteColumn
@@ -70,8 +64,9 @@
 
 .VoteTitle
 {
+	/* No fixed height: Panorama paints label text at the top of the box, so a
+	   28px box centered in this 40px bar sits the glyphs above the button. */
 	width: 100%;
-	height: 28px;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
@@ -89,10 +84,12 @@
 	horizontal-align: right;
 	vertical-align: middle;
 	margin-right: 16px;
+	padding: 0px;
 	background-color: #00000099;
 	border: 1px solid #ffffff33;
 	border-radius: 3px;
 	flow-children: none;
+	wash-color: none;
 	transition-property: background-color, brightness;
 	transition-duration: 0.15s;
 	transition-timing-function: ease-out;
@@ -114,7 +111,6 @@
 .MinimizeLabel
 {
 	width: 100%;
-	height: 100%;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
@@ -127,8 +123,7 @@
 }
 
 .VoteRoot.is-minimized .mv-glass,
-.VoteRoot.is-minimized .mv-scrim-top,
-.VoteRoot.is-minimized .mv-scrim-bottom,
+.VoteRoot.is-minimized .mv-scrim,
 .VoteRoot.is-minimized .VoteBody,
 .VoteRoot.is-minimized .VoteTitle,
 .VoteRoot.is-minimized .CreditBar
@@ -262,7 +257,7 @@
 
 .FilterBar
 {
-	width: 100%;
+	width: fit-children;
 	height: 36px;
 	flow-children: right;
 	horizontal-align: center;
@@ -316,6 +311,7 @@
 .FilterChip.is-disabled
 {
 	opacity: 0.35;
+	cursor: default;
 }
 
 .FilterChip:not(.is-disabled):hover
@@ -353,7 +349,6 @@
 .FilterChipLabel
 {
 	width: 100%;
-	height: 100%;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
@@ -458,12 +453,12 @@
 	width: 100%;
 	height: 193px;
 	vertical-align: middle;
-	border: 0px solid #cacaca1a;
+	border: 0px solid #00000000;
 	box-shadow: none;
 	wash-color: none;
 	overflow: clip;
 	flow-children: none;
-	transition-property: brightness, opacity;
+	transition-property: brightness;
 	transition-duration: 0.25s;
 	transition-timing-function: ease-out;
 }
@@ -478,9 +473,9 @@
 {
 	wash-color: #000000;
 	brightness: 0.55;
-	border: 0px solid #cacaca1a;
+	border: 0px solid #00000000;
 	box-shadow: none;
-	transition-property: wash-color, brightness, opacity;
+	transition-property: wash-color, brightness;
 	transition-duration: 0.5s;
 	transition-timing-function: ease-out;
 }
@@ -495,8 +490,7 @@
 	sound: "UIPanorama.submenu_select";
 }
 
-.MapTile.is-lost:hover .MapShot,
-.MapTile.is-done:hover .MapShot
+.MapTile.is-lost:hover .MapShot
 {
 	transform: scale3d( 1.0, 1.0, 1.0 );
 }
@@ -510,8 +504,8 @@
 	background-repeat: no-repeat;
 	background-size: 343px 193px;
 	background-position: 50% 50%;
-	transition-property: transform, opacity;
-	transition-duration: 0.25s, 2.0s;
+	transition-property: transform;
+	transition-duration: 0.25s;
 	transition-timing-function: ease-out;
 }
 
@@ -664,34 +658,14 @@
 	opacity: 0.0;
 	transform: scale3d( 2.0, 2.0, 1.0 );
 	transition-property: transform, opacity;
-	transition-duration: 0.1s;
+	transition-duration: 0.2s;
 	transition-timing-function: ease-out;
-}
-
-@keyframes 'mv-check-appear'
-{
-	0%
-	{
-		opacity: 0.0;
-		transform: scale3d( 2.0, 2.0, 1.0 );
-	}
-
-	100%
-	{
-		opacity: 1.0;
-		transform: scale3d( 1.0, 1.0, 1.0 );
-	}
 }
 
 .MapTile.is-done .MapWinnerCheck
 {
 	opacity: 1.0;
 	transform: scale3d( 1.0, 1.0, 1.0 );
-	animation-name: 'mv-check-appear';
-	animation-duration: 0.1s;
-	animation-timing-function: ease-out;
-	animation-iteration-count: 1;
-	animation-delay: 0.35s;
 }
 
 .CreditBar
@@ -705,13 +679,13 @@
 .CreditLabel
 {
 	width: 100%;
-	height: 30px;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 22;
-	color: #ffffff;
+	font-size: 16;
+	letter-spacing: 1px;
+	color: #a3acb6;
 	white-space: nowrap;
 }
 

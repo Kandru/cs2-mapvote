@@ -355,13 +355,17 @@ button {
 }
 .VoteTopBar > .VoteTitle {
   position: absolute !important;
-  inset: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 50% !important;
+  bottom: auto !important;
   width: 100% !important;
-  height: 40px !important;
+  height: auto !important;
   margin: 0 !important;
+  transform: translateY(-50%) !important;
   display: block !important;
   text-align: center !important;
-  line-height: 40px !important;
+  line-height: normal !important;
 }
 .VoteTopBar > .MinimizeBtn {
   position: absolute !important;
@@ -382,6 +386,12 @@ button {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
+}
+.FilterBar {
+  width: max-content !important;
+  max-width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 .FilterChip {
   display: block !important;
@@ -412,8 +422,7 @@ button {
   transform: none !important;
 }
 .mv-glass,
-.mv-scrim-top,
-.mv-scrim-bottom {
+.mv-scrim {
   width: 100%;
   height: 100%;
   pointer-events: none;

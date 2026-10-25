@@ -10,8 +10,7 @@
 	<Panel class="HudScreen" hittest="false">
 		<Panel id="Vote" class="VoteRoot is-off" hittest="false">
 			<Panel class="mv-glass" hittest="false" />
-			<Panel class="mv-scrim-top" hittest="false" />
-			<Panel class="mv-scrim-bottom" hittest="false" />
+			<Panel class="mv-scrim" hittest="false" />
 			<Panel class="VoteColumn" hittest="false">
 				<Panel class="VoteTopBar" hittest="false">
 					<Label class="VoteTitle stratum-bold-condensed" text="{s:mv_title}" hittest="false" />

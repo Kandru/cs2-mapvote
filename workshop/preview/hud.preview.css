@@ -74,13 +74,17 @@ button {
 }
 .VoteTopBar > .VoteTitle {
   position: absolute !important;
-  inset: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 50% !important;
+  bottom: auto !important;
   width: 100% !important;
-  height: 40px !important;
+  height: auto !important;
   margin: 0 !important;
+  transform: translateY(-50%) !important;
   display: block !important;
   text-align: center !important;
-  line-height: 40px !important;
+  line-height: normal !important;
 }
 .VoteTopBar > .MinimizeBtn {
   position: absolute !important;
@@ -101,6 +105,12 @@ button {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
+}
+.FilterBar {
+  width: max-content !important;
+  max-width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 .FilterChip {
   display: block !important;
@@ -131,8 +141,7 @@ button {
   transform: none !important;
 }
 .mv-glass,
-.mv-scrim-top,
-.mv-scrim-bottom {
+.mv-scrim {
   width: 100%;
   height: 100%;
   pointer-events: none;
@@ -277,18 +286,12 @@ button {
 	backdrop-filter: blur(10px);
 }
 
-.mv-scrim-top
+/* One pass: top vignette plus a darker foot. Replaces two fullscreen gradients. */
+.mv-scrim
 {
 	width: 100%;
 	height: 100%;
-	background-image: linear-gradient(to bottom, #000000e0, #00000000);
-}
-
-.mv-scrim-bottom
-{
-	width: 100%;
-	height: 100%;
-	background-image: linear-gradient(to top, #000000a0, #00000000 50%, #00000000);
+	background-image: linear-gradient(to bottom, #000000e0, #0000008a 22%, #00000070 50%, #00000078 78%, #000000a0);
 }
 
 .VoteColumn
@@ -307,8 +310,9 @@ button {
 
 .VoteTitle
 {
+	/* No fixed height: Panorama paints label text at the top of the box, so a
+	   28px box centered in this 40px bar sits the glyphs above the button. */
 	width: 100%;
-	height: 28px;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -326,10 +330,12 @@ button {
 	justify-self: end; margin-left: auto;
 	align-self: center;
 	margin-right: 16px;
+	padding: 0px;
 	background-color: #00000099;
 	border: 1px solid #ffffff33;
 	border-radius: 3px;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	
 	transition-property: background-color, brightness;
 	transition-duration: 0.15s;
 	transition-timing-function: ease-out;
@@ -351,7 +357,6 @@ button {
 .MinimizeLabel
 {
 	width: 100%;
-	height: 100%;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -364,8 +369,7 @@ button {
 }
 
 .VoteRoot.is-minimized .mv-glass,
-.VoteRoot.is-minimized .mv-scrim-top,
-.VoteRoot.is-minimized .mv-scrim-bottom,
+.VoteRoot.is-minimized .mv-scrim,
 .VoteRoot.is-minimized .VoteBody,
 .VoteRoot.is-minimized .VoteTitle,
 .VoteRoot.is-minimized .CreditBar
@@ -499,7 +503,7 @@ button {
 
 .FilterBar
 {
-	width: 100%;
+	width: auto;
 	height: 36px;
 	display: flex; flex-direction: row; flex-wrap: nowrap;
 	justify-self: center; margin-left: auto; margin-right: auto;
@@ -553,6 +557,7 @@ button {
 .FilterChip.is-disabled
 {
 	opacity: 0.35;
+	cursor: default;
 }
 
 .FilterChip:not(.is-disabled):hover
@@ -590,7 +595,6 @@ button {
 .FilterChipLabel
 {
 	width: 100%;
-	height: 100%;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
@@ -695,12 +699,12 @@ button {
 	width: 100%;
 	height: 193px;
 	align-self: center;
-	border: 0px solid #cacaca1a;
+	border: 0px solid #00000000;
 	box-shadow: none;
 	
 	overflow: hidden;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-	transition-property: brightness, opacity;
+	transition-property: brightness;
 	transition-duration: 0.25s;
 	transition-timing-function: ease-out;
 }
@@ -715,9 +719,9 @@ button {
 {
 	
 	filter: brightness(0.55); /* brightness */
-	border: 0px solid #cacaca1a;
+	border: 0px solid #00000000;
 	box-shadow: none;
-	transition-property: wash-color, brightness, opacity;
+	transition-property: wash-color, brightness;
 	transition-duration: 0.5s;
 	transition-timing-function: ease-out;
 }
@@ -732,8 +736,7 @@ button {
 	
 }
 
-.MapTile.is-lost:hover .MapShot,
-.MapTile.is-done:hover .MapShot
+.MapTile.is-lost:hover .MapShot
 {
 	transform: scale(1.0, 1.0);
 }
@@ -747,8 +750,8 @@ button {
 	background-repeat: no-repeat;
 	background-size: 343px 193px;
 	background-position: 50% 50%;
-	transition-property: transform, opacity;
-	transition-duration: 0.25s, 2.0s;
+	transition-property: transform;
+	transition-duration: 0.25s;
 	transition-timing-function: ease-out;
 }
 
@@ -901,34 +904,14 @@ button {
 	opacity: 0.0;
 	transform: scale(2.0, 2.0);
 	transition-property: transform, opacity;
-	transition-duration: 0.1s;
+	transition-duration: 0.2s;
 	transition-timing-function: ease-out;
-}
-
-@keyframes 'mv-check-appear'
-{
-	0%
-	{
-		opacity: 0.0;
-		transform: scale(2.0, 2.0);
-	}
-
-	100%
-	{
-		opacity: 1.0;
-		transform: scale(1.0, 1.0);
-	}
 }
 
 .MapTile.is-done .MapWinnerCheck
 {
 	opacity: 1.0;
 	transform: scale(1.0, 1.0);
-	animation-name: 'mv-check-appear';
-	animation-duration: 0.1s;
-	animation-timing-function: ease-out;
-	animation-iteration-count: 1;
-	animation-delay: 0.35s;
 }
 
 .CreditBar
@@ -942,13 +925,13 @@ button {
 .CreditLabel
 {
 	width: 100%;
-	height: 30px;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	align-self: center;
 	text-align: center;
 	font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
-	font-size: 22px;
-	color: #ffffff;
+	font-size: 16px;
+	letter-spacing: 1px;
+	color: #a3acb6;
 	white-space: nowrap;
 }
 
