@@ -6,12 +6,13 @@
 [![issues - cs2-mapvote](https://img.shields.io/github/issues/Kandru/cs2-mapvote?color=darkgreen)](https://github.com/Kandru/cs2-mapvote/issues)
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=C2AVYKGVP9TRG)
 
-![Map vote](example.png)
-
-Fullscreen Panorama end-of-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/). Players get Valve-style portrait cards, a top row of maps that already have votes, a scrollable catalog with type and sort filters, and `!rtv`. On lock the winning tile shows a green check, then the plugin changes the map. The game clock is left alone.
-
 > [!TIP]
 > Please consider a [donation](https://www.paypal.com/donate/?hosted_button_id=C2AVYKGVP9TRG) when you're using this plugin - it took a long time to build and improve - it only costs you a few dollars and would help me very much!
+
+![Map vote](example.png)
+
+Panorama end-of-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/). Players get Valve-style portrait cards, a top row of maps that already have votes, a scrollable catalog with type and sort filters, and `!rtv`.
+
 
 ## Installation
 
