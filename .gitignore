@@ -8,4 +8,5 @@ tools/.cache/
 __pycache__/
 *.pyc
 .DS_Store
+workshop/content/panorama/images/custom_game/mapvote/
 stuff/panorama/
