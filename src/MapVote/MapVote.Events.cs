@@ -43,12 +43,13 @@ namespace MapVote
                 return;
             }
 
-            PluginLog.Debug("intermission: starting vote");
+            PluginLog.Debug("intermission: preparing vote");
             StartVote();
         }
 
         private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
         {
+            PluginLog.Debug("WinPanel: starting vote");
             ShowVoteHud();
             return HookResult.Continue;
         }
