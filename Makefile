@@ -28,7 +28,7 @@ DOCKER_RUN = docker run --rm \
 
 .DEFAULT_GOAL := help
 
-.PHONY: help debug release restore clean dirs panorama images test
+.PHONY: help debug release restore clean dirs panorama images images-check test
 
 help: ## Show this help
 	@echo "CS2 MapVote"
@@ -70,6 +70,9 @@ images: ## Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csgo)
 	SOURCE2VIEWER_CLI="$(SOURCE2VIEWER_CLI)" python3 tools/extract_workshop_images.py \
 		$(if $(WORKSHOP_DIR),"$(WORKSHOP_DIR)",) \
 		$(if $(GAME_DIR),--game-dir "$(GAME_DIR)",)
+
+images-check: ## Rewrite map tiles that are not 350×197 PNG (center-crop, no stretch)
+	python3 tools/check_map_images.py
 
 test: dirs panorama ## Run unit tests
 	$(DOCKER_RUN) dotnet test $(TEST_PROJECT) -c Release --nologo

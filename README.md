@@ -42,14 +42,15 @@ Uses `mcr.microsoft.com/dotnet/sdk:10.0` — no project Dockerfile.
 make images WORKSHOP_DIR=/path/to/workshop/content/730
 make images GAME_DIR=/path/to/Steam/steamapps/common/Counter-Strike\ Global\ Offensive/game/csgo
 make images WORKSHOP_DIR=… GAME_DIR=…/game/csgo
+make images-check   # rewrite any map tile that is not a 350×197 PNG
 # Override binary: make images … SOURCE2VIEWER_CLI=/path/to/Source2Viewer-CLI
 ```
 
-**Workshop (`WORKSHOP_DIR`):** opens each VPK and tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, preferring shots that are not too dark (mean luma under 40) and not much taller than wide. If nothing preferred remains, it falls back to the first too-dark screenshot, then the first portrait/tall screenshot (full width kept, vertically centered crop into 16:9) so you still get a PNG, `.vtex`, and `.mv-map-{name}` to replace by hand. Output is resized to **350×197**. Maps with no screenshot keep `default.png` (`mv-map-default`).
+**Workshop (`WORKSHOP_DIR`):** opens each VPK in path order and tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, preferring shots that are not too dark (mean luma under 40) and not much taller than wide. If nothing preferred remains, it falls back to the first too-dark screenshot, then the first portrait/tall screenshot (full width kept, vertically centered crop into 16:9). When a map has no screenshot at all, it uses `panorama/images/overheadmaps/{map}_radar_*` (plain radar, then lower/higher floors). Output is `ws_{name}.png` plus `.vtex` under the panorama maps folder, resized to **350×197**, and a `.mv-map-ws_{name}` class. A repeated name becomes `ws_{name}_1`, `_2`, …. Maps with neither screenshot nor overhead keep `default.png` (`mv-map-default`).
 
-**Official maps (`GAME_DIR`):** reads `pak01_dir.vpk` (pass the `game/csgo` folder or the VPK itself), discovers `panorama/images/map_icons/screenshots/360p/{map}_png.vtex`, regenerates `tools/stock_maps.txt` and `.mv-map-stock-{name}` CSS (Valve `s2r://…/360p/…` URLs), and extracts preview WebPs into `workshop/preview/maps/`. Stock and workshop classes can share a map name; the HUD prefers the workshop image when both exist.
+**Official maps (`GAME_DIR`):** reads `pak01_dir.vpk` (pass the `game/csgo` folder or the VPK itself), keeps maps that ship a 360p screenshot except `random` and `lobby_*`, and writes `map_{name}.png` plus `.vtex` in the same panorama folder with `.mv-map-map_{name}` classes. The HUD picks `map_` or `ws_` from the map's origin, so the same name can exist as both.
 
-Requires Pillow. Republish the workshop addon after extracting new workshop maps (stock CSS only needs a republish when the stock class list changes).
+Requires Pillow. Republish the workshop addon after extracting images.
 
 ## Config
 

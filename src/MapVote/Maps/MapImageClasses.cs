@@ -1,17 +1,17 @@
 namespace MapVote.Maps
 {
     /// <summary>
-    /// Resolves Panorama map-shot CSS classes.
-    /// Workshop extracts use <c>mv-map-{stem}</c>; official Valve shots use <c>mv-map-stock-{stem}</c>
-    /// so the same map name can exist in both palettes.
+    /// Panorama map-shot class names. Official shots are <c>mv-map-map_{name}</c>;
+    /// workshop shots are <c>mv-map-ws_{name}</c>. The name is the map name, so no
+    /// generated stem list is required.
     /// </summary>
-    public static partial class MapImageClasses
+    public static class MapImageClasses
     {
         public const string Default = "mv-map-default";
-        public const string WorkshopPrefix = "mv-map-";
-        public const string StockPrefix = "mv-map-stock-";
+        public const string WorkshopPrefix = "mv-map-ws_";
+        public const string StockPrefix = "mv-map-map_";
 
-        public static string ClassFor(string? mapName)
+        public static string ClassFor(string? mapName, MapOrigin origin)
         {
             if (string.IsNullOrWhiteSpace(mapName))
             {
@@ -24,19 +24,7 @@ namespace MapVote.Maps
                 return Default;
             }
 
-            // Prefer a workshop extract when both exist (custom art for a Valve map name).
-            if (WorkshopStems.Contains(stem))
-            {
-                return WorkshopPrefix + stem;
-            }
-
-            if (StockStems.Contains(stem))
-            {
-                return StockPrefix + stem;
-            }
-
-            // Unknown stem: still try the workshop class name (CSS may have been hand-added).
-            return WorkshopPrefix + stem;
+            return (origin == MapOrigin.Workshop ? WorkshopPrefix : StockPrefix) + stem;
         }
     }
 }

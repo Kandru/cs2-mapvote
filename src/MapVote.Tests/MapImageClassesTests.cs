@@ -7,34 +7,33 @@ public class MapImageClassesTests
     [Fact]
     public void ClassFor_Empty_IsDefault()
     {
-        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor(null));
-        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor(""));
+        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor(null, MapOrigin.Local));
+        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor("", MapOrigin.Workshop));
     }
 
     [Fact]
-    public void ClassFor_PrefersWorkshopOverStock_WhenBothExist()
+    public void ClassFor_Local_UsesMapPrefix()
     {
-        // de_dust2 is in the committed stock list; if a workshop extract also exists,
-        // ClassFor must pick the workshop class name so both CSS rules can coexist.
-        string cls = MapImageClasses.ClassFor("de_dust2");
-        Assert.True(
-            cls is "mv-map-de_dust2" or "mv-map-stock-de_dust2",
-            $"unexpected class {cls}");
-        if (cls == "mv-map-de_dust2")
-        {
-            Assert.StartsWith(MapImageClasses.WorkshopPrefix, cls);
-        }
-        else
-        {
-            Assert.StartsWith(MapImageClasses.StockPrefix, cls);
-        }
+        Assert.Equal("mv-map-map_de_dust2", MapImageClasses.ClassFor("de_dust2", MapOrigin.Local));
     }
 
     [Fact]
-    public void StockPrefix_DiffersFromWorkshopPrefix()
+    public void ClassFor_Workshop_UsesWsPrefix()
     {
+        Assert.Equal("mv-map-ws_de_dust2", MapImageClasses.ClassFor("DE_Dust2", MapOrigin.Workshop));
+    }
+
+    [Fact]
+    public void ClassFor_InvalidName_IsDefault()
+    {
+        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor("Bad Name", MapOrigin.Local));
+    }
+
+    [Fact]
+    public void Prefixes_MatchVisibilityKeys()
+    {
+        Assert.Equal("mv-map-map_", MapImageClasses.StockPrefix);
+        Assert.Equal("mv-map-ws_", MapImageClasses.WorkshopPrefix);
         Assert.NotEqual(MapImageClasses.StockPrefix, MapImageClasses.WorkshopPrefix);
-        Assert.Equal("mv-map-stock-", MapImageClasses.StockPrefix);
-        Assert.Equal("mv-map-", MapImageClasses.WorkshopPrefix);
     }
 }

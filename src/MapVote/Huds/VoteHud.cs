@@ -25,6 +25,7 @@ namespace MapVote.Huds
         private static PlayerArchive? _archive;
         private static MapPlayCounts? _plays;
         private static Func<CCSPlayerController, string, string>? _text;
+        private static Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);
         private static bool _revealing;
         private static string? _winner;
 
@@ -42,13 +43,15 @@ namespace MapVote.Huds
             FiltersConfig filters,
             PlayerArchive archive,
             MapPlayCounts plays,
-            Func<CCSPlayerController, string, string> text)
+            Func<CCSPlayerController, string, string> text,
+            IReadOnlyDictionary<string, MapOrigin> origins)
         {
             _session = session;
             _filters = filters;
             _archive = archive;
             _plays = plays;
             _text = text;
+            _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
             ResetAllSlots();
             _revealing = false;
             _winner = null;
@@ -60,6 +63,7 @@ namespace MapVote.Huds
             _archive = null;
             _plays = null;
             _text = null;
+            _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
             _revealing = false;
             _winner = null;
             ResetAllSlots();
@@ -756,7 +760,8 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, favId, "is-on", isFav);
             CustomHud.SetText(player, Panel, VoteVar(pool, index), votes.ToString());
             CustomHud.SetText(player, Panel, NameVar(pool, index), map);
-            CustomHud.SetMapImage(player, ShotId(pool, index), map);
+            _origins.TryGetValue(map, out MapOrigin origin);
+            CustomHud.SetMapImage(player, ShotId(pool, index), map, origin);
             Remember(player, pool, index, map);
         }
 

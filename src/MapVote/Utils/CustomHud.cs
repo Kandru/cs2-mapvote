@@ -157,14 +157,20 @@ namespace MapVote.Utils
         /// Sets the overlay map-shot class. Empty names clear it so the id-less
         /// <c>mv-map-default</c> panel behind the shot shows through.
         /// </summary>
-        public static void SetMapImage(CCSPlayerController player, string imagePanelId, string? mapName)
+        public static void SetMapImage(
+            CCSPlayerController player,
+            string imagePanelId,
+            string? mapName,
+            MapOrigin origin = MapOrigin.Local)
         {
             if (player is not { IsValid: true })
             {
                 return;
             }
 
-            string? next = string.IsNullOrWhiteSpace(mapName) ? null : MapImageClasses.ClassFor(mapName);
+            string? next = string.IsNullOrWhiteSpace(mapName)
+                ? null
+                : MapImageClasses.ClassFor(mapName, origin);
             if (!ImageClassBySlot.TryGetValue(player.Slot, out Dictionary<string, string>? map))
             {
                 ImageClassBySlot[player.Slot] = map = new(StringComparer.Ordinal);

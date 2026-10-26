@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract map images for MapVote: workshop VPKs → palette; GAME_DIR/pak01 → stock CSS + preview."""
+"""Extract map images into panorama/images: map_{name} for official maps, ws_{name} for workshop."""
 from __future__ import annotations
 
 import argparse
@@ -19,8 +19,6 @@ from mapvote_layout import HUD_VCSS_NAME
 ROOT = Path(__file__).resolve().parents[1]
 IMAGES = ROOT / "workshop" / "content" / "panorama" / "images" / "custom_game" / "mapvote" / "maps"
 HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
-PREVIEW_MAPS = ROOT / "workshop" / "preview" / "maps"
-
 CSS_BEGIN = "/* BEGIN mv-map-palette */"
 CSS_END = "/* END mv-map-palette */"
 STOCK_SHOT_RE = re.compile(
@@ -32,6 +30,9 @@ STOCK_SHOT_RE = re.compile(
 TARGET_WIDTH = 350
 TARGET_HEIGHT = 197  # round(350 * 9 / 16)
 DEFAULT_STEM = "default"
+# Same keys as MapVisibility: map_{name} official, ws_{name} workshop.
+STOCK_IMAGE_PREFIX = "map_"
+WORKSHOP_IMAGE_PREFIX = "ws_"
 # Radar/overhead art is mostly black. Night screenshots still sit above this.
 MIN_MEAN_LUMA = 40.0  # 0–255
 # Reject strips that are much taller than they are wide (width/height).
@@ -145,6 +146,7 @@ def extract_entry(dir_vpk: Path, ver: int, tree_size: int, entry: VpkEntry, dest
 
 
 def discover_vpks(root: Path) -> list[Path]:
+    """Workshop VPKs in path order. That order assigns ws_ names when map names collide."""
     vpks: list[Path] = []
     if root.is_file() and root.suffix.lower() == ".vpk":
         return [root]
@@ -211,6 +213,40 @@ def image_candidates(entries: list[VpkEntry], map_name: str) -> list[VpkEntry]:
     return ordered
 
 
+# panorama/images/overheadmaps/{map}_radar_psd.vtex_c, or {map}_lower_radar_… / {map}_higherN_radar_….
+LAYOUT_RADAR_RE = re.compile(r"^(?P<level>lower_|higher\d*_)?radar[_.]")
+
+
+def layout_candidates(entries: list[VpkEntry], map_name: str) -> list[VpkEntry]:
+    """Overhead radars for this map. Plain radar first, then lower/higher floors."""
+    primary: list[VpkEntry] = []
+    floors: list[VpkEntry] = []
+    prefix = "panorama/images/overheadmaps/"
+    for entry in entries:
+        path = entry.path.replace("\\", "/").lower()
+        if not path.endswith(".vtex_c") or not path.startswith(prefix):
+            continue
+        rel = path[len(prefix) :]
+        if "/" in rel or "spectate" in rel:
+            continue
+        name = Path(rel).name
+        if not name.startswith(map_name + "_"):
+            continue
+        rest = name[len(map_name) + 1 :]
+        match = LAYOUT_RADAR_RE.match(rest)
+        if not match:
+            continue
+        (floors if match.group("level") else primary).append(entry)
+
+    def rank(entry: VpkEntry) -> tuple[int, int]:
+        hashed = 1 if re.search(r"_[0-9a-f]{6,}\.vtex_c$", entry.path.lower()) else 0
+        return (hashed, -entry.length)
+
+    primary.sort(key=rank)
+    floors.sort(key=rank)
+    return primary + floors
+
+
 def image_reject_reason(png_path: Path) -> str | None:
     """Return why this decoded image should not be preferred, or None if it is fine."""
     try:
@@ -272,25 +308,9 @@ def write_vtex(stem: str) -> None:
 
 
 def rewrite_css(stems: list[str]) -> None:
-    if not HUD_VCSS.is_file():
-        raise SystemExit(f"missing stylesheet: {HUD_VCSS}")
-    text = HUD_VCSS.read_text(encoding="utf-8")
-    if CSS_BEGIN not in text or CSS_END not in text:
-        raise SystemExit(f"stylesheet missing palette markers {CSS_BEGIN!r} / {CSS_END!r}")
+    from generate_stock_map_css import write_map_block
 
-    lines = [CSS_BEGIN, ""]
-    for stem in stems:
-        lines.append(f".mv-map-{stem}")
-        lines.append("{")
-        lines.append(
-            f'\tbackground-image: url("s2r://panorama/images/custom_game/mapvote/maps/{stem}.vtex");'
-        )
-        lines.append("}")
-        lines.append("")
-    lines.append(CSS_END)
-    block = "\n".join(lines)
-    pattern = re.compile(re.escape(CSS_BEGIN) + r".*?" + re.escape(CSS_END), re.S)
-    HUD_VCSS.write_text(pattern.sub(block, text), encoding="utf-8")
+    write_map_block(CSS_BEGIN, CSS_END, stems)
 
 
 def _pillow_image():
@@ -404,18 +424,108 @@ def stock_shots_by_map(entries: list[VpkEntry]) -> dict[str, dict[str, VpkEntry]
     return by_map
 
 
-def write_preview_webp(png_path: Path, stem: str) -> None:
-    Image = _pillow_image()
-    PREVIEW_MAPS.mkdir(parents=True, exist_ok=True)
-    with Image.open(png_path) as img:
-        center_crop_tile(img).convert("RGB").save(
-            PREVIEW_MAPS / f"{stem}.webp", format="WEBP", quality=85, method=4
-        )
+def allocate_stem(prefix: str, name: str, used: set[str]) -> str:
+    """prefix+name, or prefix+name_N when that file stem is already taken."""
+    base = f"{prefix}{name}"
+    if base not in used:
+        used.add(base)
+        return base
+    n = 1
+    while True:
+        candidate = f"{base}_{n}"
+        if candidate not in used:
+            used.add(candidate)
+            return candidate
+        n += 1
+
+
+def save_tile(decoded: Path, stem: str) -> Path:
+    """Write a 350×197 PNG and its .vtex into the panorama maps folder."""
+    IMAGES.mkdir(parents=True, exist_ok=True)
+    png = IMAGES / f"{stem}.png"
+    shutil.copy2(decoded, png)
+    resize_to_tile(png)
+    write_vtex(stem)
+    return png
+
+
+def remove_stale(keep: set[str], *, only_prefix: str | None) -> None:
+    """Drop png/vtex this run did not write.
+
+    only_prefix limits deletion to that prefix (stock keeps workshop files).
+    Otherwise keep default and map_* and delete everything else, including old bare names.
+    """
+    if not IMAGES.is_dir():
+        return
+    for path in IMAGES.iterdir():
+        if path.suffix not in {".png", ".vtex"}:
+            continue
+        stem = path.stem
+        if stem == DEFAULT_STEM or stem in keep:
+            continue
+        if only_prefix is not None:
+            if stem.startswith(only_prefix):
+                path.unlink()
+            continue
+        if not stem.startswith(STOCK_IMAGE_PREFIX):
+            path.unlink()
+
+
+def _decode_entry(cli: Path, pak: Path, ver: int, tree_size: int, entry: VpkEntry, work: Path) -> Path:
+    work.mkdir(parents=True, exist_ok=True)
+    decoded = work / "shot.png"
+    extract_entry(pak, ver, tree_size, entry, work / Path(entry.path).name)
+    decompile_vtex(cli, work / Path(entry.path).name, decoded)
+    return decoded
+
+
+def choose_image(
+    cli: Path,
+    pak: Path,
+    ver: int,
+    tree_size: int,
+    tmp: Path,
+    tag: str,
+    screens: list[tuple[str, VpkEntry]],
+    layouts: list[VpkEntry],
+) -> tuple[str, VpkEntry, Path] | None:
+    """Good screenshot, else a dark/tall one, else the first overhead radar that decodes."""
+    backup: tuple[str, str, VpkEntry, Path] | None = None
+    for index, (label, entry) in enumerate(screens):
+        try:
+            decoded = _decode_entry(cli, pak, ver, tree_size, entry, tmp / f"s{index}")
+            reason = image_reject_reason(decoded)
+        except Exception as ex:
+            print(f"{tag}: skip {label} ({ex})")
+            continue
+        if reason is None:
+            return label, entry, decoded
+        print(f"{tag}: skip {label} ({reason})")
+        if reason.startswith("too dark") and (backup is None or backup[0] == "tall"):
+            backup = ("too dark", label, entry, decoded)
+        elif reason.startswith("too tall") and backup is None:
+            backup = ("tall", label, entry, decoded)
+    if backup is not None:
+        kind, label, entry, decoded = backup
+        return f"fallback ({kind}) {label}", entry, decoded
+    for index, entry in enumerate(layouts):
+        try:
+            decoded = _decode_entry(cli, pak, ver, tree_size, entry, tmp / f"l{index}")
+        except Exception as ex:
+            print(f"{tag}: skip overhead {entry.path} ({ex})")
+            continue
+        return f"overhead {Path(entry.path).name}", entry, decoded
+    return None
 
 
 def process_stock_pak(cli: Path, pak: Path) -> list[str]:
-    """Discover official 360p screenshots, rewrite stock CSS, extract preview WebPs."""
-    from generate_stock_map_css import rewrite_hud_stock_css, write_stock_list
+    """Discover official screenshots and write map_{name} tiles plus stock CSS."""
+    from generate_stock_map_css import (
+        STOCK_LIST,
+        ignored_stock_map,
+        rewrite_hud_stock_css,
+        write_stock_list,
+    )
 
     print(f"[stock] scanning {pak}")
     ver, tree, entries = parse_vpk_dir(pak)
@@ -424,53 +534,49 @@ def process_stock_pak(cli: Path, pak: Path) -> list[str]:
     if not shots:
         raise SystemExit(f"no map_icons/screenshots/*_png.vtex_c found in {pak}")
 
-    # Stock CSS only lists maps that ship a 360p icon (the URL the HUD uses).
-    stems_360 = sorted(name for name, res_map in shots.items() if "360p" in res_map)
+    # Official CSS lists maps that ship a 360p icon, except random and lobby_*.
+    stems_360 = sorted(
+        name
+        for name, res_map in shots.items()
+        if "360p" in res_map and not ignored_stock_map(name)
+    )
     if not stems_360:
         raise SystemExit(f"no 360p stock screenshots found in {pak}")
 
-    write_stock_list(stems_360, STOCK_LIST)
-    count = rewrite_hud_stock_css(stems_360)
+    saved: list[str] = []
+    image_stems: set[str] = set()
+    for stem in stems_360:
+        screens = [(res, shots[stem][res]) for res in ("1080p", "720p", "360p") if res in shots[stem]]
+        image_stem = f"{STOCK_IMAGE_PREFIX}{stem}"
+        with tempfile.TemporaryDirectory(prefix="mapvote-stock-") as tmp:
+            chosen = choose_image(
+                cli, pak, ver, tree_size, Path(tmp), f"[stock]  {stem}",
+                screens, layout_candidates(entries, stem),
+            )
+            if chosen is None:
+                print(f"[stock]  {stem}: no usable screenshot or overhead")
+                continue
+            label, entry, decoded = chosen
+            save_tile(decoded, image_stem)
+        image_stems.add(image_stem)
+        saved.append(stem)
+        print(f"[stock]  {stem} ← {label} ({entry.length} bytes) → maps/{image_stem}.png")
+
+    write_stock_list(saved, STOCK_LIST)
+    count = rewrite_hud_stock_css(saved)
+    remove_stale(image_stems, only_prefix=STOCK_IMAGE_PREFIX)
     print(f"[stock] wrote {count} stock map classes → {HUD_VCSS.relative_to(ROOT)}")
     print(f"[stock] updated {STOCK_LIST.relative_to(ROOT)}")
-
-    extracted = 0
-    for stem in stems_360:
-        res_map = shots[stem]
-        chosen: VpkEntry | None = None
-        chosen_res = ""
-        for res in ("1080p", "720p", "360p"):
-            if res in res_map:
-                chosen = res_map[res]
-                chosen_res = res
-                break
-        if chosen is None:
-            continue
-
-        with tempfile.TemporaryDirectory(prefix="mapvote-stock-") as tmp:
-            tmp_path = Path(tmp)
-            vtex_c = tmp_path / Path(chosen.path).name
-            decoded = tmp_path / f"{stem}.png"
-            try:
-                extract_entry(pak, ver, tree_size, chosen, vtex_c)
-                decompile_vtex(cli, vtex_c, decoded)
-                reason = image_reject_reason(decoded)
-                if reason:
-                    print(f"[stock]  {stem}: skip {chosen_res} ({reason})")
-                    continue
-                write_preview_webp(decoded, stem)
-            except Exception as ex:
-                print(f"[stock]  {stem}: failed ({ex})")
-                continue
-
-        extracted += 1
-        print(f"[stock]  {stem} ← {chosen_res} ({chosen.length} bytes) → preview/maps/{stem}.webp")
-
-    print(f"[stock] extracted {extracted}/{len(stems_360)} preview images → {PREVIEW_MAPS.relative_to(ROOT)}")
-    return stems_360
+    print(f"[stock] extracted {len(saved)}/{len(stems_360)} images → {IMAGES.relative_to(ROOT)}")
+    return saved
 
 
-def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
+def process_vpk(
+    cli: Path,
+    vpk: Path,
+    used: set[str],
+    written: dict[str, Path],
+) -> None:
     print(f"[images] scanning {vpk}")
     ver, tree, entries = parse_vpk_dir(vpk)
     tree_size = len(tree)
@@ -480,51 +586,23 @@ def process_vpk(cli: Path, vpk: Path, written: dict[str, Path]) -> None:
         return
 
     for map_name in sorted(maps):
-        candidates = image_candidates(entries, map_name)
-        if not candidates:
-            print(f"[images]  {map_name}: no screenshot")
+        screens = [(entry.path, entry) for entry in image_candidates(entries, map_name)]
+        layouts = layout_candidates(entries, map_name)
+        if not screens and not layouts:
+            print(f"[images]  {map_name}: no screenshot or overhead")
             continue
-        chosen: VpkEntry | None = None
-        label = ""
         with tempfile.TemporaryDirectory(prefix="mapvote-extract-") as tmp:
-            tmp_path = Path(tmp)
-            png = IMAGES / f"{map_name}.png"
-            # Prefer first too-dark backup; else first too-tall (center_crop_tile keeps full width).
-            backup: tuple[str, VpkEntry, Path] | None = None
-            for index, entry in enumerate(candidates):
-                work = tmp_path / str(index)
-                work.mkdir()
-                vtex_c = work / Path(entry.path).name
-                try:
-                    extract_entry(vpk, ver, tree_size, entry, vtex_c)
-                    decoded = work / f"{map_name}.png"
-                    decompile_vtex(cli, vtex_c, decoded)
-                    reason = image_reject_reason(decoded)
-                except Exception as ex:
-                    print(f"[images]  {map_name}: skip {entry.path} ({ex})")
-                    continue
-                if reason is None:
-                    shutil.copy2(decoded, png)
-                    resize_to_tile(png)
-                    chosen, label = entry, entry.path
-                    break
-                print(f"[images]  {map_name}: skip {entry.path} ({reason})")
-                if reason.startswith("too dark") and (backup is None or backup[0] == "tall"):
-                    backup = ("too dark", entry, decoded)
-                elif reason.startswith("too tall") and backup is None:
-                    backup = ("tall", entry, decoded)
-            if chosen is None and backup is not None:
-                kind, entry, decoded = backup
-                shutil.copy2(decoded, png)
-                resize_to_tile(png)
-                chosen, label = entry, f"fallback ({kind}) {entry.path}"
-
-        if chosen is None:
-            print(f"[images]  {map_name}: no usable screenshot")
-            continue
-        write_vtex(map_name)
-        written[map_name] = png
-        print(f"[images]  {map_name} ← {label} ({chosen.length} bytes)")
+            chosen = choose_image(
+                cli, vpk, ver, tree_size, Path(tmp), f"[images]  {map_name}",
+                screens, layouts,
+            )
+            if chosen is None:
+                print(f"[images]  {map_name}: no usable screenshot or overhead")
+                continue
+            label, entry, decoded = chosen
+            image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)
+            written[image_stem] = save_tile(decoded, image_stem)
+        print(f"[images]  {map_name} ← {label} ({entry.length} bytes) → maps/{image_stem}.png")
 
 
 def process_workshop(cli: Path, root: Path) -> None:
@@ -536,26 +614,18 @@ def process_workshop(cli: Path, root: Path) -> None:
     # Keep the committed default thumb at the HUD tile size.
     resize_to_tile(IMAGES / f"{DEFAULT_STEM}.png")
 
+    used: set[str] = set()
     written: dict[str, Path] = {}
     for vpk in discover_vpks(root):
         try:
-            process_vpk(cli, vpk, written)
+            process_vpk(cli, vpk, used, written)
         except Exception as ex:
             print(f"[images] ERROR {vpk}: {ex}", file=sys.stderr)
 
-    # Workshop palette uses .mv-map-{stem}; stock CSS uses .mv-map-stock-{stem}.
-    # Same map names are allowed in both — runtime prefers workshop when both exist.
-    stems = {DEFAULT_STEM}
-    stems.update(s for s in written if s != DEFAULT_STEM)
-    for png in IMAGES.glob("*.png"):
-        stem = png.stem
-        if stem != DEFAULT_STEM and (IMAGES / f"{stem}.vtex").is_file():
-            stems.add(stem)
-    ordered = [DEFAULT_STEM] + sorted(s for s in stems if s != DEFAULT_STEM)
+    keep = set(written)
+    remove_stale(keep, only_prefix=None)
+    ordered = [DEFAULT_STEM] + sorted(keep)
     rewrite_css(ordered)
-    from map_image_classes import write_stems_cs
-
-    write_stems_cs(workshop=[s for s in ordered if s != DEFAULT_STEM])
     print(
         f"[images] updated {len(ordered)} CSS classes "
         f"({TARGET_WIDTH}x{TARGET_HEIGHT}) in {HUD_VCSS.relative_to(ROOT)}"
@@ -594,8 +664,8 @@ def main() -> int:
     if workshop is None and game_dir is None:
         print(
             "Usage: extract_workshop_images.py [WORKSHOP_DIR] [--game-dir GAME_DIR]\n"
-            "  WORKSHOP_DIR  workshop packages / map VPKs → mv-map-palette\n"
-            "  GAME_DIR      game/csgo (pak01_dir.vpk) → stock CSS + preview/maps",
+            "  WORKSHOP_DIR  workshop packages / map VPKs → panorama maps/ws_{name}.png\n"
+            "  GAME_DIR      game/csgo (pak01_dir.vpk) → panorama maps/map_{name}.png",
             file=sys.stderr,
         )
         return 1

@@ -126,7 +126,8 @@ namespace MapVote
                 Config.Filters,
                 _archive,
                 _plays,
-                (player, key) => Localization.ForPlayerSafe(Localizer, player, key));
+                (player, key) => Localization.ForPlayerSafe(Localizer, player, key),
+                origins);
             _voteActive = true;
             _revealActive = false;
             _pendingWinner = null;

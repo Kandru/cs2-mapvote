@@ -33,7 +33,7 @@ VAR_RE = re.compile(r"\{s:([A-Za-z0-9_]+)\}")
 HIDDEN_CLASS = re.compile(r"(?<![\w-])(?:hidden|Hidden)(?![\w-])")
 PROPERTY_RE = re.compile(r"(?:^|[{;])\s*([a-z][a-z0-9-]*)\s*:", re.M)
 MV_MAP_CLASS_RE = re.compile(r"\.mv-map-([a-z0-9_]+)\s*\{([^}]*)\}", re.S)
-MV_MAP_STOCK_CLASS_RE = re.compile(r"\.mv-map-stock-([a-z0-9_]+)\s*\{([^}]*)\}", re.S)
+MV_MAP_STOCK_CLASS_RE = re.compile(r"\.mv-map-map_([a-z0-9_]+)\s*\{([^}]*)\}", re.S)
 STOCK_BLOCK_RE = re.compile(
     r"/\*\s*BEGIN mv-map-stock\s*\*/(.*?)/\*\s*END mv-map-stock\s*\*/",
     re.S,
@@ -42,8 +42,8 @@ PALETTE_BLOCK_RE = re.compile(
     r"/\*\s*BEGIN mv-map-palette\s*\*/(.*?)/\*\s*END mv-map-palette\s*\*/",
     re.S,
 )
-STOCK_URL_RE = re.compile(
-    r'url\(\s*"s2r://panorama/images/map_icons/screenshots/360p/([a-z0-9_]+)_png\.vtex"\s*\)'
+LOCAL_MAP_URL_RE = re.compile(
+    r'url\(\s*"s2r://panorama/images/custom_game/mapvote/maps/([a-z0-9_]+)\.vtex"\s*\)'
 )
 VTEX_FILE_RE = re.compile(r'"m_fileName"\s+"string"\s+"([^"]+)"')
 KEYFRAMES_RE = re.compile(r"@keyframes\s+([^{\s]+)")
@@ -156,6 +156,30 @@ def csharp_const_string(path: Path, name: str) -> str:
     if not match:
         raise SystemExit(f'missing public const string {name} in {path.relative_to(ROOT)}')
     return match.group(1)
+
+
+def check_local_map_image(errors: list[str], css_class: str, file_stem: str, body: str) -> None:
+    if "background-image" not in body:
+        errors.append(f".{css_class}: missing background-image")
+        return
+    m = LOCAL_MAP_URL_RE.search(body)
+    if not m or m.group(1) != file_stem:
+        errors.append(
+            f".{css_class}: must use "
+            f's2r://panorama/images/custom_game/mapvote/maps/{file_stem}.vtex'
+        )
+    png = IMAGES / f"{file_stem}.png"
+    vtex = IMAGES / f"{file_stem}.vtex"
+    if not png.is_file():
+        errors.append(f"missing image for .{css_class}: {png.relative_to(ROOT)}")
+    if not vtex.is_file():
+        errors.append(f"missing vtex for .{css_class}: {vtex.relative_to(ROOT)}")
+        return
+    vtext = vtex.read_text(encoding="utf-8")
+    found = VTEX_FILE_RE.search(vtext)
+    expected = f"panorama/images/custom_game/mapvote/maps/{file_stem}.png"
+    if not found or found.group(1) != expected:
+        errors.append(f"{vtex.relative_to(ROOT)}: m_fileName must be {expected!r}")
 
 
 def collect_errors() -> list[str]:
@@ -318,34 +342,17 @@ def collect_errors() -> list[str]:
             errors.append(f"{HUD_VCSS_NAME}: missing /* BEGIN mv-map-palette */ … /* END mv-map-palette */ block")
 
         for stem, body in MV_MAP_STOCK_CLASS_RE.findall(stock_block.group(1) if stock_block else ""):
-            if "background-image" not in body:
-                errors.append(f".mv-map-stock-{stem}: missing background-image")
-                continue
-            m = STOCK_URL_RE.search(body)
-            if not m or m.group(1) != stem:
-                errors.append(
-                    f".mv-map-stock-{stem}: must use "
-                    f's2r://panorama/images/map_icons/screenshots/360p/{stem}_png.vtex'
-                )
+            if stem == "random" or stem.startswith("lobby_"):
+                errors.append(f".mv-map-map_{stem}: random and lobby_* are not shipped")
+            check_local_map_image(errors, f"mv-map-map_{stem}", f"map_{stem}", body)
 
         for stem, body in MV_MAP_CLASS_RE.findall(palette_block.group(1) if palette_block else ""):
-            if stem.startswith("stock_"):
-                errors.append(f".mv-map-{stem}: stock classes belong in mv-map-stock block")
+            if stem.startswith("map_"):
+                errors.append(f".mv-map-{stem}: official maps belong in the mv-map-stock block")
                 continue
-            if "background-image" not in body:
-                errors.append(f".mv-map-{stem}: missing background-image")
-            png = IMAGES / f"{stem}.png"
-            vtex = IMAGES / f"{stem}.vtex"
-            if not png.is_file():
-                errors.append(f"missing image for .mv-map-{stem}: {png.relative_to(ROOT)}")
-            if not vtex.is_file():
-                errors.append(f"missing vtex for .mv-map-{stem}: {vtex.relative_to(ROOT)}")
-            else:
-                vtext = vtex.read_text(encoding="utf-8")
-                m = VTEX_FILE_RE.search(vtext)
-                expected = f"panorama/images/custom_game/mapvote/maps/{stem}.png"
-                if not m or m.group(1) != expected:
-                    errors.append(f"{vtex.relative_to(ROOT)}: m_fileName must be {expected!r}")
+            if stem != "default" and not stem.startswith("ws_"):
+                errors.append(f".mv-map-{stem}: workshop images must use a ws_ stem")
+            check_local_map_image(errors, f"mv-map-{stem}", stem, body)
 
     if not VOTE_XML.is_file():
         errors.append(f"missing {VOTE_XML.relative_to(ROOT)}")
