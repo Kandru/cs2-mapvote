@@ -449,6 +449,14 @@ def save_tile(decoded: Path, stem: str) -> Path:
     return png
 
 
+def save_default_tile(stem: str) -> Path:
+    """Copy default.png as this map's tile so CSS can point at a real file to replace."""
+    default_png = IMAGES / f"{DEFAULT_STEM}.png"
+    if not default_png.is_file():
+        raise FileNotFoundError(f"missing {default_png}")
+    return save_tile(default_png, stem)
+
+
 def remove_stale(keep: set[str], *, only_prefix: str | None) -> None:
     """Drop png/vtex this run did not write.
 
@@ -554,7 +562,10 @@ def process_stock_pak(cli: Path, pak: Path) -> list[str]:
                 screens, layout_candidates(entries, stem),
             )
             if chosen is None:
-                print(f"[stock]  {stem}: no usable screenshot or overhead")
+                save_default_tile(image_stem)
+                image_stems.add(image_stem)
+                saved.append(stem)
+                print(f"[stock]  {stem} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
                 continue
             label, entry, decoded = chosen
             save_tile(decoded, image_stem)
@@ -589,7 +600,9 @@ def process_vpk(
         screens = [(entry.path, entry) for entry in image_candidates(entries, map_name)]
         layouts = layout_candidates(entries, map_name)
         if not screens and not layouts:
-            print(f"[images]  {map_name}: no screenshot or overhead")
+            image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)
+            written[image_stem] = save_default_tile(image_stem)
+            print(f"[images]  {map_name} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
             continue
         with tempfile.TemporaryDirectory(prefix="mapvote-extract-") as tmp:
             chosen = choose_image(
@@ -597,7 +610,9 @@ def process_vpk(
                 screens, layouts,
             )
             if chosen is None:
-                print(f"[images]  {map_name}: no usable screenshot or overhead")
+                image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)
+                written[image_stem] = save_default_tile(image_stem)
+                print(f"[images]  {map_name} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
                 continue
             label, entry, decoded = chosen
             image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)

@@ -44,7 +44,8 @@
 {
 	width: 100%;
 	height: 100%;
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000e0 ), color-stop( 0.22, #0000008a ), color-stop( 0.5, #00000070 ), color-stop( 0.78, #00000078 ), to( #000000a0 ) );
+	/* Top two stops at 70% of prior alpha so the victory splash stays readable. */
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #0000009d ), color-stop( 0.22, #00000061 ), color-stop( 0.5, #00000070 ), color-stop( 0.78, #00000078 ), to( #000000a0 ) );
 }
 
 .VoteColumn
@@ -57,20 +58,20 @@
 .VoteTopBar
 {
 	width: 100%;
-	height: 40px;
+	height: 50px;
 	flow-children: none;
 }
 
 .VoteTitle
 {
-	/* No fixed height: Panorama paints label text at the top of the box, so a
-	   28px box centered in this 40px bar sits the glyphs above the button. */
+	/* Line box matches font-size so vertical-align: middle centers glyphs in the bar. */
 	width: 100%;
+	height: 22px;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 20;
+	font-size: 22;
 	letter-spacing: 1.6px;
 	text-transform: uppercase;
 	color: #ffffff;
@@ -111,11 +112,12 @@
 .MinimizeLabel
 {
 	width: fit-children;
+	height: 15px;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 14;
+	font-size: 15;
 	letter-spacing: 1.2px;
 	text-transform: uppercase;
 	color: #ffffff;
@@ -194,10 +196,10 @@
 {
 	width: 100%;
 	horizontal-align: center;
-	vertical-align: middle;
+	vertical-align: bottom;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 14;
+	font-size: 42;
 	color: #a3acb6;
 	letter-spacing: 1px;
 	text-transform: uppercase;
@@ -216,6 +218,8 @@
 	overflow: noclip noclip;
 	horizontal-align: center;
 	vertical-align: middle;
+	/* Near-invisible fill so wheel hits gutters between tiles. */
+	background-color: #00000001;
 }
 
 /* Slot pitch = 110px tile + 8px + 8px margin = 126px */
@@ -421,7 +425,7 @@
 	vertical-align: middle;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 14;
+	font-size: 15;
 	letter-spacing: 1px;
 	text-transform: uppercase;
 	color: #e8eef4;
@@ -455,7 +459,7 @@
 	horizontal-align: center;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 16;
+	font-size: 18;
 	letter-spacing: 1px;
 	text-transform: uppercase;
 	color: #a3acb6;
@@ -496,6 +500,8 @@
 	height: 213px;
 	flow-children: right;
 	horizontal-align: center;
+	/* Near-invisible fill so wheel hits gutters between tiles. */
+	background-color: #00000001;
 }
 
 /* BEGIN cols-ladder */
@@ -520,6 +526,8 @@
 	horizontal-align: center;
 	flow-children: none;
 	margin: 0px 8px 0px 8px;
+	/* Near-invisible fill so wheel hits gutters between tiles. */
+	background-color: #00000001;
 }
 
 .CatalogRow .MapSlot
@@ -621,7 +629,7 @@
 	margin: 0px;
 	margin-bottom: 40px;
 	font-family: Stratum2;
-	font-size: 26;
+	font-size: 29;
 	color: #ff9a1a;
 	text-align: center;
 }
@@ -636,7 +644,7 @@
 	horizontal-align: center;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 16;
+	font-size: 18;
 	color: #ffffff;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -762,12 +770,12 @@
 
 .CreditLabel
 {
-	width: 100%;
+	width: fit-children;
 	horizontal-align: center;
 	vertical-align: middle;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 16;
+	font-size: 18;
 	letter-spacing: 1px;
 	color: #a3acb6;
 	white-space: nowrap;

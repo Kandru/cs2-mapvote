@@ -48,7 +48,7 @@ def tile(pool: str, index: int, vote_var: str, name_var: str, indent: str) -> st
     # Default shot behind the id'd overlay (missing map class → default shows).
     return "\n".join(
         [
-            f'{indent}<Panel id="{slot_id}" class="MapSlot is-off" hittest="false">',
+            f'{indent}<Panel id="{slot_id}" class="MapSlot is-off">',
             f'{indent}\t<Button id="{tile_id}" class="MapTile">',
             f'{indent}\t\t<Panel class="MapShot mv-map-default" hittest="false" />',
             f'{indent}\t\t<Panel id="{shot_id}" class="MapShot" hittest="false" />',
@@ -137,9 +137,9 @@ def build() -> str:
         "\t\t\t\t</Panel>",
         '\t\t\t\t<Panel class="VoteBody" hittest="false">',
         '\t\t\t\t\t<Panel id="mv-voted-section" class="VotedSection" hittest="false">',
-        '\t\t\t\t\t\t<Panel class="VotedRow" hittest="false">',
+        '\t\t\t\t\t\t<Panel class="VotedRow">',
         '\t\t\t\t\t\t\t<Label id="mv-voted-hint" class="VotedHint stratum-bold-condensed" text="{s:mv_hint}" hittest="false" />',
-        '\t\t\t\t\t\t\t<Panel id="mv-voted-strip" class="VotedStrip vw-0" hittest="false">',
+        '\t\t\t\t\t\t\t<Panel id="mv-voted-strip" class="VotedStrip vw-0">',
     ]
 
     for i in range(SLOT_COUNT):
@@ -177,15 +177,15 @@ def build() -> str:
             "\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t</Panel>",
             '\t\t\t\t\t<Panel class="MapGridHost" hittest="false">',
-            '\t\t\t\t\t\t<Panel class="MapGrid" hittest="false">',
+            '\t\t\t\t\t\t<Panel class="MapGrid">',
             '\t\t\t\t\t\t\t<Label id="mv-empty" class="MapEmpty stratum-bold-condensed is-off" text="{s:mv_empty}" hittest="false" />',
-            '\t\t\t\t\t\t\t<Panel id="mv-catalog" class="MapCatalog rows-0" hittest="false">',
+            '\t\t\t\t\t\t\t<Panel id="mv-catalog" class="MapCatalog rows-0">',
         ]
     )
 
     for row in range(ROW_COUNT):
         lines.append(
-            f'\t\t\t\t\t\t\t\t<Panel id="mv-crow-{row}" class="CatalogRow cols-0 is-off" hittest="false">'
+            f'\t\t\t\t\t\t\t\t<Panel id="mv-crow-{row}" class="CatalogRow cols-0 is-off">'
         )
         start = row * COLS
         end = min(start + COLS, SLOT_COUNT)

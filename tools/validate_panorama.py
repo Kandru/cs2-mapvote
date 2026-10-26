@@ -77,6 +77,10 @@ BAD_CSS = re.compile(
 REJECTED_ATTRS = frozenset({"texturewidth", "textureheight", "style", "onactivate", "hittestchildren"})
 ALLOWED_TAGS = frozenset({"root", "styles", "include", "snippets", "Panel", "Label", "Button"})
 ALLOWED_ATTRS = frozenset({"id", "class", "hittest", "text", "src"})
+# Scroll gutters: hit-test so mouse wheel reaches VotedRow / MapGrid between tiles.
+WHEEL_HIT_PANEL_CLASSES = frozenset(
+    {"VotedRow", "VotedStrip", "MapGrid", "MapCatalog", "CatalogRow", "MapSlot"}
+)
 
 # Ruleset §5.1 — custom_hud_layout subset (stuff/PANORAMA_RULESET.md).
 KNOWN_PROPS = frozenset(
@@ -404,8 +408,10 @@ def collect_errors() -> list[str]:
         if tag == "Button" and "hittest" in el.attrib:
             errors.append(f"{VOTE_XML_NAME}: do not set hittest on Button")
         if tag == "Panel" and el.attrib.get("hittest") != "false":
-            # Only panels that exist in the tree; Buttons are separate.
-            if "id" in el.attrib or "class" in el.attrib:
+            classes = set(el.attrib.get("class", "").split())
+            if classes & WHEEL_HIT_PANEL_CLASSES:
+                pass  # intentional: wheel target for scroll gutters
+            elif "id" in el.attrib or "class" in el.attrib:
                 errors.append(
                     f"{VOTE_XML_NAME}: Panel must have hittest=\"false\" "
                     f"(id={el.attrib.get('id')!r})"

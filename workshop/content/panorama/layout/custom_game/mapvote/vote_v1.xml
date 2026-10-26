@@ -20,10 +20,10 @@
 				</Panel>
 				<Panel class="VoteBody" hittest="false">
 					<Panel id="mv-voted-section" class="VotedSection" hittest="false">
-						<Panel class="VotedRow" hittest="false">
+						<Panel class="VotedRow">
 							<Label id="mv-voted-hint" class="VotedHint stratum-bold-condensed" text="{s:mv_hint}" hittest="false" />
-							<Panel id="mv-voted-strip" class="VotedStrip vw-0" hittest="false">
-								<Panel id="mv-voted-slot-0" class="MapSlot is-off" hittest="false">
+							<Panel id="mv-voted-strip" class="VotedStrip vw-0">
+								<Panel id="mv-voted-slot-0" class="MapSlot is-off">
 									<Button id="mv-voted-0" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-0" class="MapShot" hittest="false" />
@@ -36,7 +36,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-1" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-1" class="MapSlot is-off">
 									<Button id="mv-voted-1" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-1" class="MapShot" hittest="false" />
@@ -49,7 +49,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-2" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-2" class="MapSlot is-off">
 									<Button id="mv-voted-2" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-2" class="MapShot" hittest="false" />
@@ -62,7 +62,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-3" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-3" class="MapSlot is-off">
 									<Button id="mv-voted-3" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-3" class="MapShot" hittest="false" />
@@ -75,7 +75,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-4" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-4" class="MapSlot is-off">
 									<Button id="mv-voted-4" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-4" class="MapShot" hittest="false" />
@@ -88,7 +88,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-5" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-5" class="MapSlot is-off">
 									<Button id="mv-voted-5" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-5" class="MapShot" hittest="false" />
@@ -101,7 +101,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-6" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-6" class="MapSlot is-off">
 									<Button id="mv-voted-6" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-6" class="MapShot" hittest="false" />
@@ -114,7 +114,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-7" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-7" class="MapSlot is-off">
 									<Button id="mv-voted-7" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-7" class="MapShot" hittest="false" />
@@ -127,7 +127,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-8" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-8" class="MapSlot is-off">
 									<Button id="mv-voted-8" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-8" class="MapShot" hittest="false" />
@@ -140,7 +140,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-9" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-9" class="MapSlot is-off">
 									<Button id="mv-voted-9" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-9" class="MapShot" hittest="false" />
@@ -153,7 +153,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-10" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-10" class="MapSlot is-off">
 									<Button id="mv-voted-10" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-10" class="MapShot" hittest="false" />
@@ -166,7 +166,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-11" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-11" class="MapSlot is-off">
 									<Button id="mv-voted-11" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-11" class="MapShot" hittest="false" />
@@ -179,7 +179,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-12" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-12" class="MapSlot is-off">
 									<Button id="mv-voted-12" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-12" class="MapShot" hittest="false" />
@@ -192,7 +192,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-13" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-13" class="MapSlot is-off">
 									<Button id="mv-voted-13" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-13" class="MapShot" hittest="false" />
@@ -205,7 +205,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-14" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-14" class="MapSlot is-off">
 									<Button id="mv-voted-14" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-14" class="MapShot" hittest="false" />
@@ -218,7 +218,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-15" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-15" class="MapSlot is-off">
 									<Button id="mv-voted-15" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-15" class="MapShot" hittest="false" />
@@ -231,7 +231,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-16" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-16" class="MapSlot is-off">
 									<Button id="mv-voted-16" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-16" class="MapShot" hittest="false" />
@@ -244,7 +244,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-17" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-17" class="MapSlot is-off">
 									<Button id="mv-voted-17" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-17" class="MapShot" hittest="false" />
@@ -257,7 +257,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-18" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-18" class="MapSlot is-off">
 									<Button id="mv-voted-18" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-18" class="MapShot" hittest="false" />
@@ -270,7 +270,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-19" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-19" class="MapSlot is-off">
 									<Button id="mv-voted-19" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-19" class="MapShot" hittest="false" />
@@ -283,7 +283,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-20" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-20" class="MapSlot is-off">
 									<Button id="mv-voted-20" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-20" class="MapShot" hittest="false" />
@@ -296,7 +296,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-21" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-21" class="MapSlot is-off">
 									<Button id="mv-voted-21" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-21" class="MapShot" hittest="false" />
@@ -309,7 +309,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-22" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-22" class="MapSlot is-off">
 									<Button id="mv-voted-22" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-22" class="MapShot" hittest="false" />
@@ -322,7 +322,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-23" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-23" class="MapSlot is-off">
 									<Button id="mv-voted-23" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-23" class="MapShot" hittest="false" />
@@ -335,7 +335,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-24" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-24" class="MapSlot is-off">
 									<Button id="mv-voted-24" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-24" class="MapShot" hittest="false" />
@@ -348,7 +348,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-25" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-25" class="MapSlot is-off">
 									<Button id="mv-voted-25" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-25" class="MapShot" hittest="false" />
@@ -361,7 +361,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-26" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-26" class="MapSlot is-off">
 									<Button id="mv-voted-26" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-26" class="MapShot" hittest="false" />
@@ -374,7 +374,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-27" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-27" class="MapSlot is-off">
 									<Button id="mv-voted-27" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-27" class="MapShot" hittest="false" />
@@ -387,7 +387,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-28" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-28" class="MapSlot is-off">
 									<Button id="mv-voted-28" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-28" class="MapShot" hittest="false" />
@@ -400,7 +400,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-29" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-29" class="MapSlot is-off">
 									<Button id="mv-voted-29" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-29" class="MapShot" hittest="false" />
@@ -413,7 +413,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-30" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-30" class="MapSlot is-off">
 									<Button id="mv-voted-30" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-30" class="MapShot" hittest="false" />
@@ -426,7 +426,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-31" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-31" class="MapSlot is-off">
 									<Button id="mv-voted-31" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-31" class="MapShot" hittest="false" />
@@ -439,7 +439,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-32" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-32" class="MapSlot is-off">
 									<Button id="mv-voted-32" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-32" class="MapShot" hittest="false" />
@@ -452,7 +452,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-33" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-33" class="MapSlot is-off">
 									<Button id="mv-voted-33" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-33" class="MapShot" hittest="false" />
@@ -465,7 +465,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-34" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-34" class="MapSlot is-off">
 									<Button id="mv-voted-34" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-34" class="MapShot" hittest="false" />
@@ -478,7 +478,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-35" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-35" class="MapSlot is-off">
 									<Button id="mv-voted-35" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-35" class="MapShot" hittest="false" />
@@ -491,7 +491,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-36" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-36" class="MapSlot is-off">
 									<Button id="mv-voted-36" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-36" class="MapShot" hittest="false" />
@@ -504,7 +504,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-37" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-37" class="MapSlot is-off">
 									<Button id="mv-voted-37" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-37" class="MapShot" hittest="false" />
@@ -517,7 +517,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-38" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-38" class="MapSlot is-off">
 									<Button id="mv-voted-38" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-38" class="MapShot" hittest="false" />
@@ -530,7 +530,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-39" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-39" class="MapSlot is-off">
 									<Button id="mv-voted-39" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-39" class="MapShot" hittest="false" />
@@ -543,7 +543,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-40" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-40" class="MapSlot is-off">
 									<Button id="mv-voted-40" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-40" class="MapShot" hittest="false" />
@@ -556,7 +556,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-41" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-41" class="MapSlot is-off">
 									<Button id="mv-voted-41" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-41" class="MapShot" hittest="false" />
@@ -569,7 +569,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-42" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-42" class="MapSlot is-off">
 									<Button id="mv-voted-42" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-42" class="MapShot" hittest="false" />
@@ -582,7 +582,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-43" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-43" class="MapSlot is-off">
 									<Button id="mv-voted-43" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-43" class="MapShot" hittest="false" />
@@ -595,7 +595,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-44" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-44" class="MapSlot is-off">
 									<Button id="mv-voted-44" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-44" class="MapShot" hittest="false" />
@@ -608,7 +608,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-45" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-45" class="MapSlot is-off">
 									<Button id="mv-voted-45" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-45" class="MapShot" hittest="false" />
@@ -621,7 +621,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-46" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-46" class="MapSlot is-off">
 									<Button id="mv-voted-46" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-46" class="MapShot" hittest="false" />
@@ -634,7 +634,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-47" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-47" class="MapSlot is-off">
 									<Button id="mv-voted-47" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-47" class="MapShot" hittest="false" />
@@ -647,7 +647,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-48" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-48" class="MapSlot is-off">
 									<Button id="mv-voted-48" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-48" class="MapShot" hittest="false" />
@@ -660,7 +660,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-49" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-49" class="MapSlot is-off">
 									<Button id="mv-voted-49" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-49" class="MapShot" hittest="false" />
@@ -673,7 +673,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-50" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-50" class="MapSlot is-off">
 									<Button id="mv-voted-50" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-50" class="MapShot" hittest="false" />
@@ -686,7 +686,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-51" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-51" class="MapSlot is-off">
 									<Button id="mv-voted-51" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-51" class="MapShot" hittest="false" />
@@ -699,7 +699,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-52" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-52" class="MapSlot is-off">
 									<Button id="mv-voted-52" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-52" class="MapShot" hittest="false" />
@@ -712,7 +712,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-53" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-53" class="MapSlot is-off">
 									<Button id="mv-voted-53" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-53" class="MapShot" hittest="false" />
@@ -725,7 +725,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-54" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-54" class="MapSlot is-off">
 									<Button id="mv-voted-54" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-54" class="MapShot" hittest="false" />
@@ -738,7 +738,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-55" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-55" class="MapSlot is-off">
 									<Button id="mv-voted-55" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-55" class="MapShot" hittest="false" />
@@ -751,7 +751,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-56" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-56" class="MapSlot is-off">
 									<Button id="mv-voted-56" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-56" class="MapShot" hittest="false" />
@@ -764,7 +764,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-57" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-57" class="MapSlot is-off">
 									<Button id="mv-voted-57" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-57" class="MapShot" hittest="false" />
@@ -777,7 +777,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-58" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-58" class="MapSlot is-off">
 									<Button id="mv-voted-58" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-58" class="MapShot" hittest="false" />
@@ -790,7 +790,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-59" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-59" class="MapSlot is-off">
 									<Button id="mv-voted-59" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-59" class="MapShot" hittest="false" />
@@ -803,7 +803,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-60" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-60" class="MapSlot is-off">
 									<Button id="mv-voted-60" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-60" class="MapShot" hittest="false" />
@@ -816,7 +816,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-61" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-61" class="MapSlot is-off">
 									<Button id="mv-voted-61" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-61" class="MapShot" hittest="false" />
@@ -829,7 +829,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-62" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-62" class="MapSlot is-off">
 									<Button id="mv-voted-62" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-62" class="MapShot" hittest="false" />
@@ -842,7 +842,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-63" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-63" class="MapSlot is-off">
 									<Button id="mv-voted-63" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-63" class="MapShot" hittest="false" />
@@ -855,7 +855,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-64" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-64" class="MapSlot is-off">
 									<Button id="mv-voted-64" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-64" class="MapShot" hittest="false" />
@@ -868,7 +868,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-65" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-65" class="MapSlot is-off">
 									<Button id="mv-voted-65" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-65" class="MapShot" hittest="false" />
@@ -881,7 +881,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-66" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-66" class="MapSlot is-off">
 									<Button id="mv-voted-66" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-66" class="MapShot" hittest="false" />
@@ -894,7 +894,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-67" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-67" class="MapSlot is-off">
 									<Button id="mv-voted-67" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-67" class="MapShot" hittest="false" />
@@ -907,7 +907,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-68" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-68" class="MapSlot is-off">
 									<Button id="mv-voted-68" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-68" class="MapShot" hittest="false" />
@@ -920,7 +920,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-69" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-69" class="MapSlot is-off">
 									<Button id="mv-voted-69" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-69" class="MapShot" hittest="false" />
@@ -933,7 +933,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-70" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-70" class="MapSlot is-off">
 									<Button id="mv-voted-70" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-70" class="MapShot" hittest="false" />
@@ -946,7 +946,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-71" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-71" class="MapSlot is-off">
 									<Button id="mv-voted-71" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-71" class="MapShot" hittest="false" />
@@ -959,7 +959,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-72" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-72" class="MapSlot is-off">
 									<Button id="mv-voted-72" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-72" class="MapShot" hittest="false" />
@@ -972,7 +972,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-73" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-73" class="MapSlot is-off">
 									<Button id="mv-voted-73" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-73" class="MapShot" hittest="false" />
@@ -985,7 +985,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-74" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-74" class="MapSlot is-off">
 									<Button id="mv-voted-74" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-74" class="MapShot" hittest="false" />
@@ -998,7 +998,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-75" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-75" class="MapSlot is-off">
 									<Button id="mv-voted-75" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-75" class="MapShot" hittest="false" />
@@ -1011,7 +1011,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-76" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-76" class="MapSlot is-off">
 									<Button id="mv-voted-76" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-76" class="MapShot" hittest="false" />
@@ -1024,7 +1024,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-77" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-77" class="MapSlot is-off">
 									<Button id="mv-voted-77" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-77" class="MapShot" hittest="false" />
@@ -1037,7 +1037,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-78" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-78" class="MapSlot is-off">
 									<Button id="mv-voted-78" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-78" class="MapShot" hittest="false" />
@@ -1050,7 +1050,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-79" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-79" class="MapSlot is-off">
 									<Button id="mv-voted-79" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-79" class="MapShot" hittest="false" />
@@ -1063,7 +1063,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-80" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-80" class="MapSlot is-off">
 									<Button id="mv-voted-80" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-80" class="MapShot" hittest="false" />
@@ -1076,7 +1076,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-81" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-81" class="MapSlot is-off">
 									<Button id="mv-voted-81" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-81" class="MapShot" hittest="false" />
@@ -1089,7 +1089,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-82" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-82" class="MapSlot is-off">
 									<Button id="mv-voted-82" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-82" class="MapShot" hittest="false" />
@@ -1102,7 +1102,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-83" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-83" class="MapSlot is-off">
 									<Button id="mv-voted-83" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-83" class="MapShot" hittest="false" />
@@ -1115,7 +1115,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-84" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-84" class="MapSlot is-off">
 									<Button id="mv-voted-84" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-84" class="MapShot" hittest="false" />
@@ -1128,7 +1128,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-85" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-85" class="MapSlot is-off">
 									<Button id="mv-voted-85" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-85" class="MapShot" hittest="false" />
@@ -1141,7 +1141,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-86" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-86" class="MapSlot is-off">
 									<Button id="mv-voted-86" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-86" class="MapShot" hittest="false" />
@@ -1154,7 +1154,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-87" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-87" class="MapSlot is-off">
 									<Button id="mv-voted-87" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-87" class="MapShot" hittest="false" />
@@ -1167,7 +1167,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-88" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-88" class="MapSlot is-off">
 									<Button id="mv-voted-88" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-88" class="MapShot" hittest="false" />
@@ -1180,7 +1180,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-89" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-89" class="MapSlot is-off">
 									<Button id="mv-voted-89" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-89" class="MapShot" hittest="false" />
@@ -1193,7 +1193,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-90" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-90" class="MapSlot is-off">
 									<Button id="mv-voted-90" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-90" class="MapShot" hittest="false" />
@@ -1206,7 +1206,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-91" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-91" class="MapSlot is-off">
 									<Button id="mv-voted-91" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-91" class="MapShot" hittest="false" />
@@ -1219,7 +1219,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-92" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-92" class="MapSlot is-off">
 									<Button id="mv-voted-92" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-92" class="MapShot" hittest="false" />
@@ -1232,7 +1232,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-93" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-93" class="MapSlot is-off">
 									<Button id="mv-voted-93" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-93" class="MapShot" hittest="false" />
@@ -1245,7 +1245,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-94" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-94" class="MapSlot is-off">
 									<Button id="mv-voted-94" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-94" class="MapShot" hittest="false" />
@@ -1258,7 +1258,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-95" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-95" class="MapSlot is-off">
 									<Button id="mv-voted-95" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-95" class="MapShot" hittest="false" />
@@ -1271,7 +1271,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-96" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-96" class="MapSlot is-off">
 									<Button id="mv-voted-96" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-96" class="MapShot" hittest="false" />
@@ -1284,7 +1284,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-97" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-97" class="MapSlot is-off">
 									<Button id="mv-voted-97" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-97" class="MapShot" hittest="false" />
@@ -1297,7 +1297,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-98" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-98" class="MapSlot is-off">
 									<Button id="mv-voted-98" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-98" class="MapShot" hittest="false" />
@@ -1310,7 +1310,7 @@
 										<Panel class="FavIcon" hittest="false" />
 									</Button>
 								</Panel>
-								<Panel id="mv-voted-slot-99" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-voted-slot-99" class="MapSlot is-off">
 									<Button id="mv-voted-99" class="MapTile">
 										<Panel class="MapShot mv-map-default" hittest="false" />
 										<Panel id="mv-voted-shot-99" class="MapShot" hittest="false" />
@@ -1372,11 +1372,11 @@
 						</Panel>
 					</Panel>
 					<Panel class="MapGridHost" hittest="false">
-						<Panel class="MapGrid" hittest="false">
+						<Panel class="MapGrid">
 							<Label id="mv-empty" class="MapEmpty stratum-bold-condensed is-off" text="{s:mv_empty}" hittest="false" />
-							<Panel id="mv-catalog" class="MapCatalog rows-0" hittest="false">
-								<Panel id="mv-crow-0" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-0" class="MapSlot is-off" hittest="false">
+							<Panel id="mv-catalog" class="MapCatalog rows-0">
+								<Panel id="mv-crow-0" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-0" class="MapSlot is-off">
 										<Button id="mv-0" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-0" class="MapShot" hittest="false" />
@@ -1389,7 +1389,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-1" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-1" class="MapSlot is-off">
 										<Button id="mv-1" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-1" class="MapShot" hittest="false" />
@@ -1402,7 +1402,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-2" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-2" class="MapSlot is-off">
 										<Button id="mv-2" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-2" class="MapShot" hittest="false" />
@@ -1415,7 +1415,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-3" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-3" class="MapSlot is-off">
 										<Button id="mv-3" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-3" class="MapShot" hittest="false" />
@@ -1428,7 +1428,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-4" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-4" class="MapSlot is-off">
 										<Button id="mv-4" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-4" class="MapShot" hittest="false" />
@@ -1441,7 +1441,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-5" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-5" class="MapSlot is-off">
 										<Button id="mv-5" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-5" class="MapShot" hittest="false" />
@@ -1454,7 +1454,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-6" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-6" class="MapSlot is-off">
 										<Button id="mv-6" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-6" class="MapShot" hittest="false" />
@@ -1467,7 +1467,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-7" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-7" class="MapSlot is-off">
 										<Button id="mv-7" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-7" class="MapShot" hittest="false" />
@@ -1480,7 +1480,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-8" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-8" class="MapSlot is-off">
 										<Button id="mv-8" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-8" class="MapShot" hittest="false" />
@@ -1493,7 +1493,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-9" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-9" class="MapSlot is-off">
 										<Button id="mv-9" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-9" class="MapShot" hittest="false" />
@@ -1507,8 +1507,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-1" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-10" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-1" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-10" class="MapSlot is-off">
 										<Button id="mv-10" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-10" class="MapShot" hittest="false" />
@@ -1521,7 +1521,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-11" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-11" class="MapSlot is-off">
 										<Button id="mv-11" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-11" class="MapShot" hittest="false" />
@@ -1534,7 +1534,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-12" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-12" class="MapSlot is-off">
 										<Button id="mv-12" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-12" class="MapShot" hittest="false" />
@@ -1547,7 +1547,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-13" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-13" class="MapSlot is-off">
 										<Button id="mv-13" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-13" class="MapShot" hittest="false" />
@@ -1560,7 +1560,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-14" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-14" class="MapSlot is-off">
 										<Button id="mv-14" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-14" class="MapShot" hittest="false" />
@@ -1573,7 +1573,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-15" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-15" class="MapSlot is-off">
 										<Button id="mv-15" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-15" class="MapShot" hittest="false" />
@@ -1586,7 +1586,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-16" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-16" class="MapSlot is-off">
 										<Button id="mv-16" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-16" class="MapShot" hittest="false" />
@@ -1599,7 +1599,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-17" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-17" class="MapSlot is-off">
 										<Button id="mv-17" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-17" class="MapShot" hittest="false" />
@@ -1612,7 +1612,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-18" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-18" class="MapSlot is-off">
 										<Button id="mv-18" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-18" class="MapShot" hittest="false" />
@@ -1625,7 +1625,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-19" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-19" class="MapSlot is-off">
 										<Button id="mv-19" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-19" class="MapShot" hittest="false" />
@@ -1639,8 +1639,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-2" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-20" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-2" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-20" class="MapSlot is-off">
 										<Button id="mv-20" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-20" class="MapShot" hittest="false" />
@@ -1653,7 +1653,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-21" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-21" class="MapSlot is-off">
 										<Button id="mv-21" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-21" class="MapShot" hittest="false" />
@@ -1666,7 +1666,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-22" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-22" class="MapSlot is-off">
 										<Button id="mv-22" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-22" class="MapShot" hittest="false" />
@@ -1679,7 +1679,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-23" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-23" class="MapSlot is-off">
 										<Button id="mv-23" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-23" class="MapShot" hittest="false" />
@@ -1692,7 +1692,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-24" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-24" class="MapSlot is-off">
 										<Button id="mv-24" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-24" class="MapShot" hittest="false" />
@@ -1705,7 +1705,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-25" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-25" class="MapSlot is-off">
 										<Button id="mv-25" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-25" class="MapShot" hittest="false" />
@@ -1718,7 +1718,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-26" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-26" class="MapSlot is-off">
 										<Button id="mv-26" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-26" class="MapShot" hittest="false" />
@@ -1731,7 +1731,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-27" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-27" class="MapSlot is-off">
 										<Button id="mv-27" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-27" class="MapShot" hittest="false" />
@@ -1744,7 +1744,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-28" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-28" class="MapSlot is-off">
 										<Button id="mv-28" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-28" class="MapShot" hittest="false" />
@@ -1757,7 +1757,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-29" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-29" class="MapSlot is-off">
 										<Button id="mv-29" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-29" class="MapShot" hittest="false" />
@@ -1771,8 +1771,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-3" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-30" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-3" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-30" class="MapSlot is-off">
 										<Button id="mv-30" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-30" class="MapShot" hittest="false" />
@@ -1785,7 +1785,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-31" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-31" class="MapSlot is-off">
 										<Button id="mv-31" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-31" class="MapShot" hittest="false" />
@@ -1798,7 +1798,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-32" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-32" class="MapSlot is-off">
 										<Button id="mv-32" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-32" class="MapShot" hittest="false" />
@@ -1811,7 +1811,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-33" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-33" class="MapSlot is-off">
 										<Button id="mv-33" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-33" class="MapShot" hittest="false" />
@@ -1824,7 +1824,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-34" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-34" class="MapSlot is-off">
 										<Button id="mv-34" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-34" class="MapShot" hittest="false" />
@@ -1837,7 +1837,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-35" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-35" class="MapSlot is-off">
 										<Button id="mv-35" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-35" class="MapShot" hittest="false" />
@@ -1850,7 +1850,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-36" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-36" class="MapSlot is-off">
 										<Button id="mv-36" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-36" class="MapShot" hittest="false" />
@@ -1863,7 +1863,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-37" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-37" class="MapSlot is-off">
 										<Button id="mv-37" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-37" class="MapShot" hittest="false" />
@@ -1876,7 +1876,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-38" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-38" class="MapSlot is-off">
 										<Button id="mv-38" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-38" class="MapShot" hittest="false" />
@@ -1889,7 +1889,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-39" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-39" class="MapSlot is-off">
 										<Button id="mv-39" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-39" class="MapShot" hittest="false" />
@@ -1903,8 +1903,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-4" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-40" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-4" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-40" class="MapSlot is-off">
 										<Button id="mv-40" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-40" class="MapShot" hittest="false" />
@@ -1917,7 +1917,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-41" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-41" class="MapSlot is-off">
 										<Button id="mv-41" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-41" class="MapShot" hittest="false" />
@@ -1930,7 +1930,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-42" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-42" class="MapSlot is-off">
 										<Button id="mv-42" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-42" class="MapShot" hittest="false" />
@@ -1943,7 +1943,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-43" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-43" class="MapSlot is-off">
 										<Button id="mv-43" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-43" class="MapShot" hittest="false" />
@@ -1956,7 +1956,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-44" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-44" class="MapSlot is-off">
 										<Button id="mv-44" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-44" class="MapShot" hittest="false" />
@@ -1969,7 +1969,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-45" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-45" class="MapSlot is-off">
 										<Button id="mv-45" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-45" class="MapShot" hittest="false" />
@@ -1982,7 +1982,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-46" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-46" class="MapSlot is-off">
 										<Button id="mv-46" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-46" class="MapShot" hittest="false" />
@@ -1995,7 +1995,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-47" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-47" class="MapSlot is-off">
 										<Button id="mv-47" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-47" class="MapShot" hittest="false" />
@@ -2008,7 +2008,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-48" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-48" class="MapSlot is-off">
 										<Button id="mv-48" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-48" class="MapShot" hittest="false" />
@@ -2021,7 +2021,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-49" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-49" class="MapSlot is-off">
 										<Button id="mv-49" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-49" class="MapShot" hittest="false" />
@@ -2035,8 +2035,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-5" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-50" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-5" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-50" class="MapSlot is-off">
 										<Button id="mv-50" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-50" class="MapShot" hittest="false" />
@@ -2049,7 +2049,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-51" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-51" class="MapSlot is-off">
 										<Button id="mv-51" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-51" class="MapShot" hittest="false" />
@@ -2062,7 +2062,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-52" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-52" class="MapSlot is-off">
 										<Button id="mv-52" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-52" class="MapShot" hittest="false" />
@@ -2075,7 +2075,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-53" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-53" class="MapSlot is-off">
 										<Button id="mv-53" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-53" class="MapShot" hittest="false" />
@@ -2088,7 +2088,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-54" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-54" class="MapSlot is-off">
 										<Button id="mv-54" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-54" class="MapShot" hittest="false" />
@@ -2101,7 +2101,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-55" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-55" class="MapSlot is-off">
 										<Button id="mv-55" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-55" class="MapShot" hittest="false" />
@@ -2114,7 +2114,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-56" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-56" class="MapSlot is-off">
 										<Button id="mv-56" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-56" class="MapShot" hittest="false" />
@@ -2127,7 +2127,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-57" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-57" class="MapSlot is-off">
 										<Button id="mv-57" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-57" class="MapShot" hittest="false" />
@@ -2140,7 +2140,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-58" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-58" class="MapSlot is-off">
 										<Button id="mv-58" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-58" class="MapShot" hittest="false" />
@@ -2153,7 +2153,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-59" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-59" class="MapSlot is-off">
 										<Button id="mv-59" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-59" class="MapShot" hittest="false" />
@@ -2167,8 +2167,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-6" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-60" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-6" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-60" class="MapSlot is-off">
 										<Button id="mv-60" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-60" class="MapShot" hittest="false" />
@@ -2181,7 +2181,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-61" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-61" class="MapSlot is-off">
 										<Button id="mv-61" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-61" class="MapShot" hittest="false" />
@@ -2194,7 +2194,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-62" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-62" class="MapSlot is-off">
 										<Button id="mv-62" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-62" class="MapShot" hittest="false" />
@@ -2207,7 +2207,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-63" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-63" class="MapSlot is-off">
 										<Button id="mv-63" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-63" class="MapShot" hittest="false" />
@@ -2220,7 +2220,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-64" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-64" class="MapSlot is-off">
 										<Button id="mv-64" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-64" class="MapShot" hittest="false" />
@@ -2233,7 +2233,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-65" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-65" class="MapSlot is-off">
 										<Button id="mv-65" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-65" class="MapShot" hittest="false" />
@@ -2246,7 +2246,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-66" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-66" class="MapSlot is-off">
 										<Button id="mv-66" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-66" class="MapShot" hittest="false" />
@@ -2259,7 +2259,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-67" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-67" class="MapSlot is-off">
 										<Button id="mv-67" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-67" class="MapShot" hittest="false" />
@@ -2272,7 +2272,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-68" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-68" class="MapSlot is-off">
 										<Button id="mv-68" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-68" class="MapShot" hittest="false" />
@@ -2285,7 +2285,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-69" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-69" class="MapSlot is-off">
 										<Button id="mv-69" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-69" class="MapShot" hittest="false" />
@@ -2299,8 +2299,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-7" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-70" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-7" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-70" class="MapSlot is-off">
 										<Button id="mv-70" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-70" class="MapShot" hittest="false" />
@@ -2313,7 +2313,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-71" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-71" class="MapSlot is-off">
 										<Button id="mv-71" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-71" class="MapShot" hittest="false" />
@@ -2326,7 +2326,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-72" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-72" class="MapSlot is-off">
 										<Button id="mv-72" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-72" class="MapShot" hittest="false" />
@@ -2339,7 +2339,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-73" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-73" class="MapSlot is-off">
 										<Button id="mv-73" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-73" class="MapShot" hittest="false" />
@@ -2352,7 +2352,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-74" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-74" class="MapSlot is-off">
 										<Button id="mv-74" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-74" class="MapShot" hittest="false" />
@@ -2365,7 +2365,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-75" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-75" class="MapSlot is-off">
 										<Button id="mv-75" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-75" class="MapShot" hittest="false" />
@@ -2378,7 +2378,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-76" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-76" class="MapSlot is-off">
 										<Button id="mv-76" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-76" class="MapShot" hittest="false" />
@@ -2391,7 +2391,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-77" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-77" class="MapSlot is-off">
 										<Button id="mv-77" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-77" class="MapShot" hittest="false" />
@@ -2404,7 +2404,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-78" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-78" class="MapSlot is-off">
 										<Button id="mv-78" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-78" class="MapShot" hittest="false" />
@@ -2417,7 +2417,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-79" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-79" class="MapSlot is-off">
 										<Button id="mv-79" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-79" class="MapShot" hittest="false" />
@@ -2431,8 +2431,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-8" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-80" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-8" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-80" class="MapSlot is-off">
 										<Button id="mv-80" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-80" class="MapShot" hittest="false" />
@@ -2445,7 +2445,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-81" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-81" class="MapSlot is-off">
 										<Button id="mv-81" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-81" class="MapShot" hittest="false" />
@@ -2458,7 +2458,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-82" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-82" class="MapSlot is-off">
 										<Button id="mv-82" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-82" class="MapShot" hittest="false" />
@@ -2471,7 +2471,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-83" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-83" class="MapSlot is-off">
 										<Button id="mv-83" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-83" class="MapShot" hittest="false" />
@@ -2484,7 +2484,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-84" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-84" class="MapSlot is-off">
 										<Button id="mv-84" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-84" class="MapShot" hittest="false" />
@@ -2497,7 +2497,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-85" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-85" class="MapSlot is-off">
 										<Button id="mv-85" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-85" class="MapShot" hittest="false" />
@@ -2510,7 +2510,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-86" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-86" class="MapSlot is-off">
 										<Button id="mv-86" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-86" class="MapShot" hittest="false" />
@@ -2523,7 +2523,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-87" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-87" class="MapSlot is-off">
 										<Button id="mv-87" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-87" class="MapShot" hittest="false" />
@@ -2536,7 +2536,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-88" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-88" class="MapSlot is-off">
 										<Button id="mv-88" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-88" class="MapShot" hittest="false" />
@@ -2549,7 +2549,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-89" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-89" class="MapSlot is-off">
 										<Button id="mv-89" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-89" class="MapShot" hittest="false" />
@@ -2563,8 +2563,8 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-9" class="CatalogRow cols-0 is-off" hittest="false">
-									<Panel id="mv-slot-90" class="MapSlot is-off" hittest="false">
+								<Panel id="mv-crow-9" class="CatalogRow cols-0 is-off">
+									<Panel id="mv-slot-90" class="MapSlot is-off">
 										<Button id="mv-90" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-90" class="MapShot" hittest="false" />
@@ -2577,7 +2577,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-91" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-91" class="MapSlot is-off">
 										<Button id="mv-91" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-91" class="MapShot" hittest="false" />
@@ -2590,7 +2590,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-92" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-92" class="MapSlot is-off">
 										<Button id="mv-92" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-92" class="MapShot" hittest="false" />
@@ -2603,7 +2603,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-93" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-93" class="MapSlot is-off">
 										<Button id="mv-93" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-93" class="MapShot" hittest="false" />
@@ -2616,7 +2616,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-94" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-94" class="MapSlot is-off">
 										<Button id="mv-94" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-94" class="MapShot" hittest="false" />
@@ -2629,7 +2629,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-95" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-95" class="MapSlot is-off">
 										<Button id="mv-95" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-95" class="MapShot" hittest="false" />
@@ -2642,7 +2642,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-96" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-96" class="MapSlot is-off">
 										<Button id="mv-96" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-96" class="MapShot" hittest="false" />
@@ -2655,7 +2655,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-97" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-97" class="MapSlot is-off">
 										<Button id="mv-97" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-97" class="MapShot" hittest="false" />
@@ -2668,7 +2668,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-98" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-98" class="MapSlot is-off">
 										<Button id="mv-98" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-98" class="MapShot" hittest="false" />
@@ -2681,7 +2681,7 @@
 											<Panel class="FavIcon" hittest="false" />
 										</Button>
 									</Panel>
-									<Panel id="mv-slot-99" class="MapSlot is-off" hittest="false">
+									<Panel id="mv-slot-99" class="MapSlot is-off">
 										<Button id="mv-99" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
 											<Panel id="mv-shot-99" class="MapShot" hittest="false" />
