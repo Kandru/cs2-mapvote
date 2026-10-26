@@ -356,7 +356,7 @@ button {
 .VoteTopBar {
   position: relative;
   flex-shrink: 0;
-  height: 40px !important;
+  height: 50px !important;
 }
 .VoteTopBar > .VoteTitle {
   position: absolute !important;

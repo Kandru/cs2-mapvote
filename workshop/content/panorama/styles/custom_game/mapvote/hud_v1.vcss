@@ -16,14 +16,14 @@
 	flow-children: none;
 	opacity: 1.0;
 	transition-property: opacity;
-	transition-duration: 0.25s;
+	transition-duration: 0.5s;
 	transition-timing-function: ease-out;
 }
 
 .VoteRoot.is-fading
 {
 	opacity: 0.0;
-	transition-duration: 0.18s;
+	transition-duration: 0.5s;
 	transition-timing-function: ease-in;
 }
 
@@ -37,6 +37,10 @@
 	width: 100%;
 	height: 100%;
 	background-color: #0000000d;
+	opacity: 1.0;
+	transition-property: opacity;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-out;
 }
 
 /* One pass: top vignette plus a darker foot. Replaces two fullscreen gradients. */
@@ -46,6 +50,10 @@
 	height: 100%;
 	/* Top two stops at 70% of prior alpha so the victory splash stays readable. */
 	background-color: gradient( linear, 0% 0%, 0% 100%, from( #0000009d ), color-stop( 0.22, #00000061 ), color-stop( 0.5, #00000070 ), color-stop( 0.78, #00000078 ), to( #000000a0 ) );
+	opacity: 1.0;
+	transition-property: opacity;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-out;
 }
 
 .VoteColumn
@@ -75,6 +83,10 @@
 	letter-spacing: 1.6px;
 	text-transform: uppercase;
 	color: #ffffff;
+	opacity: 1.0;
+	transition-property: opacity;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-out;
 }
 
 .MinimizeBtn
@@ -124,13 +136,13 @@
 	white-space: nowrap;
 }
 
-/* Tuck without collapsing scroll/flow trees (repeat collapse crashes the layout). */
+/* Tuck: fade surfaces; keep scroll/flow trees mounted (repeat collapse crashes the layout). */
 .VoteRoot.is-minimized .mv-glass,
 .VoteRoot.is-minimized .mv-scrim,
 .VoteRoot.is-minimized .VoteTitle,
 .VoteRoot.is-minimized .CreditBar
 {
-	visibility: collapse;
+	opacity: 0.0;
 }
 
 .VoteRoot.is-minimized .VoteBody,
@@ -166,6 +178,10 @@
 	height: fill-parent-flow( 1.0 );
 	flow-children: down;
 	padding-top: 12px;
+	opacity: 1.0;
+	transition-property: opacity;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-out;
 }
 
 .VotedSection
@@ -442,6 +458,10 @@
 	width: 100%;
 	height: fill-parent-flow( 1.0 );
 	flow-children: none;
+	opacity: 1.0;
+	transition-property: opacity;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-out;
 }
 
 .MapGrid
@@ -766,6 +786,10 @@
 	height: 30px;
 	background-color: #0b0f14f2;
 	flow-children: none;
+	opacity: 1.0;
+	transition-property: opacity;
+	transition-duration: 0.5s;
+	transition-timing-function: ease-out;
 }
 
 .CreditLabel
@@ -937,6 +961,31 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/default.vtex");
 }
 
+.mv-map-ws_a_mirage_night
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_a_mirage_night.vtex");
+}
+
+.mv-map-ws_aim_abandoned_desert
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_aim_abandoned_desert.vtex");
+}
+
+.mv-map-ws_aimdeagle
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_aimdeagle.vtex");
+}
+
+.mv-map-ws_bank
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_bank.vtex");
+}
+
+.mv-map-ws_cache
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cache.vtex");
+}
+
 .mv-map-ws_cs2_whiterun
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs2_whiterun.vtex");
@@ -962,19 +1011,24 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_militia_css.vtex");
 }
 
+.mv-map-ws_cs_militia_old
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_militia_old.vtex");
+}
+
 .mv-map-ws_de_all_in_one
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_all_in_one.vtex");
 }
 
+.mv-map-ws_de_austria
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_austria.vtex");
+}
+
 .mv-map-ws_de_bikinibottom
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_bikinibottom.vtex");
-}
-
-.mv-map-ws_de_brewery
-{
-	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_brewery.vtex");
 }
 
 .mv-map-ws_de_cbble_united
@@ -985,6 +1039,11 @@
 .mv-map-ws_de_debris
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_debris.vtex");
+}
+
+.mv-map-ws_de_delivery
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_delivery.vtex");
 }
 
 .mv-map-ws_de_dogtown
@@ -1057,6 +1116,11 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_nipperhouse.vtex");
 }
 
+.mv-map-ws_de_outferno_hd
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_outferno_hd.vtex");
+}
+
 .mv-map-ws_de_palacio
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_palacio.vtex");
@@ -1092,24 +1156,19 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_splat.vtex");
 }
 
-.mv-map-ws_de_stronghold
-{
-	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_stronghold.vtex");
-}
-
-.mv-map-ws_de_sugarcane
-{
-	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_sugarcane.vtex");
-}
-
 .mv-map-ws_de_techrooms
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_techrooms.vtex");
 }
 
-.mv-map-ws_de_telum
+.mv-map-ws_de_warehouse
 {
-	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_telum.vtex");
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_warehouse.vtex");
+}
+
+.mv-map-ws_de_waterfront_s2
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_waterfront_s2.vtex");
 }
 
 .mv-map-ws_de_wolfslair
@@ -1137,6 +1196,11 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_foroglio.vtex");
 }
 
+.mv-map-ws_freya_full
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_freya_full.vtex");
+}
+
 .mv-map-ws_fy_cliffside
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_fy_cliffside.vtex");
@@ -1152,14 +1216,29 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_idk.vtex");
 }
 
-.mv-map-ws_mc_lake
+.mv-map-ws_jovel
 {
-	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_mc_lake.vtex");
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_jovel.vtex");
+}
+
+.mv-map-ws_mansion
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_mansion.vtex");
 }
 
 .mv-map-ws_memento
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_memento.vtex");
+}
+
+.mv-map-ws_palais
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_palais.vtex");
+}
+
+.mv-map-ws_port_crackhouse
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_port_crackhouse.vtex");
 }
 
 .mv-map-ws_poseidon
@@ -1197,9 +1276,19 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_texture_jungle.vtex");
 }
 
+.mv-map-ws_thera
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_thera.vtex");
+}
+
 .mv-map-ws_transit
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_transit.vtex");
+}
+
+.mv-map-ws_vault
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_vault.vtex");
 }
 
 /* END mv-map-palette */
