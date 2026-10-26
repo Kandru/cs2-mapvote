@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Extract map images into panorama/images: map_{name} for official maps, ws_{name} for workshop.
 
-Add-only: existing PNG/VTEX tiles are never overwritten or deleted. Missing maps
-get a new tile (from the VPK, or a copy of default.png).
+Add-only: existing PNG tiles are never overwritten or deleted. Missing maps get
+a new tile (from the VPK, or a copy of default.png). Orphan .vtex files without
+a matching .png are removed at the end.
 """
 from __future__ import annotations
 
@@ -490,6 +491,22 @@ def existing_stems(*, prefix: str | None = None) -> set[str]:
     return stems
 
 
+def remove_orphan_vtex() -> int:
+    """Delete .vtex files that have no matching .png (leftovers from removed tiles)."""
+    if not IMAGES.is_dir():
+        return 0
+    removed = 0
+    for path in sorted(IMAGES.iterdir()):
+        if path.suffix != ".vtex":
+            continue
+        if tile_png(path.stem).is_file():
+            continue
+        path.unlink()
+        removed += 1
+        print(f"[images] removed orphan {path.name}")
+    return removed
+
+
 def _decode_entry(cli: Path, pak: Path, ver: int, tree_size: int, entry: VpkEntry, work: Path) -> Path:
     work.mkdir(parents=True, exist_ok=True)
     decoded = work / "shot.png"
@@ -727,6 +744,10 @@ def main() -> int:
             print(f"path does not exist: {root}", file=sys.stderr)
             return 1
         process_workshop(cli, root)
+
+    orphans = remove_orphan_vtex()
+    if orphans:
+        print(f"[images] cleaned {orphans} orphan .vtex file(s) without a matching .png")
 
     return 0
 
