@@ -74,5 +74,9 @@ images: ## Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csgo)
 images-check: ## Rewrite map tiles that are not 350×197 PNG (center-crop, no stretch)
 	python3 tools/check_map_images.py
 
+images-css: ## Rebuild stock/palette VCSS (+ preview) from PNGs on disk only
+	python3 tools/extract_workshop_images.py --css-only
+	python3 tools/sync_preview.py
+
 test: dirs panorama ## Run unit tests
 	$(DOCKER_RUN) dotnet test $(TEST_PROJECT) -c Release --nologo

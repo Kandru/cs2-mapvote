@@ -666,6 +666,36 @@ def process_vpk(
         print(f"[images]  {map_name} ← {label} ({entry.length} bytes) → maps/{image_stem}.png")
 
 
+def rewrite_css_from_disk() -> None:
+    """Rebuild stock + palette CSS (and stock_maps.txt) from PNGs currently on disk."""
+    from generate_stock_map_css import rewrite_hud_stock_css, write_stock_list
+
+    if not IMAGES.is_dir():
+        raise SystemExit(f"missing images folder: {IMAGES}")
+
+    stock_names = sorted(
+        s[len(STOCK_IMAGE_PREFIX) :]
+        for s in existing_stems(prefix=STOCK_IMAGE_PREFIX)
+        if s.startswith(STOCK_IMAGE_PREFIX)
+    )
+    write_stock_list(stock_names)
+    stock_count = rewrite_hud_stock_css(stock_names)
+
+    workshop = sorted(existing_stems(prefix=WORKSHOP_IMAGE_PREFIX))
+    ordered = [DEFAULT_STEM] + workshop
+    if not tile_exists(DEFAULT_STEM):
+        raise SystemExit(f"{DEFAULT_STEM}.png is required under {IMAGES}")
+    rewrite_css(ordered)
+
+    orphans = remove_orphan_vtex()
+    print(
+        f"[css] stock={stock_count} palette={len(ordered)} "
+        f"(default + {len(workshop)} workshop) → {HUD_VCSS.relative_to(ROOT)}"
+    )
+    if orphans:
+        print(f"[css] cleaned {orphans} orphan .vtex file(s) without a matching .png")
+
+
 def process_workshop(cli: Path, root: Path) -> None:
     IMAGES.mkdir(parents=True, exist_ok=True)
 
@@ -710,11 +740,20 @@ def main() -> int:
         help="CS2 game/csgo folder (or pak01_dir.vpk) for official stock screenshots",
     )
     parser.add_argument(
+        "--css-only",
+        action="store_true",
+        help="Rebuild hud VCSS map blocks + stock_maps.txt from PNGs on disk (no VPK extract)",
+    )
+    parser.add_argument(
         "--cli",
         default=os.environ.get("SOURCE2VIEWER_CLI"),
         help="Path to Source2Viewer-CLI",
     )
     args = parser.parse_args()
+
+    if args.css_only:
+        rewrite_css_from_disk()
+        return 0
 
     workshop = args.workshop_dir
     if workshop is None and os.environ.get("WORKSHOP_DIR"):
@@ -726,8 +765,10 @@ def main() -> int:
     if workshop is None and game_dir is None:
         print(
             "Usage: extract_workshop_images.py [WORKSHOP_DIR] [--game-dir GAME_DIR]\n"
+            "       extract_workshop_images.py --css-only\n"
             "  WORKSHOP_DIR  workshop packages / map VPKs → panorama maps/ws_{name}.png\n"
-            "  GAME_DIR      game/csgo (pak01_dir.vpk) → panorama maps/map_{name}.png",
+            "  GAME_DIR      game/csgo (pak01_dir.vpk) → panorama maps/map_{name}.png\n"
+            "  --css-only    rewrite stock/palette CSS from existing PNGs only",
             file=sys.stderr,
         )
         return 1
