@@ -12,6 +12,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mapvote_layout import (
     CATALOG_ROW_HEIGHT_PX,
     COLS,
+    COLS_WIDTH_MAX,
+    COL_WIDTH_PERCENT,
     FILTER_SORT_SLOTS,
     FILTER_TYPE_SLOTS,
     HUD_VCSS_NAME,
@@ -74,51 +76,40 @@ def chip(kind: str, index: int, var: str, indent: str, *, chip_id: str | None = 
     )
 
 
+def _replace_marked_block(text: str, begin: str, end: str, lines: list[str]) -> str:
+    """Replace an existing /* BEGIN … */ … /* END … */ block; fail if markers are missing."""
+    block = "\n".join(lines)
+    pattern = re.escape(begin) + r".*?" + re.escape(end)
+    if re.search(pattern, text, flags=re.S) is None:
+        raise SystemExit(f"{HUD_VCSS.name}: missing {begin} … {end}")
+    return re.sub(pattern, block, text, count=1, flags=re.S)
+
+
 def rewrite_hud_ladders() -> None:
-    """Keep vw-* / rows-* ladders in the versioned hud VCSS aligned with SLOT_COUNT / ROW_COUNT."""
+    """Keep vw-* / rows-* / cols-* ladders in the versioned hud VCSS aligned with pool sizes."""
     if not HUD_VCSS.is_file():
         return
     text = HUD_VCSS.read_text(encoding="utf-8")
+
     vw_lines = ["/* BEGIN vw-ladder */"]
     for i in range(SLOT_COUNT + 1):
         vw_lines.append(f".VotedStrip.vw-{i} {{ width: {i * VOTED_SLOT_PITCH_PX}px; }}")
     vw_lines.append("/* END vw-ladder */")
+
     rows_lines = ["/* BEGIN rows-ladder */"]
     for i in range(ROW_COUNT + 1):
         rows_lines.append(f".MapCatalog.rows-{i} {{ height: {i * CATALOG_ROW_HEIGHT_PX}px; }}")
     rows_lines.append("/* END rows-ladder */")
 
-    if "/* BEGIN vw-ladder */" in text:
-        text = re.sub(
-            re.escape("/* BEGIN vw-ladder */") + r".*?" + re.escape("/* END vw-ladder */"),
-            "\n".join(vw_lines),
-            text,
-            flags=re.S,
-        )
-    else:
-        # Replace the first hand-written ladder block once.
-        text = re.sub(
-            r"/\* Slot pitch = 110px tile \+ 8px \+ 8px margin = 126px \*/\n(?:\.VotedStrip\.vw-\d+ \{ width: \d+px; \}\n)+",
-            "/* Slot pitch = 110px tile + 8px + 8px margin = 126px */\n" + "\n".join(vw_lines) + "\n",
-            text,
-            count=1,
-        )
+    cols_lines = ["/* BEGIN cols-ladder */"]
+    for i in range(COLS_WIDTH_MAX + 1):
+        width = min(100, i * COL_WIDTH_PERCENT)
+        cols_lines.append(f".CatalogRow.cols-{i} {{ width: {width}%; }}")
+    cols_lines.append("/* END cols-ladder */")
 
-    if "/* BEGIN rows-ladder */" in text:
-        text = re.sub(
-            re.escape("/* BEGIN rows-ladder */") + r".*?" + re.escape("/* END rows-ladder */"),
-            "\n".join(rows_lines),
-            text,
-            flags=re.S,
-        )
-    else:
-        text = re.sub(
-            r"(?:\.MapCatalog\.rows-\d+ \{ height: \d+px; \}\n)+",
-            "\n".join(rows_lines) + "\n",
-            text,
-            count=1,
-        )
-
+    text = _replace_marked_block(text, "/* BEGIN vw-ladder */", "/* END vw-ladder */", vw_lines)
+    text = _replace_marked_block(text, "/* BEGIN rows-ladder */", "/* END rows-ladder */", rows_lines)
+    text = _replace_marked_block(text, "/* BEGIN cols-ladder */", "/* END cols-ladder */", cols_lines)
     HUD_VCSS.write_text(text, encoding="utf-8")
 
 
@@ -194,7 +185,7 @@ def build() -> str:
 
     for row in range(ROW_COUNT):
         lines.append(
-            f'\t\t\t\t\t\t\t\t<Panel id="mv-crow-{row}" class="CatalogRow is-off" hittest="false">'
+            f'\t\t\t\t\t\t\t\t<Panel id="mv-crow-{row}" class="CatalogRow cols-0 is-off" hittest="false">'
         )
         start = row * COLS
         end = min(start + COLS, SLOT_COUNT)

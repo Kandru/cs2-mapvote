@@ -1375,7 +1375,7 @@
 						<Panel class="MapGrid" hittest="false">
 							<Label id="mv-empty" class="MapEmpty stratum-bold-condensed is-off" text="{s:mv_empty}" hittest="false" />
 							<Panel id="mv-catalog" class="MapCatalog rows-0" hittest="false">
-								<Panel id="mv-crow-0" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-0" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-0" class="MapSlot is-off" hittest="false">
 										<Button id="mv-0" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -1507,7 +1507,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-1" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-1" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-10" class="MapSlot is-off" hittest="false">
 										<Button id="mv-10" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -1639,7 +1639,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-2" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-2" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-20" class="MapSlot is-off" hittest="false">
 										<Button id="mv-20" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -1771,7 +1771,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-3" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-3" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-30" class="MapSlot is-off" hittest="false">
 										<Button id="mv-30" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -1903,7 +1903,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-4" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-4" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-40" class="MapSlot is-off" hittest="false">
 										<Button id="mv-40" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -2035,7 +2035,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-5" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-5" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-50" class="MapSlot is-off" hittest="false">
 										<Button id="mv-50" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -2167,7 +2167,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-6" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-6" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-60" class="MapSlot is-off" hittest="false">
 										<Button id="mv-60" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -2299,7 +2299,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-7" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-7" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-70" class="MapSlot is-off" hittest="false">
 										<Button id="mv-70" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -2431,7 +2431,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-8" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-8" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-80" class="MapSlot is-off" hittest="false">
 										<Button id="mv-80" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />
@@ -2563,7 +2563,7 @@
 										</Button>
 									</Panel>
 								</Panel>
-								<Panel id="mv-crow-9" class="CatalogRow is-off" hittest="false">
+								<Panel id="mv-crow-9" class="CatalogRow cols-0 is-off" hittest="false">
 									<Panel id="mv-slot-90" class="MapSlot is-off" hittest="false">
 										<Button id="mv-90" class="MapTile">
 											<Panel class="MapShot mv-map-default" hittest="false" />

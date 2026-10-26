@@ -31,6 +31,7 @@ namespace MapVote.Huds
 
         private static readonly int[] LastVotedWidth = new int[MaxSlots];
         private static readonly int[] LastCatalogRows = new int[MaxSlots];
+        private static readonly int[,] LastCatalogCols = new int[MaxSlots, CatalogRowCount];
         private static readonly bool[] Minimized = new bool[MaxSlots];
         private static readonly bool[] Dirty = new bool[MaxSlots];
         private static readonly int[] TypeSelection = new int[MaxSlots];
@@ -89,7 +90,7 @@ namespace MapVote.Huds
             SetCatalogRows(player, 0);
             for (int r = 0; r < CatalogRowCount; r++)
             {
-                CustomHud.SetHasClass(player, VoteIds.CrowIds[r], "is-off", true);
+                SetCatalogRow(player, r, 0);
             }
 
             for (int i = 0; i < FilterTypeSlots; i++)
@@ -339,7 +340,10 @@ namespace MapVote.Huds
             SetCatalogRows(player, rowCount);
             for (int r = 0; r < CatalogRowCount; r++)
             {
-                CustomHud.SetHasClass(player, VoteIds.CrowIds[r], "is-off", r >= rowCount);
+                int visible = r < rowCount
+                    ? Math.Min(CatalogCols, grid.Count - r * CatalogCols)
+                    : 0;
+                SetCatalogRow(player, r, visible);
             }
 
             PaintPool(player, Pool.Grid, grid, mine, favorites);
@@ -663,21 +667,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            int n = Math.Clamp(count, 0, SlotCount);
-            int slot = player.Slot;
-            int prev = LastVotedWidth[slot];
-            if (prev == n)
-            {
-                return;
-            }
-
-            if (prev >= 0)
-            {
-                CustomHud.SetHasClass(player, VoteIds.VotedStrip, VoteIds.VwClasses[prev], false);
-            }
-
-            CustomHud.SetHasClass(player, VoteIds.VotedStrip, VoteIds.VwClasses[n], true);
-            LastVotedWidth[slot] = n;
+            SetLadder(player, VoteIds.VotedStrip, VoteIds.VwClasses, ref LastVotedWidth[player.Slot], count);
         }
 
         private static void SetCatalogRows(CCSPlayerController player, int rowCount)
@@ -687,21 +677,48 @@ namespace MapVote.Huds
                 return;
             }
 
-            int n = Math.Clamp(rowCount, 0, CatalogRowCount);
-            int slot = player.Slot;
-            int prev = LastCatalogRows[slot];
-            if (prev == n)
+            SetLadder(player, VoteIds.Catalog, VoteIds.RowsClasses, ref LastCatalogRows[player.Slot], rowCount);
+        }
+
+        /// <summary>Show or hide a catalog row and set its cols-n width from visible slot count.</summary>
+        private static void SetCatalogRow(CCSPlayerController player, int row, int visible)
+        {
+            if (player.Slot is < 0 or >= MaxSlots || row is < 0 or >= CatalogRowCount)
             {
                 return;
             }
 
-            if (prev >= 0)
+            CustomHud.SetHasClass(player, VoteIds.CrowIds[row], "is-off", visible <= 0);
+            // ColsClasses ends at CatalogColsWidthMax (100%); SetLadder clamps.
+            SetLadder(
+                player,
+                VoteIds.CrowIds[row],
+                VoteIds.ColsClasses,
+                ref LastCatalogCols[player.Slot, row],
+                visible);
+        }
+
+        /// <summary>Exclusive ladder class swap (vw-*, rows-*, cols-*). remembered=-1 means unset.</summary>
+        private static void SetLadder(
+            CCSPlayerController player,
+            string panelId,
+            string[] classes,
+            ref int remembered,
+            int value)
+        {
+            int n = Math.Clamp(value, 0, classes.Length - 1);
+            if (remembered == n)
             {
-                CustomHud.SetHasClass(player, VoteIds.Catalog, VoteIds.RowsClasses[prev], false);
+                return;
             }
 
-            CustomHud.SetHasClass(player, VoteIds.Catalog, VoteIds.RowsClasses[n], true);
-            LastCatalogRows[slot] = n;
+            if (remembered >= 0)
+            {
+                CustomHud.SetHasClass(player, panelId, classes[remembered], false);
+            }
+
+            CustomHud.SetHasClass(player, panelId, classes[n], true);
+            remembered = n;
         }
 
         private static void PaintPool(
@@ -806,6 +823,11 @@ namespace MapVote.Huds
             Dirty[slot] = false;
             TypeSelection[slot] = 0;
             SortSelection[slot] = -1;
+            for (int r = 0; r < CatalogRowCount; r++)
+            {
+                LastCatalogCols[slot, r] = -1;
+            }
+
             for (int i = 0; i < SlotCount; i++)
             {
                 VotedMaps[slot, i] = null;
@@ -823,6 +845,11 @@ namespace MapVote.Huds
             Array.Fill(SortSelection, -1);
             for (int s = 0; s < MaxSlots; s++)
             {
+                for (int r = 0; r < CatalogRowCount; r++)
+                {
+                    LastCatalogCols[s, r] = -1;
+                }
+
                 for (int i = 0; i < SlotCount; i++)
                 {
                     VotedMaps[s, i] = null;

@@ -10,7 +10,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from mapvote_layout import HUD_CSS_NAME, HUD_VCSS_NAME, PANORAMA_VERSION, VOTE_XML_NAME
+from mapvote_layout import (
+    COLS_WIDTH_MAX,
+    COL_WIDTH_PERCENT,
+    HUD_CSS_NAME,
+    HUD_VCSS_NAME,
+    PANORAMA_VERSION,
+    VOTE_XML_NAME,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "workshop" / "content" / "panorama"
@@ -204,6 +211,7 @@ def collect_errors() -> list[str]:
     slot_count = csharp_const_int(VOTE_IDS_CS, "SlotCount")
     catalog_cols = csharp_const_int(VOTE_IDS_CS, "CatalogCols")
     catalog_rows = csharp_const_int(VOTE_IDS_CS, "CatalogRowCount")
+    catalog_cols_width_max = csharp_const_int(VOTE_IDS_CS, "CatalogColsWidthMax")
     filter_types = csharp_const_int(VOTE_IDS_CS, "FilterTypeSlots")
     filter_sorts = csharp_const_int(VOTE_IDS_CS, "FilterSortSlots")
     root_panel = csharp_const_string(VOTE_IDS_CS, "Root")
@@ -220,6 +228,12 @@ def collect_errors() -> list[str]:
         errors.append(
             f"VoteIds.CatalogRowCount ({catalog_rows}) must equal "
             f"ceil(SlotCount/CatalogCols) ({expected_rows})"
+        )
+
+    if catalog_cols_width_max != COLS_WIDTH_MAX:
+        errors.append(
+            f"VoteIds.CatalogColsWidthMax ({catalog_cols_width_max}) must equal "
+            f"mapvote_layout.COLS_WIDTH_MAX ({COLS_WIDTH_MAX})"
         )
 
     expected_ids = {
@@ -325,9 +339,18 @@ def collect_errors() -> list[str]:
             ".mv-map-default",
             ".vw-0",
             ".rows-0",
+            ".cols-0",
+            f".CatalogRow.cols-3 {{ width: {3 * COL_WIDTH_PERCENT}%; }}",
+            f".CatalogRow.cols-{COLS_WIDTH_MAX} {{ width: 100%; }}",
         ):
             if req not in css_raw:
                 errors.append(f"{HUD_VCSS_NAME}: missing required selector/class {req}")
+
+        if f".CatalogRow.cols-{COLS_WIDTH_MAX + 1}" in css_raw:
+            errors.append(
+                f"{HUD_VCSS_NAME}: cols ladder must stop at cols-{COLS_WIDTH_MAX} "
+                f"(100% saturation)"
+            )
 
         if not HUD_CSS.is_file():
             errors.append(f"{HUD_CSS_NAME} missing (must be symlink to {HUD_VCSS_NAME})")

@@ -18,6 +18,8 @@ namespace MapVote.Huds
         public const int SlotCount = 100;
         public const int CatalogCols = 10;
         public const int CatalogRowCount = 10;
+        /// <summary>cols-n width ladder saturates here (n × 18% reaches 100%).</summary>
+        public const int CatalogColsWidthMax = 6;
         public const int FilterTypeSlots = 8;
         public const int FilterSortSlots = 4;
 
@@ -43,6 +45,7 @@ namespace MapVote.Huds
 
         public static readonly string[] VwClasses = BuildLadder("vw-", SlotCount);
         public static readonly string[] RowsClasses = BuildLadder("rows-", CatalogRowCount);
+        public static readonly string[] ColsClasses = BuildLadder("cols-", CatalogColsWidthMax);
 
         private static string[] BuildIndexed(string prefix, int count)
         {

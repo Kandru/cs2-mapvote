@@ -607,6 +607,7 @@ VOTE_JS = r"""(() => {
   };
 
   const COLS = 10;
+  const COLS_WIDTH_MAX = 6;
   const ROW_COUNT = Math.ceil(SLOT / COLS);
 
   const clearTile = (slotId, tileId, shotId, favId, voteVar, nameVar) => {
@@ -770,7 +771,10 @@ VOTE_JS = r"""(() => {
     setLadder(document.getElementById("mv-catalog"), "rows", ROW_COUNT, rowCount);
     for (let r = 0; r < ROW_COUNT; r++) {
       const crow = document.getElementById(`mv-crow-${r}`);
-      if (crow) crow.classList.toggle("is-off", r >= rowCount);
+      if (!crow) continue;
+      const visible = r < rowCount ? Math.min(COLS, grid.length - r * COLS) : 0;
+      crow.classList.toggle("is-off", visible <= 0);
+      setLadder(crow, "cols", COLS_WIDTH_MAX, Math.min(visible, COLS_WIDTH_MAX));
     }
 
     for (let i = 0; i < SLOT; i++) {
