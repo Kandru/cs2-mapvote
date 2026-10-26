@@ -345,6 +345,7 @@
 
 .FilterBar
 {
+	/* Hit-enabled (no hittest=false) + above MapGridHost so scrolled tiles cannot steal chip clicks. */
 	width: fit-children;
 	height: 36px;
 	flow-children: right;
@@ -353,6 +354,9 @@
 	padding-left: 12px;
 	padding-right: 12px;
 	margin-bottom: 4px;
+	z-index: 5;
+	/* Near-invisible fill so the bar itself receives hits between chips. */
+	background-color: #00000001;
 }
 
 .FilterBar.is-off
@@ -458,6 +462,8 @@
 	width: 100%;
 	height: fill-parent-flow( 1.0 );
 	flow-children: none;
+	z-index: 1;
+	overflow: clip;
 	opacity: 1.0;
 	transition-property: opacity;
 	transition-duration: 0.5s;

@@ -1326,7 +1326,7 @@
 							</Panel>
 						</Panel>
 					</Panel>
-					<Panel id="mv-filters" class="FilterBar is-off" hittest="false">
+					<Panel id="mv-filters" class="FilterBar is-off">
 						<Panel class="FilterTypeRow" hittest="false">
 							<Button id="mv-ft-0" class="FilterChip is-off">
 								<Label class="FilterChipLabel stratum-bold-condensed" text="{s:ft0}" hittest="false" />

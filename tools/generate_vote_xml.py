@@ -150,7 +150,8 @@ def build() -> str:
             "\t\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t</Panel>",
-            '\t\t\t\t\t<Panel id="mv-filters" class="FilterBar is-off" hittest="false">',
+            # Hit-enabled: full-width shield so scrolled map tiles cannot steal filter clicks.
+            '\t\t\t\t\t<Panel id="mv-filters" class="FilterBar is-off">',
             '\t\t\t\t\t\t<Panel class="FilterTypeRow" hittest="false">',
         ]
     )
