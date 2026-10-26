@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Extract map images into panorama/images: map_{name} for official maps, ws_{name} for workshop."""
+"""Extract map images into panorama/images: map_{name} for official maps, ws_{name} for workshop.
+
+Add-only: existing PNG/VTEX tiles are never overwritten or deleted. Missing maps
+get a new tile (from the VPK, or a copy of default.png).
+"""
 from __future__ import annotations
 
 import argparse
@@ -439,10 +443,25 @@ def allocate_stem(prefix: str, name: str, used: set[str]) -> str:
         n += 1
 
 
+def tile_png(stem: str) -> Path:
+    return IMAGES / f"{stem}.png"
+
+
+def tile_exists(stem: str) -> bool:
+    return tile_png(stem).is_file()
+
+
 def save_tile(decoded: Path, stem: str) -> Path:
-    """Write a 350×197 PNG and its .vtex into the panorama maps folder."""
+    """Write a 350×197 PNG and its .vtex into the panorama maps folder.
+
+    Existing tiles are left untouched (add-only).
+    """
     IMAGES.mkdir(parents=True, exist_ok=True)
-    png = IMAGES / f"{stem}.png"
+    png = tile_png(stem)
+    if png.is_file():
+        if not (IMAGES / f"{stem}.vtex").is_file():
+            write_vtex(stem)
+        return png
     shutil.copy2(decoded, png)
     resize_to_tile(png)
     write_vtex(stem)
@@ -457,26 +476,18 @@ def save_default_tile(stem: str) -> Path:
     return save_tile(default_png, stem)
 
 
-def remove_stale(keep: set[str], *, only_prefix: str | None) -> None:
-    """Drop png/vtex this run did not write.
-
-    only_prefix limits deletion to that prefix (stock keeps workshop files).
-    Otherwise keep default and map_* and delete everything else, including old bare names.
-    """
+def existing_stems(*, prefix: str | None = None) -> set[str]:
+    """PNG stems already under the maps folder (never deleted by this tool)."""
     if not IMAGES.is_dir():
-        return
+        return set()
+    stems: set[str] = set()
     for path in IMAGES.iterdir():
-        if path.suffix not in {".png", ".vtex"}:
+        if path.suffix != ".png":
             continue
         stem = path.stem
-        if stem == DEFAULT_STEM or stem in keep:
-            continue
-        if only_prefix is not None:
-            if stem.startswith(only_prefix):
-                path.unlink()
-            continue
-        if not stem.startswith(STOCK_IMAGE_PREFIX):
-            path.unlink()
+        if prefix is None or stem.startswith(prefix):
+            stems.add(stem)
+    return stems
 
 
 def _decode_entry(cli: Path, pak: Path, ver: int, tree_size: int, entry: VpkEntry, work: Path) -> Path:
@@ -552,10 +563,13 @@ def process_stock_pak(cli: Path, pak: Path) -> list[str]:
         raise SystemExit(f"no 360p stock screenshots found in {pak}")
 
     saved: list[str] = []
-    image_stems: set[str] = set()
     for stem in stems_360:
-        screens = [(res, shots[stem][res]) for res in ("1080p", "720p", "360p") if res in shots[stem]]
         image_stem = f"{STOCK_IMAGE_PREFIX}{stem}"
+        if tile_exists(image_stem):
+            saved.append(stem)
+            print(f"[stock]  {stem}: keep existing maps/{image_stem}.png")
+            continue
+        screens = [(res, shots[stem][res]) for res in ("1080p", "720p", "360p") if res in shots[stem]]
         with tempfile.TemporaryDirectory(prefix="mapvote-stock-") as tmp:
             chosen = choose_image(
                 cli, pak, ver, tree_size, Path(tmp), f"[stock]  {stem}",
@@ -563,23 +577,27 @@ def process_stock_pak(cli: Path, pak: Path) -> list[str]:
             )
             if chosen is None:
                 save_default_tile(image_stem)
-                image_stems.add(image_stem)
                 saved.append(stem)
                 print(f"[stock]  {stem} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
                 continue
             label, entry, decoded = chosen
             save_tile(decoded, image_stem)
-        image_stems.add(image_stem)
         saved.append(stem)
         print(f"[stock]  {stem} ← {label} ({entry.length} bytes) → maps/{image_stem}.png")
 
-    write_stock_list(saved, STOCK_LIST)
-    count = rewrite_hud_stock_css(saved)
-    remove_stale(image_stems, only_prefix=STOCK_IMAGE_PREFIX)
+    # Keep CSS/list for every stock tile on disk, including ones no longer in the VPK.
+    on_disk = {
+        s[len(STOCK_IMAGE_PREFIX) :]
+        for s in existing_stems(prefix=STOCK_IMAGE_PREFIX)
+        if s.startswith(STOCK_IMAGE_PREFIX)
+    }
+    all_stems = sorted(set(saved) | on_disk)
+    write_stock_list(all_stems, STOCK_LIST)
+    count = rewrite_hud_stock_css(all_stems)
     print(f"[stock] wrote {count} stock map classes → {HUD_VCSS.relative_to(ROOT)}")
     print(f"[stock] updated {STOCK_LIST.relative_to(ROOT)}")
-    print(f"[stock] extracted {len(saved)}/{len(stems_360)} images → {IMAGES.relative_to(ROOT)}")
-    return saved
+    print(f"[stock] {len(saved)}/{len(stems_360)} maps this run; {len(all_stems)} stock tiles on disk → {IMAGES.relative_to(ROOT)}")
+    return all_stems
 
 
 def process_vpk(
@@ -597,10 +615,23 @@ def process_vpk(
         return
 
     for map_name in sorted(maps):
+        base = f"{WORKSHOP_IMAGE_PREFIX}{map_name}"
+        # Prefer the on-disk base tile for this map name; never overwrite it.
+        if base not in used and tile_exists(base):
+            used.add(base)
+            written[base] = tile_png(base)
+            print(f"[images]  {map_name}: keep existing maps/{base}.png")
+            continue
+
+        image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)
+        if tile_exists(image_stem):
+            written[image_stem] = tile_png(image_stem)
+            print(f"[images]  {map_name}: keep existing maps/{image_stem}.png")
+            continue
+
         screens = [(entry.path, entry) for entry in image_candidates(entries, map_name)]
         layouts = layout_candidates(entries, map_name)
         if not screens and not layouts:
-            image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)
             written[image_stem] = save_default_tile(image_stem)
             print(f"[images]  {map_name} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
             continue
@@ -610,12 +641,10 @@ def process_vpk(
                 screens, layouts,
             )
             if chosen is None:
-                image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)
                 written[image_stem] = save_default_tile(image_stem)
                 print(f"[images]  {map_name} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
                 continue
             label, entry, decoded = chosen
-            image_stem = allocate_stem(WORKSHOP_IMAGE_PREFIX, map_name, used)
             written[image_stem] = save_tile(decoded, image_stem)
         print(f"[images]  {map_name} ← {label} ({entry.length} bytes) → maps/{image_stem}.png")
 
@@ -637,13 +666,14 @@ def process_workshop(cli: Path, root: Path) -> None:
         except Exception as ex:
             print(f"[images] ERROR {vpk}: {ex}", file=sys.stderr)
 
-    keep = set(written)
-    remove_stale(keep, only_prefix=None)
-    ordered = [DEFAULT_STEM] + sorted(keep)
+    # Palette covers every workshop tile on disk (add-only; never delete).
+    on_disk = sorted(existing_stems(prefix=WORKSHOP_IMAGE_PREFIX))
+    ordered = [DEFAULT_STEM] + on_disk
     rewrite_css(ordered)
     print(
         f"[images] updated {len(ordered)} CSS classes "
-        f"({TARGET_WIDTH}x{TARGET_HEIGHT}) in {HUD_VCSS.relative_to(ROOT)}"
+        f"({TARGET_WIDTH}x{TARGET_HEIGHT}) in {HUD_VCSS.relative_to(ROOT)} "
+        f"({len(written)} touched this run, {len(on_disk)} workshop tiles on disk)"
     )
 
 
