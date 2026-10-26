@@ -116,7 +116,7 @@ namespace MapVote
             SuppressNativeVoteSlots();
 
             _session = new VoteSession(maps.Select(static m => m.Name).ToList());
-            Dictionary<string, MapOrigin> origins = maps.ToDictionary(
+            _origins = maps.ToDictionary(
                 static m => m.Name,
                 static m => m.Origin,
                 StringComparer.Ordinal);
@@ -127,19 +127,36 @@ namespace MapVote
                 _archive,
                 _plays,
                 (player, key) => Localization.ForPlayerSafe(Localizer, player, key),
-                origins);
+                _origins);
             _voteActive = true;
+            _voteHudOpen = false;
             _revealActive = false;
             _pendingWinner = null;
+
+            PluginLog.Info(
+                $"vote armed: {maps.Count} maps, open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s (hud waits for win panel).");
+        }
+
+        /// <summary>
+        /// Opens the overlay when the match win panel fires. Session setup already ran at intermission.
+        /// </summary>
+        private void ShowVoteHud()
+        {
+            if (!_voteActive || _revealActive || _voteHudOpen || _session is null)
+            {
+                return;
+            }
 
             foreach (CCSPlayerController player in PlayerUtil.GetHumans())
             {
                 VoteHud.OpenFor(player);
             }
 
+            _voteHudOpen = true;
+            Dictionary<string, MapOrigin> origins = _origins;
             _openTimer?.Kill();
             _openTimer = AddTimer(_timing.OpenSeconds, () => BeginReveal(origins));
-            PluginLog.Info($"vote started: {maps.Count} maps, open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s.");
+            PluginLog.Info($"vote hud open: {_timing.OpenSeconds}s until reveal");
         }
 
         /// <summary>
@@ -240,8 +257,10 @@ namespace MapVote
             _revealTimer?.Kill();
             _revealTimer = null;
             _voteActive = false;
+            _voteHudOpen = false;
             _revealActive = false;
             _session = null;
+            _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
             VoteHud.CloseAll();
         }
 
@@ -282,7 +301,7 @@ namespace MapVote
                 return;
             }
 
-            if (_voteActive)
+            if (_voteHudOpen)
             {
                 VoteHud.OpenFor(player);
             }

@@ -16,7 +16,7 @@ namespace MapVote.Utils
     public static class HudMenu
     {
         public const string PanelId = VoteHud.Panel;
-        private const float CaptureDelaySeconds = 0.2f;
+        private const float CaptureDelaySeconds = 0.5f;
 
         private sealed class Session
         {

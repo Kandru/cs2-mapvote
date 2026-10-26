@@ -47,6 +47,12 @@ namespace MapVote
             StartVote();
         }
 
+        private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
+        {
+            ShowVoteHud();
+            return HookResult.Continue;
+        }
+
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
         {
             CCSPlayerController? player = @event.Userid;
@@ -71,7 +77,7 @@ namespace MapVote
                 PluginLog.Debug($"connect: {state.Username} ({steam.SteamId64}) slot={player.Slot}");
             }
 
-            if (_voteActive || _revealActive)
+            if (_voteHudOpen || _revealActive)
             {
                 OpenVoteHudForJoiner(player);
             }

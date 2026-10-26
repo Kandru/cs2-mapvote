@@ -9,7 +9,7 @@ namespace MapVote.Utils
     /// <summary>Single-layout <see cref="CCSCustomHudLayout"/> driver for the map vote overlay.</summary>
     public static partial class CustomHud
     {
-        public const double FadeSeconds = 1.0;
+        public const double FadeSeconds = 0.5;
 
         private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(FadeSeconds);
         private static readonly string LayoutResource =

@@ -29,10 +29,12 @@ namespace MapVote
         private CssTimer? _changelevelTimer;
         private DateTime _catalogWaitDeadlineUtc;
         private bool _voteActive;
+        private bool _voteHudOpen;
         private bool _revealActive;
         private int _changelevelGeneration;
         private string? _pendingWinner;
         private MapOrigin _pendingOrigin;
+        private Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);
         private readonly HashSet<ulong> _rtvVoters = [];
         private bool _rtvPassed;
         private bool _nativeVoteArmed;
@@ -64,6 +66,7 @@ namespace MapVote
             RegisterListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
 
             RegisterEventHandler<EventCsIntermission>(OnIntermission);
+            RegisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
 
