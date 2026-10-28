@@ -117,7 +117,12 @@ namespace MapVote
                     VoteHud.PaintAll();
                 }
 
-                PluginLog.Debug($"disconnect: {PlayerUtil.Label(player, steamId)} slot={player.Slot}");
+                string label = PlayerUtil.Label(player, steamId);
+                PluginLog.Debug($"disconnect: {label} slot={player.Slot}");
+                TrySucceedRtv(
+                    CountRtvHumans(steamId.Value),
+                    $"after disconnect of {label}",
+                    deferCommand: true);
             }
 
             CustomHud.ReleasePlayer(player);

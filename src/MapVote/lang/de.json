@@ -1,7 +1,8 @@
 {
   "rtv.already": "Du hast schon für einen Mapwechsel gestimmt.",
   "rtv.need": "{0} / {1} — es werden noch Stimmen gebraucht",
-  "rtv.success": "Die Karte wird gleich gewechselt.",
+  "rtv.success": "Rock the Vote hat geklappt ({0}/{1}). Die Karte wird gleich gewechselt.",
+  "rtv.pending": "Rock the Vote ist schon durch. Die Karte wird gleich gewechselt.",
   "rtv.closed": "Die Karten-Abstimmung läuft schon.",
   "hud.title": "Stimme für die nächste Map",
   "hud.winner": "Gewinnende Map",
