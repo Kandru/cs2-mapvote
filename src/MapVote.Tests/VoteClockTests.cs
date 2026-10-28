@@ -37,4 +37,14 @@ public class VoteClockTests
         Assert.Equal(1, timing.RevealSeconds);
         Assert.Equal(3, timing.EngineHoldSeconds);
     }
+
+    [Fact]
+    public void SecondsUntil_ReturnsRemainingFromEpoch()
+    {
+        DateTime epoch = new(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc);
+        Assert.Equal(15f, VoteClock.SecondsUntil(epoch, offsetSeconds: 15, nowUtc: epoch));
+        Assert.Equal(10f, VoteClock.SecondsUntil(epoch, offsetSeconds: 15, nowUtc: epoch.AddSeconds(5)));
+        Assert.Equal(0f, VoteClock.SecondsUntil(epoch, offsetSeconds: 15, nowUtc: epoch.AddSeconds(15)));
+        Assert.Equal(-2f, VoteClock.SecondsUntil(epoch, offsetSeconds: 15, nowUtc: epoch.AddSeconds(17)));
+    }
 }

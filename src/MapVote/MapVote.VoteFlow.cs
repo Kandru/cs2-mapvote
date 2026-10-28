@@ -12,10 +12,13 @@ namespace MapVote
     public partial class MapVote
     {
         private const float CatalogWaitIntervalSeconds = 0.25f;
-        private const float CatalogWaitMaxSeconds = 2f;
-        private const float ChangelevelDelaySeconds = 0.5f;
+        private const int CatalogWaitMaxSeconds = 2;
 
         private bool VoteBusy => _voteActive || _revealActive || _catalogWaitTimer is not null;
+
+        /// <summary>Seconds left until intermission epoch + <paramref name="offsetSeconds"/>.</summary>
+        private float RemainingUntil(int offsetSeconds) =>
+            VoteClock.SecondsUntil(_scheduleEpochUtc, offsetSeconds, DateTime.UtcNow);
 
         /// <summary>
         /// Snapshot end-match cvars before intermission. Prefer our overlay unless the
@@ -50,6 +53,10 @@ namespace MapVote
                 return;
             }
 
+            // Align plugin timers with the engine hold countdown (vote + reveal + 1s slack).
+            _scheduleEpochUtc = DateTime.UtcNow;
+            _timing = VoteClock.Resolve(Config.Endmatch);
+
             List<MapEntry> maps = SelectCandidates();
             if (maps.Count > 0)
             {
@@ -63,7 +70,6 @@ namespace MapVote
                 return;
             }
 
-            _catalogWaitDeadlineUtc = DateTime.UtcNow.AddSeconds(CatalogWaitMaxSeconds);
             PluginLog.Debug("vote waiting for catalog refresh");
             _catalogWaitTimer = AddTimer(CatalogWaitIntervalSeconds, OnCatalogWaitTick, TimerFlags.REPEAT);
         }
@@ -84,7 +90,7 @@ namespace MapVote
                 return;
             }
 
-            if (!_catalog.IsLoading || DateTime.UtcNow >= _catalogWaitDeadlineUtc)
+            if (!_catalog.IsLoading || RemainingUntil(CatalogWaitMaxSeconds) <= 0f)
             {
                 string reason = !_catalog.IsLoading
                     ? "catalog empty and not loading"
@@ -110,8 +116,6 @@ namespace MapVote
             }
 
             KillCatalogWaitTimer();
-
-            _timing = VoteClock.Resolve(Config.Endmatch);
             ArmEngineVote();
             SuppressNativeVoteSlots();
 
@@ -134,11 +138,12 @@ namespace MapVote
             _pendingWinner = null;
 
             PluginLog.Info(
-                $"vote armed: {maps.Count} maps, open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s (hud waits for win panel).");
+                $"vote armed: {maps.Count} maps, open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s hold={_timing.EngineHoldSeconds}s (hud waits for win panel).");
         }
 
         /// <summary>
         /// Opens the overlay when the match win panel fires. Session setup already ran at intermission.
+        /// Uses remaining time from the intermission epoch so changelevel stays at the start of the slack second.
         /// </summary>
         private void ShowVoteHud()
         {
@@ -153,10 +158,18 @@ namespace MapVote
             }
 
             _voteHudOpen = true;
-            Dictionary<string, MapOrigin> origins = _origins;
-            _openTimer?.Kill();
-            _openTimer = AddTimer(_timing.OpenSeconds, () => BeginReveal(origins));
-            PluginLog.Info($"vote hud open: {_timing.OpenSeconds}s until reveal");
+            KillOpenTimers();
+
+            float remainingOpen = RemainingUntil(_timing.OpenSeconds);
+            if (remainingOpen <= 0f)
+            {
+                PluginLog.Info("vote hud open: open window elapsed; starting reveal");
+                BeginReveal();
+                return;
+            }
+
+            _openTimer = AddTimer(remainingOpen, BeginReveal);
+            PluginLog.Info($"vote hud open: {remainingOpen:0.###}s until reveal");
         }
 
         /// <summary>
@@ -198,7 +211,7 @@ namespace MapVote
             return maps;
         }
 
-        private void BeginReveal(Dictionary<string, MapOrigin> origins)
+        private void BeginReveal()
         {
             if (!_voteActive || _revealActive || _session is null)
             {
@@ -210,14 +223,24 @@ namespace MapVote
 
             string winner = _session.Winner ?? _session.Maps[0];
             _pendingWinner = winner;
-            _pendingOrigin = origins.GetValueOrDefault(winner, MapOrigin.Local);
+            _pendingOrigin = _origins.GetValueOrDefault(winner, MapOrigin.Local);
             _revealActive = true;
 
             VoteHud.BeginReveal(winner);
-            PluginLog.Info($"vote locked: winner={winner} votes={_session.CountOf(winner)}");
+
+            float remaining = RemainingUntil(_timing.TotalSeconds);
+            PluginLog.Info(
+                $"vote locked: winner={winner} votes={_session.CountOf(winner)} changelevel in {Math.Max(0f, remaining):0.###}s");
 
             _revealTimer?.Kill();
-            _revealTimer = AddTimer(_timing.RevealSeconds, ChangeToWinner);
+            _revealTimer = null;
+            if (remaining <= 0f)
+            {
+                ChangeToWinner();
+                return;
+            }
+
+            _revealTimer = AddTimer(remaining, ChangeToWinner);
         }
 
         private void ChangeToWinner()
@@ -235,25 +258,13 @@ namespace MapVote
             _plays.Increment(winner);
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
             PluginLog.Info($"changing map: {command}");
-            int generation = ++_changelevelGeneration;
-            _changelevelTimer?.Kill();
-            _changelevelTimer = AddTimer(ChangelevelDelaySeconds, () =>
-            {
-                if (generation != _changelevelGeneration)
-                {
-                    return;
-                }
-
-                _changelevelTimer = null;
-                Server.ExecuteCommand(command);
-            });
+            Server.ExecuteCommand(command);
         }
 
         private void EndVoteUi()
         {
             KillOpenTimers();
             KillCatalogWaitTimer();
-            KillChangelevelTimer();
             _revealTimer?.Kill();
             _revealTimer = null;
             _voteActive = false;
@@ -274,13 +285,6 @@ namespace MapVote
         {
             _catalogWaitTimer?.Kill();
             _catalogWaitTimer = null;
-        }
-
-        private void KillChangelevelTimer()
-        {
-            _changelevelTimer?.Kill();
-            _changelevelTimer = null;
-            _changelevelGeneration++;
         }
 
         private void OpenVoteHudForJoiner(CCSPlayerController player)

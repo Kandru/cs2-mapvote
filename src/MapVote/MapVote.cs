@@ -26,12 +26,10 @@ namespace MapVote
         private CssTimer? _openTimer;
         private CssTimer? _revealTimer;
         private CssTimer? _catalogWaitTimer;
-        private CssTimer? _changelevelTimer;
-        private DateTime _catalogWaitDeadlineUtc;
+        private DateTime _scheduleEpochUtc;
         private bool _voteActive;
         private bool _voteHudOpen;
         private bool _revealActive;
-        private int _changelevelGeneration;
         private string? _pendingWinner;
         private MapOrigin _pendingOrigin;
         private Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);

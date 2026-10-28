@@ -30,5 +30,12 @@ namespace MapVote.Voting
             int total = open + reveal;
             return new VoteTiming(open, reveal, total, total + EngineChangelevelSlackSeconds);
         }
+
+        /// <summary>
+        /// Seconds left until <paramref name="epochUtc"/> + <paramref name="offsetSeconds"/>.
+        /// Negative when that deadline has already passed.
+        /// </summary>
+        public static float SecondsUntil(DateTime epochUtc, int offsetSeconds, DateTime nowUtc) =>
+            (float)(epochUtc.AddSeconds(offsetSeconds) - nowUtc).TotalSeconds;
     }
 }
