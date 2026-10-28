@@ -2,7 +2,8 @@
 """Extract map images into panorama/images: map_{name} for official maps, ws_{name} for workshop.
 
 Add-only: existing PNG tiles are never overwritten or deleted. Workshop maps need
-a maps/*.vmap_c and a usable screenshot or overhead; otherwise they are skipped.
+a maps/<name>.vpk or maps/<name>.vmap_c and a usable screenshot or overhead;
+otherwise they are skipped.
 Official stock maps without a decodeable shot get a copy of default.png. Orphan
 .vtex files without a matching .png are removed at the end.
 """
@@ -172,14 +173,22 @@ def discover_vpks(root: Path) -> list[Path]:
 
 
 def map_names_from_entries(entries: list[VpkEntry]) -> set[str]:
-    """Map stems that ship a compiled map (maps/*.vmap_c). cfg alone is not enough."""
+    """Map stems that ship a compiled map directly under maps/.
+
+    Current workshop packages use ``maps/<name>.vpk``. Older ones use
+    ``maps/<name>.vmap_c``. Nested files (prefabs, lightmaps, cfg) are not maps.
+    """
     names: set[str] = set()
     for e in entries:
         p = e.path.replace("\\", "/").lower()
-        if "/maps/" in p and p.endswith(".vmap_c"):
-            stem = Path(p).stem
-            if MAP_NAME_RE.match(stem):
-                names.add(stem)
+        parts = p.split("/")
+        if len(parts) != 2 or parts[0] != "maps":
+            continue
+        if Path(p).suffix not in (".vpk", ".vmap_c"):
+            continue
+        stem = Path(p).stem
+        if MAP_NAME_RE.match(stem):
+            names.add(stem)
     return names
 
 

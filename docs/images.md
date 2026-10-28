@@ -20,7 +20,7 @@ Republish the workshop addon after extracting images.
 
 ### Workshop (`WORKSHOP_DIR`)
 
-Opens each VPK in path order; only packages with `maps/*.vmap_c`. Screenshots: `map_icons/screenshots/1080p` → `720p` → `360p` (largest file first). Skips radar/overhead paths; prefers shots that are not too dark (mean luma under 40) and not much taller than wide. Fallbacks: first too-dark screenshot → first portrait/tall (full width, vertically centered crop to 16:9) → `panorama/images/overheadmaps/{map}_radar_*` (plain, then lower/higher floors). Output: `ws_{name}.png` + `.vtex` under the panorama maps folder, **350×197**, class `.mv-map-ws_{name}`. Duplicate names: `ws_{name}_1`, `_2`, …. No usable shot → package skipped (HUD uses default).
+Opens each VPK in path order; only packages with `maps/<name>.vpk` or `maps/<name>.vmap_c`. Screenshots: `map_icons/screenshots/1080p` → `720p` → `360p` (largest file first). Skips radar/overhead paths; prefers shots that are not too dark (mean luma under 40) and not much taller than wide. Fallbacks: first too-dark screenshot → first portrait/tall (full width, vertically centered crop to 16:9) → `panorama/images/overheadmaps/{map}_radar_*` (plain, then lower/higher floors). Output: `ws_{name}.png` + `.vtex` under the panorama maps folder, **350×197**, class `.mv-map-ws_{name}`. Duplicate names: `ws_{name}_1`, `_2`, …. No usable shot → package skipped (HUD uses default).
 
 ### Official maps (`GAME_DIR`)
 
