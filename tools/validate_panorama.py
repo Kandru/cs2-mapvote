@@ -188,12 +188,10 @@ def check_local_map_image(errors: list[str], css_class: str, file_stem: str, bod
             f".{css_class}: must use "
             f's2r://panorama/images/custom_game/mapvote/maps/{file_stem}.vtex'
         )
-    png = IMAGES / f"{file_stem}.png"
+    # Map PNG/.vtex tiles are published from another repository. CSS must still
+    # point at the expected path; only check a .vtex when one is checked in here.
     vtex = IMAGES / f"{file_stem}.vtex"
-    if not png.is_file():
-        errors.append(f"missing image for .{css_class}: {png.relative_to(ROOT)}")
     if not vtex.is_file():
-        errors.append(f"missing vtex for .{css_class}: {vtex.relative_to(ROOT)}")
         return
     vtext = vtex.read_text(encoding="utf-8")
     found = VTEX_FILE_RE.search(vtext)
