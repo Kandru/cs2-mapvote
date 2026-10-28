@@ -130,7 +130,7 @@ namespace MapVote.Huds
             WriteDefaults(player);
             Paint(player);
             HudMenu.Open(player, new HudMenuOpenOptions { OnButton = OnButton, CaptureMouse = captureMouse });
-            PluginLog.Debug($"hud open slot={player.Slot}");
+            PluginLog.Debug($"hud open: {PlayerUtil.Label(player)} slot={player.Slot}");
         }
 
         public static void PaintRevealFor(CCSPlayerController player, string winner)
@@ -302,9 +302,14 @@ namespace MapVote.Huds
                 return;
             }
 
-            if (_session.Cast(player.AuthorizedSteamID.SteamId64, votedMap))
+            ulong steamId = player.AuthorizedSteamID.SteamId64;
+            string? previous = _session.VoteOf(steamId);
+            if (_session.Cast(steamId, votedMap))
             {
-                PluginLog.Debug($"cast {player.AuthorizedSteamID.SteamId64} → {votedMap}");
+                string label = PlayerUtil.Label(player, steamId);
+                PluginLog.Debug(previous is null
+                    ? $"cast {label} → {votedMap}"
+                    : $"cast {label} {previous} → {votedMap}");
                 PaintAll();
             }
         }

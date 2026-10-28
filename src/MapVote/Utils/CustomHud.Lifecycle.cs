@@ -100,7 +100,7 @@ namespace MapVote.Utils
                 }
 
                 _layout = hud;
-                PluginLog.Info($"[CustomHud] Spawned #{hud.Index} → {LayoutResource}");
+                PluginLog.Debug($"[CustomHud] Spawned #{hud.Index} → {LayoutResource}");
                 return true;
             }
             catch (Exception ex)

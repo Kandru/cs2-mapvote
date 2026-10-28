@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using MapVote.Huds;
 using MapVote.Players;
 using MapVote.Utils;
+using PlayerUtil = MapVote.Utils.Players;
 
 namespace MapVote
 {
@@ -75,7 +76,7 @@ namespace MapVote
                     state.Username = player.PlayerName ?? state.SteamId;
                 }
 
-                PluginLog.Debug($"connect: {state.Username} ({steam.SteamId64}) slot={player.Slot}");
+                PluginLog.Debug($"connect: {PlayerUtil.Label(player, steam.SteamId64)} slot={player.Slot}");
             }
 
             if (_voteHudOpen || _revealActive)
@@ -116,7 +117,7 @@ namespace MapVote
                     VoteHud.PaintAll();
                 }
 
-                PluginLog.Debug($"disconnect: {steamId} slot={player.Slot}");
+                PluginLog.Debug($"disconnect: {PlayerUtil.Label(player, steamId)} slot={player.Slot}");
             }
 
             CustomHud.ReleasePlayer(player);

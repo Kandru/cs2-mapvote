@@ -137,8 +137,9 @@ namespace MapVote
             _revealActive = false;
             _pendingWinner = null;
 
-            PluginLog.Info(
-                $"vote armed: {maps.Count} maps, open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s hold={_timing.EngineHoldSeconds}s (hud waits for win panel).");
+            PluginLog.Info($"map voting started ({maps.Count} maps)");
+            PluginLog.Debug(
+                $"vote armed: maps=[{string.Join(", ", maps.Select(static m => m.Name))}] open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s hold={_timing.EngineHoldSeconds}s (hud waits for win panel)");
         }
 
         /// <summary>
@@ -163,13 +164,13 @@ namespace MapVote
             float remainingOpen = RemainingUntil(_timing.OpenSeconds);
             if (remainingOpen <= 0f)
             {
-                PluginLog.Info("vote hud open: open window elapsed; starting reveal");
+                PluginLog.Debug("vote hud open: open window elapsed; starting reveal");
                 BeginReveal();
                 return;
             }
 
             _openTimer = AddTimer(remainingOpen, BeginReveal);
-            PluginLog.Info($"vote hud open: {remainingOpen:0.###}s until reveal");
+            PluginLog.Debug($"vote hud open: {remainingOpen:0.###}s until reveal");
         }
 
         /// <summary>
@@ -207,7 +208,7 @@ namespace MapVote
 
             int original = maps.Count;
             maps.RemoveRange(MapCatalog.MaxMaps, maps.Count - MapCatalog.MaxMaps);
-            PluginLog.Info($"map list truncated from {original} to {MapCatalog.MaxMaps}.");
+            PluginLog.Debug($"map list truncated from {original} to {MapCatalog.MaxMaps}");
             return maps;
         }
 
@@ -229,8 +230,10 @@ namespace MapVote
             VoteHud.BeginReveal(winner);
 
             float remaining = RemainingUntil(_timing.TotalSeconds);
-            PluginLog.Info(
-                $"vote locked: winner={winner} votes={_session.CountOf(winner)} changelevel in {Math.Max(0f, remaining):0.###}s");
+            int winnerVotes = _session.CountOf(winner);
+            PluginLog.Info($"map voting completed: winner={winner} ({winnerVotes} votes)");
+            PluginLog.Debug(
+                $"vote locked: tally=[{string.Join(", ", _session.Maps.Select(m => $"{m}={_session.CountOf(m)}"))}] changelevel in {Math.Max(0f, remaining):0.###}s");
 
             _revealTimer?.Kill();
             _revealTimer = null;
@@ -257,7 +260,8 @@ namespace MapVote
 
             _plays.Increment(winner);
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
-            PluginLog.Info($"changing map: {command}");
+            PluginLog.Info($"changing to map {winner}");
+            PluginLog.Debug($"changelevel command={command} origin={origin}");
             Server.ExecuteCommand(command);
         }
 
