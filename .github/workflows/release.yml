@@ -16,6 +16,8 @@ on:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Get Repository Name
@@ -35,7 +37,7 @@ jobs:
     - name: Get Current Release Version Number
       id: get_latest_release
       run: |
-        latest_release=$(curl -s -H "Authorization: token ${{ secrets.UPLOAD_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+        latest_release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
         echo "latest_release=$latest_release" >> $GITHUB_ENV
 
     - name: Compare Versions
@@ -83,7 +85,7 @@ jobs:
       if: env.new_version == 'true'
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ env.version }}
         release_name: ${{ env.version }}
@@ -95,7 +97,7 @@ jobs:
       if: env.new_version == 'true'
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: /home/runner/work/${{ env.REPOSITORY_NAME }}-release-${{ env.version }}.zip
@@ -105,7 +107,7 @@ jobs:
     - name: Delete Old Releases (Keep Last 5)
       if: env.new_version == 'true'
       run: |
-        releases=$(curl -s -H "Authorization: token ${{ secrets.UPLOAD_TOKEN }}" \
+        releases=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/releases?per_page=100" | \
           jq -r '.[] | .id')
         
@@ -113,6 +115,6 @@ jobs:
         releases_to_delete=${release_ids[@]:4}
         
         for release_id in $releases_to_delete; do
-          curl -X DELETE -H "Authorization: token ${{ secrets.UPLOAD_TOKEN }}" \
+          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
         done
