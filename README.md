@@ -11,71 +11,30 @@
 
 ![Map vote](example.png)
 
-Panorama end-of-match map vote for [CounterStrikeSharp](https://docs.cssharp.dev/). Players get Valve-style portrait cards, a top row of maps that already have votes, a scrollable catalog with type and sort filters, and `!rtv`.
-
+When the match ends, players should pick the next map the way Valve intended — big pictures, a clear winner row, and a list you can actually browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: portrait map cards, a top row of maps that already have votes, filters by type and “most played”, favorites, and `!rtv` so the lobby can force a vote early. It looks like the official CS2 screen, runs on your map list, and stays out of the way until the match is over.
 
 ## Installation
 
 1. Install [Metamod:Source](https://www.metamodsource.net/downloads.php?branch=dev).
-2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and configure it to load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (Panorama HUD), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`.
+2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (HUD and map pictures), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`.
 3. Install [CounterStrikeSharp](https://docs.cssharp.dev/).
 4. Download the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-mapvote/releases/) and copy the `MapVote` folder into `/game/csgo/addons/counterstrikesharp/plugins/`.
-5. Set a non-empty `rcon_password` (map lists are loaded via localhost RCON).
+5. Set a non-empty `rcon_password` (the plugin loads the map list over localhost RCON).
 6. Restart the server. Config is created at `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`.
 
-## Build
+## Map pictures
 
-```bash
-make debug      # dockerized dotnet build (runs panorama validation first)
-make release    # dockerized dotnet publish
-make test       # unit tests
-make panorama   # validate XML/CSS/images only
-```
+The game cannot load map pictures from the plugin folder. They have to live in a **Workshop addon** that the server mounts (step 2 above).
 
-Uses `mcr.microsoft.com/dotnet/sdk:10.0` — no project Dockerfile.
+We publish [that addon](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) and add new map pictures over time. A map with no picture still shows up with a plain placeholder. If you want your own art, publish your own addon with one picture per map — details are in the [developer docs](docs/images.md).
 
-## Map images
+## How to use it
 
-```bash
-# One-time: download VRF CLI 20 into tools/.cache/
-# https://github.com/ValveResourceFormat/ValveResourceFormat/releases/download/20.0/cli-linux-x64.zip
-make images WORKSHOP_DIR=/path/to/workshop/content/730
-make images GAME_DIR=/path/to/Steam/steamapps/common/Counter-Strike\ Global\ Offensive/game/csgo
-make images WORKSHOP_DIR=… GAME_DIR=…/game/csgo
-make images-check   # rewrite any map tile that is not a 350×197 PNG
-# Override binary: make images … SOURCE2VIEWER_CLI=/path/to/Source2Viewer-CLI
-```
+- At the end of a match, the vote screen opens. Players click a map; the top row shows maps that already have votes.
+- In chat, type `!rtv` (or `css_rtv`). By default about 60% of humans must agree; then the match ends early so this vote can run.
+- Config file: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`. Useful knobs: vote length, whether to hide the map just played, RTV on/off and ratio, and which maps appear (`maps_votable`). Full key list: [docs/config.md](docs/config.md).
 
-**Workshop (`WORKSHOP_DIR`):** opens each VPK in path order and only considers packages that ship `maps/*.vmap_c`. It tries map screenshots (`map_icons/screenshots/1080p` → `720p` → `360p`, largest file first). It skips radar/overhead paths, preferring shots that are not too dark (mean luma under 40) and not much taller than wide. If nothing preferred remains, it falls back to the first too-dark screenshot, then the first portrait/tall screenshot (full width kept, vertically centered crop into 16:9). When a map has no screenshot at all, it uses `panorama/images/overheadmaps/{map}_radar_*` (plain radar, then lower/higher floors). Output is `ws_{name}.png` plus `.vtex` under the panorama maps folder, resized to **350×197**, and a `.mv-map-ws_{name}` class. A repeated name becomes `ws_{name}_1`, `_2`, …. Packages with no usable screenshot or overhead are skipped (HUD falls back to `default.png` / `mv-map-default`).
-
-**Official maps (`GAME_DIR`):** reads `pak01_dir.vpk` (pass the `game/csgo` folder or the VPK itself), keeps maps that ship a 360p screenshot except `random` and `lobby_*`, and writes `map_{name}.png` plus `.vtex` in the same panorama folder with `.mv-map-map_{name}` classes. The HUD picks `map_` or `ws_` from the map's origin, so the same name can exist as both.
-
-Requires Pillow. Republish the workshop addon after extracting images.
-
-## Config
-
-`addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (generated on first run). Disable the plugin in CounterStrikeSharp if you do not want MapVote at all.
-
-| Key | Default | Meaning |
-| --- | --- | --- |
-| `debug` | `false` | Extra console logging |
-| `endmatch.exclude_current_map` | `true` | Hide the map just played |
-| `endmatch.vote_seconds` | `15` | Open voting window (custom menu or native CS2 vote) |
-| `endmatch.winner_reveal_seconds` | `5` | Locked-winner hold after our vote (custom menu only) |
-| `rtv.enabled` | `true` | `!rtv` / `css_rtv` |
-| `rtv.ratio` | `0.6` | Fraction of humans required |
-| `filters.enabled` | `true` | Type / sort chip bar |
-| `filters.types` | bomb/hostage/… | Prefix (or glob) groups for type chips |
-| `filters.sorts` | most/least/favorites | Sort chips: `id`, `by` (`plays`/`name`/`favorite`), `order` (`asc`/`desc`), optional `only` |
-| `maps_votable` | (auto) | Per-map vote enable flags. Keys `map_{name}` (server) / `ws_{name}` (workshop); `true` shows, `false` hides. New maps default to `true`; keys for removed maps stay in the file |
-
-## Workshop layout
-
-Copy `workshop/content/` into your `csgo_addons/<addon>/` tree. Layout/style sources are already versioned (`vote_v1.xml`, `hud_v1.vcss`) to match `PanoramaVersion` in `Version.cs`; publish compiles them to `vote_v1.vxml_c` / `hud_v1.vcss_c`. Panorama binding rules live in `stuff/PANORAMA_RULESET.md`.
-
-## Commands
-
-- `!rtv` / `css_rtv` — rock the vote (forces the match to end so this overlay can run)
+Changing the plugin code, building, or extracting images: see [docs/](docs/README.md).
 
 ## License
 
