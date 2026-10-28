@@ -77,9 +77,18 @@ BAD_CSS = re.compile(
 REJECTED_ATTRS = frozenset({"texturewidth", "textureheight", "style", "onactivate", "hittestchildren"})
 ALLOWED_TAGS = frozenset({"root", "styles", "include", "snippets", "Panel", "Label", "Button"})
 ALLOWED_ATTRS = frozenset({"id", "class", "hittest", "text", "src"})
-# Scroll gutters: hit-test so mouse wheel reaches VotedRow / MapGrid between tiles.
+# Hit-enabled panels (omit hittest=false): scroll gutters for mouse wheel between
+# tiles, plus FilterBar so scrolled MapGridHost tiles cannot steal chip clicks.
 WHEEL_HIT_PANEL_CLASSES = frozenset(
-    {"VotedRow", "VotedStrip", "MapGrid", "MapCatalog", "CatalogRow", "MapSlot"}
+    {
+        "VotedRow",
+        "VotedStrip",
+        "MapGrid",
+        "MapCatalog",
+        "CatalogRow",
+        "MapSlot",
+        "FilterBar",
+    }
 )
 
 # Ruleset §5.1 — custom_hud_layout subset (stuff/PANORAMA_RULESET.md).

@@ -591,7 +591,7 @@ button {
 
 .FilterBar
 {
-	/* Hit-enabled + above MapGridHost so scrolled tiles cannot steal chip clicks. */
+	/* Hit-enabled (no hittest=false) + above MapGridHost so scrolled tiles cannot steal chip clicks. */
 	width: auto;
 	height: 36px;
 	display: flex; flex-direction: row; flex-wrap: nowrap;
@@ -601,6 +601,7 @@ button {
 	padding-right: 12px;
 	margin-bottom: 4px;
 	z-index: 5;
+	/* Near-invisible fill so the bar itself receives hits between chips. */
 	background-color: #00000001;
 }
 
