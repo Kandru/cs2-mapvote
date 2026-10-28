@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Extract map images into panorama/images: map_{name} for official maps, ws_{name} for workshop.
 
-Add-only: existing PNG tiles are never overwritten or deleted. Missing maps get
-a new tile (from the VPK, or a copy of default.png). Orphan .vtex files without
-a matching .png are removed at the end.
+Add-only: existing PNG tiles are never overwritten or deleted. Workshop maps need
+a maps/*.vmap_c and a usable screenshot or overhead; otherwise they are skipped.
+Official stock maps without a decodeable shot get a copy of default.png. Orphan
+.vtex files without a matching .png are removed at the end.
 """
 from __future__ import annotations
 
@@ -171,14 +172,11 @@ def discover_vpks(root: Path) -> list[Path]:
 
 
 def map_names_from_entries(entries: list[VpkEntry]) -> set[str]:
+    """Map stems that ship a compiled map (maps/*.vmap_c). cfg alone is not enough."""
     names: set[str] = set()
     for e in entries:
         p = e.path.replace("\\", "/").lower()
-        if p.startswith("cfg/maps/") and p.endswith(".cfg"):
-            stem = Path(p).stem
-            if MAP_NAME_RE.match(stem):
-                names.add(stem)
-        elif "/maps/" in p and p.endswith(".vmap_c"):
+        if "/maps/" in p and p.endswith(".vmap_c"):
             stem = Path(p).stem
             if MAP_NAME_RE.match(stem):
                 names.add(stem)
@@ -351,6 +349,8 @@ def center_crop_tile(img):
 def resize_to_tile(png_path: Path) -> None:
     Image = _pillow_image()
     with Image.open(png_path) as img:
+        if img.size == (TARGET_WIDTH, TARGET_HEIGHT):
+            return
         center_crop_tile(img).save(png_path, format="PNG", optimize=True)
 
 
@@ -649,8 +649,9 @@ def process_vpk(
         screens = [(entry.path, entry) for entry in image_candidates(entries, map_name)]
         layouts = layout_candidates(entries, map_name)
         if not screens and not layouts:
-            written[image_stem] = save_default_tile(image_stem)
-            print(f"[images]  {map_name} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
+            # Drop the reserved stem so a later VPK with the same map name can use it.
+            used.discard(image_stem)
+            print(f"[images]  {map_name}: no screenshot or overhead, skip")
             continue
         with tempfile.TemporaryDirectory(prefix="mapvote-extract-") as tmp:
             chosen = choose_image(
@@ -658,8 +659,8 @@ def process_vpk(
                 screens, layouts,
             )
             if chosen is None:
-                written[image_stem] = save_default_tile(image_stem)
-                print(f"[images]  {map_name} ← copy of {DEFAULT_STEM}.png → maps/{image_stem}.png")
+                used.discard(image_stem)
+                print(f"[images]  {map_name}: no decodeable image, skip")
                 continue
             label, entry, decoded = chosen
             written[image_stem] = save_tile(decoded, image_stem)
