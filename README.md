@@ -11,7 +11,7 @@
 
 ![Map vote](example.png)
 
-When the match ends, players should pick the next map the way Valve intended — big pictures, a clear winner row, and a list you can actually browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: portrait map cards, a top row of maps that already have votes, filters by type and “most played”, favorites, and `!rtv` so the lobby can force a vote early. It looks like the official CS2 screen, runs on your map list, and stays out of the way until the match is over.
+When the match ends, players should pick the next map the way Valve intended - big pictures, a clear winner row, and a list you can actually browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: portrait map cards, a top row of maps that already have votes, filters by type and “most played”, favorites, and `!rtv` so the lobby can force a vote early. It looks like the official CS2 screen, runs on your map list, and stays out of the way until the match is over.
 
 ## Installation
 
@@ -26,7 +26,7 @@ When the match ends, players should pick the next map the way Valve intended —
 
 The game cannot load map pictures from the plugin folder. They have to live in a **Workshop addon** that the server mounts (step 2 above).
 
-We publish [that addon](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) and add new map pictures over time. A map with no picture still shows up with a plain placeholder. If you want your own art, publish your own addon with one picture per map — details are in the [developer docs](docs/images.md).
+We publish [that addon](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) and add new map pictures over time. A map with no picture still shows up with a plain placeholder. If you want your own art, publish your own addon with one picture per map - details are in the [developer docs](docs/images.md).
 
 ## How to use it
 

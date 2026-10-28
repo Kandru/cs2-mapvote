@@ -1,6 +1,6 @@
 # Map images
 
-Shipped Workshop addon (HUD + tiles): [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946). Mount via MultiAddonManager. Map pictures cannot live in the plugin folder — only in a mounted Workshop addon. Missing tile → `default.png` / class `mv-map-default`.
+Shipped Workshop addon (HUD + tiles): [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946). Mount via MultiAddonManager. Map pictures cannot live in the plugin folder - only in a mounted Workshop addon. Missing tile → `default.png` / class `mv-map-default`.
 
 Custom addons must ship the same Panorama image classes the HUD expects (`mv-map-map_{name}`, `mv-map-ws_{name}`). Layout/style sources: `workshop/content/` (`vote_v1.xml`, `hud_v1.vcss` ↔ `PanoramaVersion` in `Version.cs`). Copy into `csgo_addons/<addon>/`; publish compiles to `.vxml_c` / `.vcss_c`.
 

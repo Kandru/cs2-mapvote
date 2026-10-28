@@ -14,7 +14,7 @@ alwaysApply: false
 
 Read and follow these before editing HUD or image tooling:
 
-- [stuff/PANORAMA_RULESET.md](stuff/PANORAMA_RULESET.md) — binding ruleset for `custom_hud_layout` (allowed CSS, ids, fade, scroll lists)
-- Stock end-match vote layout/styles under `stuff/panorama/` — especially `layout/endofmatch-voting.xml`, `styles/endofmatch-voting.css`, `styles/endofmatch.css`
+- [stuff/PANORAMA_RULESET.md](stuff/PANORAMA_RULESET.md) - binding ruleset for `custom_hud_layout` (allowed CSS, ids, fade, scroll lists)
+- Stock end-match vote layout/styles under `stuff/panorama/` - especially `layout/endofmatch-voting.xml`, `styles/endofmatch-voting.css`, `styles/endofmatch.css`
 
 Run `make panorama` after XML/CSS changes. Layout edits require a workshop addon republish.

@@ -1,6 +1,6 @@
 {
   "rtv.already": "You already voted to change the map.",
-  "rtv.need": "{0} / {1} — more votes needed",
+  "rtv.need": "{0} / {1} - more votes needed",
   "rtv.success": "Rock the vote passed ({0}/{1}). The map will change soon.",
   "rtv.pending": "Rock the vote already passed. The map will change soon.",
   "rtv.closed": "A map vote is already running.",

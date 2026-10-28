@@ -91,7 +91,7 @@ WHEEL_HIT_PANEL_CLASSES = frozenset(
     }
 )
 
-# Ruleset §5.1 — custom_hud_layout subset (stuff/PANORAMA_RULESET.md).
+# Ruleset §5.1 - custom_hud_layout subset (stuff/PANORAMA_RULESET.md).
 KNOWN_PROPS = frozenset(
     {
         "width",

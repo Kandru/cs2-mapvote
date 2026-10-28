@@ -32,7 +32,7 @@ STOCK_SHOT_RE = re.compile(
 )
 
 # Source thumb size: 350×197 (16:9). The HUD covers by full tile height (193px)
-# and centers — see .MapShot background-size in hud.vcss (no stretch).
+# and centers - see .MapShot background-size in hud.vcss (no stretch).
 TARGET_WIDTH = 350
 TARGET_HEIGHT = 197  # round(350 * 9 / 16)
 DEFAULT_STEM = "default"

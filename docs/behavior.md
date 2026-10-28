@@ -8,8 +8,8 @@
 
 Intermission / win-panel events arm and start the vote ([`MapVote.Events.cs`](../src/MapVote/MapVote.Events.cs), [`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)).
 
-1. `ArmEngineVote` — if any votable map exists (or catalog still loading): hold the Valve vote closed (`EngineVotePrep.PrepareCustomVote`); else enable native CS2 end-match vote.
-2. `StartVote` — candidates from catalog + `maps_votable` (+ optional exclude current). Empty + not loading → native vote. Empty + loading → wait ≤2s, then native or custom.
+1. `ArmEngineVote` - if any votable map exists (or catalog still loading): hold the Valve vote closed (`EngineVotePrep.PrepareCustomVote`); else enable native CS2 end-match vote.
+2. `StartVote` - candidates from catalog + `maps_votable` (+ optional exclude current). Empty + not loading → native vote. Empty + loading → wait ≤2s, then native or custom.
 3. Custom path: open Panorama HUD, tick vote clock (`VoteClock` / `endmatch.vote_seconds`), then winner reveal (`winner_reveal_seconds`), then change map.
 
 Timing resolved in [`VoteClock`](../src/MapVote/Voting/VoteClock.cs). Session state: [`VoteSession`](../src/MapVote/Voting/VoteSession.cs).
@@ -22,7 +22,7 @@ Timing resolved in [`VoteClock`](../src/MapVote/Voting/VoteClock.cs). Session st
 
 - Layout path: `panorama/layout/custom_game/mapvote/vote_{PanoramaVersion}.vxml_c` (`PanoramaVersion` = `v1` in [`Version.cs`](../src/MapVote/Version.cs)).
 - Styles: `hud_v1` under workshop content; sources in `workshop/content/`.
-- Paint / clicks: [`VoteHud`](../src/MapVote/Huds/VoteHud.cs) + [`CustomHud`](../src/MapVote/Utils/CustomHud.cs) (`CheckTransmit`, dialog vars, classes, input capture). Fixed slot pools — see [PANORAMA_RULESET](../stuff/PANORAMA_RULESET.md).
+- Paint / clicks: [`VoteHud`](../src/MapVote/Huds/VoteHud.cs) + [`CustomHud`](../src/MapVote/Utils/CustomHud.cs) (`CheckTransmit`, dialog vars, classes, input capture). Fixed slot pools - see [PANORAMA_RULESET](../stuff/PANORAMA_RULESET.md).
 - Map tile classes: `mv-map-map_{name}` / `mv-map-ws_{name}` / `mv-map-default` ([images.md](images.md)).
 
 ## Localization

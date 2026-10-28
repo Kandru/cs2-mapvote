@@ -1,4 +1,4 @@
-/* AUTO-GENERATED from hud_v1.vcss — do not edit. Run: make panorama */
+/* AUTO-GENERATED from hud_v1.vcss - do not edit. Run: make panorama */
 
 /* Browser host only. Visual layout comes from the translated hud.vcss below. */
 @import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap");
@@ -43,7 +43,7 @@ button {
 }
 
 /* Panorama flow-children: none → CSS grid stack: every direct child shares the cell.
- * VoteTopBar / FilterChip use flex centering instead — do not force grid-area there. */
+ * VoteTopBar / FilterChip use flex centering instead - do not force grid-area there. */
 .VoteRoot > *,
 .VotedRow > *,
 .MapSlot > *,
@@ -170,7 +170,7 @@ button {
 
 /*
  * Panorama stacks flow-children:none via z-index. Chromium grid + transform on
- * .MapShot can paint the shot above .MapFade — pin shot/fade absolutely.
+ * .MapShot can paint the shot above .MapFade - pin shot/fade absolutely.
  */
 .MapTile {
   position: relative;
@@ -244,9 +244,9 @@ button {
 }
 
 /* ---- hud_v1.vcss (translated) ---- */
-/* MapVote HUD — CS2 end-of-match vote (ruleset-safe).
+/* MapVote HUD - CS2 end-of-match vote (ruleset-safe).
    Contract: vote_v1.xml / VoteIds.cs  Palette: surface #12171ee8→#0b0f14f2, accent #ff9a1a
-   Deviation: background-position 50% 50% on .MapShot only — centers the 350×197 cover crop (§5.1). */
+   Deviation: background-position 50% 50% on .MapShot only - centers the 350×197 cover crop (§5.1). */
 
 .HudScreen
 {

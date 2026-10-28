@@ -134,7 +134,7 @@ def quote_font_family(raw: str) -> str:
     if not name:
         return "font-family: sans-serif;"
     # Stratum2 is rarely installed; Barlow Condensed matches the condensed metric.
-    # Face weight is in the Panorama family name — browsers need an explicit weight.
+    # Face weight is in the Panorama family name - browsers need an explicit weight.
     stack = f'"{name}", "Barlow Condensed", "Arial Narrow", sans-serif'
     # Panorama bakes weight into the face name; browsers need an explicit weight.
     if "Bold" in name or name == "Stratum2":
@@ -329,7 +329,7 @@ button {
 }
 
 /* Panorama flow-children: none → CSS grid stack: every direct child shares the cell.
- * VoteTopBar / FilterChip use flex centering instead — do not force grid-area there. */
+ * VoteTopBar / FilterChip use flex centering instead - do not force grid-area there. */
 .VoteRoot > *,
 .VotedRow > *,
 .MapSlot > *,
@@ -456,7 +456,7 @@ button {
 
 /*
  * Panorama stacks flow-children:none via z-index. Chromium grid + transform on
- * .MapShot can paint the shot above .MapFade — pin shot/fade absolutely.
+ * .MapShot can paint the shot above .MapFade - pin shot/fade absolutely.
  */
 .MapTile {
   position: relative;
@@ -1068,7 +1068,7 @@ def sync() -> list[str]:
 
     css = translate_css(HUD_VCSS.read_text(encoding="utf-8"))
     OUT_CSS.write_text(
-        f"/* AUTO-GENERATED from {HUD_VCSS_NAME} — do not edit. Run: make panorama */\n"
+        f"/* AUTO-GENERATED from {HUD_VCSS_NAME} - do not edit. Run: make panorama */\n"
         + SHELL_CSS
         + f"\n/* ---- {HUD_VCSS_NAME} (translated) ---- */\n"
         + css

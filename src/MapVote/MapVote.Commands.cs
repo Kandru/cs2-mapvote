@@ -10,8 +10,8 @@ namespace MapVote
 {
     public partial class MapVote
     {
-        [ConsoleCommand("css_rtv", "Rock the vote — force the match toward the map vote.")]
-        [ConsoleCommand("rtv", "Rock the vote — force the match toward the map vote.")]
+        [ConsoleCommand("css_rtv", "Rock the vote - force the match toward the map vote.")]
+        [ConsoleCommand("rtv", "Rock the vote - force the match toward the map vote.")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void OnRtvCommand(CCSPlayerController? player, CommandInfo info)
         {
@@ -26,21 +26,21 @@ namespace MapVote
 
             if (VoteBusy)
             {
-                PluginLog.Info($"rtv failed: {label} — vote already running");
+                PluginLog.Info($"rtv failed: {label} - vote already running");
                 info.ReplyToCommand(Chat(Localizer["rtv.closed"]));
                 return;
             }
 
             if (_rtvPassed)
             {
-                PluginLog.Debug($"rtv ignored: {label} — already succeeded");
+                PluginLog.Debug($"rtv ignored: {label} - already succeeded");
                 info.ReplyToCommand(Chat(Localizer["rtv.pending"]));
                 return;
             }
 
             if (!_rtvVoters.Add(id))
             {
-                PluginLog.Info($"rtv failed: {label} — already voted");
+                PluginLog.Info($"rtv failed: {label} - already voted");
                 info.ReplyToCommand(Chat(Localizer["rtv.already"]));
                 return;
             }
@@ -55,7 +55,7 @@ namespace MapVote
                 return;
             }
 
-            PluginLog.Info($"rtv open: {label} — {have}/{need}");
+            PluginLog.Info($"rtv open: {label} - {have}/{need}");
             Server.PrintToChatAll(Chat(Localizer["rtv.need", have, need]));
         }
 
