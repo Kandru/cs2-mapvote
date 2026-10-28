@@ -977,9 +977,24 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_aim_abandoned_desert.vtex");
 }
 
+.mv-map-ws_aim_ag_texture_jungle
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_aim_ag_texture_jungle.vtex");
+}
+
+.mv-map-ws_aim_banana_paradise
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_aim_banana_paradise.vtex");
+}
+
 .mv-map-ws_aimdeagle
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_aimdeagle.vtex");
+}
+
+.mv-map-ws_awp_lego_2_winter
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_awp_lego_2_winter.vtex");
 }
 
 .mv-map-ws_bank
@@ -992,9 +1007,24 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cache.vtex");
 }
 
+.mv-map-ws_cs2_mansion
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs2_mansion.vtex");
+}
+
 .mv-map-ws_cs2_whiterun
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs2_whiterun.vtex");
+}
+
+.mv-map-ws_cs_agency
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_agency.vtex");
+}
+
+.mv-map-ws_cs_alpine
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_alpine.vtex");
 }
 
 .mv-map-ws_cs_basin
@@ -1012,6 +1042,21 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_compound.vtex");
 }
 
+.mv-map-ws_cs_crackhouse_remake_d_prefab
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_crackhouse_remake_d_prefab.vtex");
+}
+
+.mv-map-ws_cs_france_2
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_france_2.vtex");
+}
+
+.mv-map-ws_cs_militia
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_militia.vtex");
+}
+
 .mv-map-ws_cs_militia_css
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_cs_militia_css.vtex");
@@ -1027,14 +1072,49 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_all_in_one.vtex");
 }
 
+.mv-map-ws_de_assembly
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_assembly.vtex");
+}
+
 .mv-map-ws_de_austria
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_austria.vtex");
 }
 
+.mv-map-ws_de_austria_fi_d
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_austria_fi_d.vtex");
+}
+
+.mv-map-ws_de_bank
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_bank.vtex");
+}
+
+.mv-map-ws_de_basalt
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_basalt.vtex");
+}
+
 .mv-map-ws_de_bikinibottom
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_bikinibottom.vtex");
+}
+
+.mv-map-ws_de_brewery
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_brewery.vtex");
+}
+
+.mv-map-ws_de_burgdelre
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_burgdelre.vtex");
+}
+
+.mv-map-ws_de_cache
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_cache.vtex");
 }
 
 .mv-map-ws_de_cbble_united
@@ -1052,9 +1132,19 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_delivery.vtex");
 }
 
+.mv-map-ws_de_deliverywm_s2
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_deliverywm_s2.vtex");
+}
+
 .mv-map-ws_de_dogtown
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_dogtown.vtex");
+}
+
+.mv-map-ws_de_drawbridge_night
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_drawbridge_night.vtex");
 }
 
 .mv-map-ws_de_dust2_n
@@ -1065,6 +1155,11 @@
 .mv-map-ws_de_echolab
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_echolab.vtex");
+}
+
+.mv-map-ws_de_edin
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_edin.vtex");
 }
 
 .mv-map-ws_de_express
@@ -1087,6 +1182,11 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_flow.vtex");
 }
 
+.mv-map-ws_de_foroglio
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_foroglio.vtex");
+}
+
 .mv-map-ws_de_ganny
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_ganny.vtex");
@@ -1095,6 +1195,21 @@
 .mv-map-ws_de_golden
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_golden.vtex");
+}
+
+.mv-map-ws_de_gracia_d
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_gracia_d.vtex");
+}
+
+.mv-map-ws_de_grail
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_grail.vtex");
+}
+
+.mv-map-ws_de_jura
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_jura.vtex");
 }
 
 .mv-map-ws_de_kaya
@@ -1107,9 +1222,44 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_lake.vtex");
 }
 
+.mv-map-ws_de_lublin
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_lublin.vtex");
+}
+
+.mv-map-ws_de_mascot
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_mascot.vtex");
+}
+
+.mv-map-ws_de_memento
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_memento.vtex");
+}
+
+.mv-map-ws_de_mills
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_mills.vtex");
+}
+
 .mv-map-ws_de_mirage
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_mirage.vtex");
+}
+
+.mv-map-ws_de_mirage_d
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_mirage_d.vtex");
+}
+
+.mv-map-ws_de_mirage_night
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_mirage_night.vtex");
+}
+
+.mv-map-ws_de_mocha
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_mocha.vtex");
 }
 
 .mv-map-ws_de_nache
@@ -1122,6 +1272,11 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_nipperhouse.vtex");
 }
 
+.mv-map-ws_de_outferno
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_outferno.vtex");
+}
+
 .mv-map-ws_de_outferno_hd
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_outferno_hd.vtex");
@@ -1132,9 +1287,29 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_palacio.vtex");
 }
 
+.mv-map-ws_de_palais
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_palais.vtex");
+}
+
+.mv-map-ws_de_poseidon
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_poseidon.vtex");
+}
+
 .mv-map-ws_de_rails
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_rails.vtex");
+}
+
+.mv-map-ws_de_rainfall
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_rainfall.vtex");
+}
+
+.mv-map-ws_de_rooftop
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_rooftop.vtex");
 }
 
 .mv-map-ws_de_roon
@@ -1152,9 +1327,24 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_saint.vtex");
 }
 
+.mv-map-ws_de_sanctum
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_sanctum.vtex");
+}
+
+.mv-map-ws_de_scaped
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_scaped.vtex");
+}
+
 .mv-map-ws_de_short_anubis
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_short_anubis.vtex");
+}
+
+.mv-map-ws_de_shortdust
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_shortdust.vtex");
 }
 
 .mv-map-ws_de_splat
@@ -1162,9 +1352,49 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_splat.vtex");
 }
 
+.mv-map-ws_de_stronghold
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_stronghold.vtex");
+}
+
+.mv-map-ws_de_sugarcane
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_sugarcane.vtex");
+}
+
 .mv-map-ws_de_techrooms
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_techrooms.vtex");
+}
+
+.mv-map-ws_de_telum
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_telum.vtex");
+}
+
+.mv-map-ws_de_thera
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_thera.vtex");
+}
+
+.mv-map-ws_de_transit
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_transit.vtex");
+}
+
+.mv-map-ws_de_trash
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_trash.vtex");
+}
+
+.mv-map-ws_de_vault
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_vault.vtex");
+}
+
+.mv-map-ws_de_warden
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_warden.vtex");
 }
 
 .mv-map-ws_de_warehouse
@@ -1172,14 +1402,34 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_warehouse.vtex");
 }
 
+.mv-map-ws_de_waterfront
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_waterfront.vtex");
+}
+
 .mv-map-ws_de_waterfront_s2
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_waterfront_s2.vtex");
 }
 
+.mv-map-ws_de_whistle
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_whistle.vtex");
+}
+
 .mv-map-ws_de_wolfslair
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_wolfslair.vtex");
+}
+
+.mv-map-ws_de_zoo
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_de_zoo.vtex");
+}
+
+.mv-map-ws_dm_office_tower
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_dm_office_tower.vtex");
 }
 
 .mv-map-ws_dorf
@@ -1197,9 +1447,19 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_dust2.vtex");
 }
 
+.mv-map-ws_dust2_wingman_dark
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_dust2_wingman_dark.vtex");
+}
+
 .mv-map-ws_foroglio
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_foroglio.vtex");
+}
+
+.mv-map-ws_freya
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_freya.vtex");
 }
 
 .mv-map-ws_freya_full
@@ -1227,9 +1487,19 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_jovel.vtex");
 }
 
+.mv-map-ws_jovel_beta
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_jovel_beta.vtex");
+}
+
 .mv-map-ws_mansion
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_mansion.vtex");
+}
+
+.mv-map-ws_mc_lake
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_mc_lake.vtex");
 }
 
 .mv-map-ws_memento
@@ -1252,9 +1522,19 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_poseidon.vtex");
 }
 
+.mv-map-ws_rain
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_rain.vtex");
+}
+
 .mv-map-ws_rio
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_rio.vtex");
+}
+
+.mv-map-ws_scarab
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_scarab.vtex");
 }
 
 .mv-map-ws_scholar
@@ -1295,6 +1575,11 @@
 .mv-map-ws_vault
 {
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_vault.vtex");
+}
+
+.mv-map-ws_wg_catains
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_wg_catains.vtex");
 }
 
 /* END mv-map-palette */
