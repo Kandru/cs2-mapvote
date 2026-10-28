@@ -3,6 +3,13 @@ using System.Text.RegularExpressions;
 
 namespace MapVote.Maps
 {
+    public enum MapLineKind
+    {
+        Accept,
+        Skip,
+        Ignore,
+    }
+
     /// <summary>Pure filters for RCON <c>maps *</c> / mapgroup lines.</summary>
     public static partial class MapNameFilter
     {
@@ -23,17 +30,27 @@ namespace MapVote.Maps
         public static bool IsValidMapName(string mapName) =>
             !string.IsNullOrEmpty(mapName) && ValidMapName().IsMatch(mapName);
 
-        public static string? NormalizeLocalLine(string line)
+        public static string? NormalizeLocalLine(string line) =>
+            ClassifyLocalLine(line, out string? name) == MapLineKind.Accept ? name : null;
+
+        public static string? NormalizeMapgroupLine(string line) =>
+            ClassifyMapgroupLine(line, out string? name) == MapLineKind.Accept ? name : null;
+
+        /// <summary>
+        /// Blank → Ignore. Paths, denied substrings, invalid names → Skip. Valid map → Accept.
+        /// </summary>
+        public static MapLineKind ClassifyLocalLine(string line, out string? name)
         {
+            name = null;
             if (string.IsNullOrWhiteSpace(line))
             {
-                return null;
+                return MapLineKind.Ignore;
             }
 
             string trimmed = line.Trim();
             if (trimmed.Contains('/') || trimmed.Contains('\\'))
             {
-                return null;
+                return MapLineKind.Skip;
             }
 
             string lower = trimmed.ToLowerInvariant();
@@ -46,33 +63,50 @@ namespace MapVote.Maps
             {
                 if (lower.Contains(denied, StringComparison.Ordinal))
                 {
-                    return null;
+                    return MapLineKind.Skip;
                 }
             }
 
-            return ValidMapName().IsMatch(lower) ? lower : null;
+            if (!ValidMapName().IsMatch(lower))
+            {
+                return MapLineKind.Skip;
+            }
+
+            name = lower;
+            return MapLineKind.Accept;
         }
 
-        public static string? NormalizeMapgroupLine(string line)
+        /// <summary>
+        /// Blank, mapgroup headers (<c>:</c>), and empty-list messages → Ignore.
+        /// Invalid names → Skip. Valid map → Accept.
+        /// </summary>
+        public static MapLineKind ClassifyMapgroupLine(string line, out string? name)
         {
+            name = null;
             if (string.IsNullOrWhiteSpace(line))
             {
-                return null;
+                return MapLineKind.Ignore;
             }
 
             string trimmed = line.Trim();
             if (trimmed.Contains(':'))
             {
-                return null;
+                return MapLineKind.Ignore;
             }
 
             if (trimmed.Contains("No maps in mapgroup map list", StringComparison.OrdinalIgnoreCase))
             {
-                return null;
+                return MapLineKind.Ignore;
             }
 
             string lower = trimmed.ToLower(CultureInfo.InvariantCulture);
-            return ValidMapName().IsMatch(lower) ? lower : null;
+            if (!ValidMapName().IsMatch(lower))
+            {
+                return MapLineKind.Skip;
+            }
+
+            name = lower;
+            return MapLineKind.Accept;
         }
 
         public static string SanitizeCssStem(string mapName)

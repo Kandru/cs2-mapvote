@@ -35,6 +35,47 @@ public class MapNameFilterTests
         Assert.Equal(expected, MapNameFilter.NormalizeMapgroupLine(input));
     }
 
+    [Theory]
+    [InlineData("lobby", MapLineKind.Skip)]
+    [InlineData("maps/de_dust2", MapLineKind.Skip)]
+    [InlineData("bad name", MapLineKind.Skip)]
+    [InlineData("", MapLineKind.Ignore)]
+    [InlineData("   ", MapLineKind.Ignore)]
+    [InlineData("de_dust2", MapLineKind.Accept)]
+    public void ClassifyLocalLine(string input, MapLineKind expected)
+    {
+        MapLineKind kind = MapNameFilter.ClassifyLocalLine(input, out string? name);
+        Assert.Equal(expected, kind);
+        if (expected == MapLineKind.Accept)
+        {
+            Assert.Equal("de_dust2", name);
+        }
+        else
+        {
+            Assert.Null(name);
+        }
+    }
+
+    [Theory]
+    [InlineData("MapGroup: mg_foo", MapLineKind.Ignore)]
+    [InlineData("No maps in mapgroup map list", MapLineKind.Ignore)]
+    [InlineData("", MapLineKind.Ignore)]
+    [InlineData("bad name", MapLineKind.Skip)]
+    [InlineData("de_safehouse", MapLineKind.Accept)]
+    public void ClassifyMapgroupLine(string input, MapLineKind expected)
+    {
+        MapLineKind kind = MapNameFilter.ClassifyMapgroupLine(input, out string? name);
+        Assert.Equal(expected, kind);
+        if (expected == MapLineKind.Accept)
+        {
+            Assert.Equal("de_safehouse", name);
+        }
+        else
+        {
+            Assert.Null(name);
+        }
+    }
+
     [Fact]
     public void SanitizeCssStem_FallsBackToDefault()
     {
