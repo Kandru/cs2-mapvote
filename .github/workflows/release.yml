@@ -20,12 +20,11 @@ jobs:
     steps:
     - name: Get Repository Name
       run: echo "REPOSITORY_NAME=`basename ${{ github.repository }}`" >> $GITHUB_ENV
-
+  
     - name: Checkout Repository
       uses: actions/checkout@v2
       with:
         fetch-depth: 0  # Fetch all history for all branches and tags
-        submodules: true
 
     - name: Get Current Project Version Number From Version.cs
       id: get_version
@@ -48,19 +47,9 @@ jobs:
           echo "new_version=false" >> $GITHUB_ENV
         fi
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v2
-      if: env.new_version == 'true'
-      with:
-        dotnet-version: '10.0.x'
-
-    - name: Install Dependencies
-      if: env.new_version == 'true'
-      run: dotnet restore
-
     - name: Build ${{ env.REPOSITORY_NAME }}
       if: env.new_version == 'true'
-      run: dotnet publish -c Release
+      run: make release
 
     - name: Prepare ${{ env.REPOSITORY_NAME }}.info
       if: env.new_version == 'true'
@@ -112,3 +101,18 @@ jobs:
         asset_path: /home/runner/work/${{ env.REPOSITORY_NAME }}-release-${{ env.version }}.zip
         asset_name: ${{ env.REPOSITORY_NAME }}-release-${{ env.version }}.zip
         asset_content_type: application/zip
+
+    - name: Delete Old Releases (Keep Last 5)
+      if: env.new_version == 'true'
+      run: |
+        releases=$(curl -s -H "Authorization: token ${{ secrets.UPLOAD_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases?per_page=100" | \
+          jq -r '.[] | .id')
+        
+        release_ids=($releases)
+        releases_to_delete=${release_ids[@]:4}
+        
+        for release_id in $releases_to_delete; do
+          curl -X DELETE -H "Authorization: token ${{ secrets.UPLOAD_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
+        done
