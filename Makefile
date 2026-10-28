@@ -28,7 +28,7 @@ DOCKER_RUN = docker run --rm \
 
 .DEFAULT_GOAL := help
 
-.PHONY: help debug release restore clean dirs panorama images images-check test
+.PHONY: help debug release restore clean dirs panorama images images-check images-opt test
 
 help: ## Show this help
 	@echo "CS2 MapVote"
@@ -73,6 +73,21 @@ images: ## Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csgo)
 
 images-check: ## Rewrite map tiles that are not 350×197 PNG (center-crop, no stretch)
 	python3 tools/check_map_images.py
+
+# Lossless recompress (deflate + filters). Pixels stay identical; safe metadata is stripped.
+images-opt: ## Lossless-compress PNG files in place (needs oxipng)
+	@command -v oxipng >/dev/null || { \
+		echo "oxipng is required (lossless). Install it, then re-run make images-opt."; \
+		echo "  Arch: sudo pacman -S oxipng"; \
+		exit 1; \
+	}
+	@find . \
+		-path './.git' -prune -o \
+		-path './bin' -prune -o \
+		-path './obj' -prune -o \
+		-path './tools/.cache' -prune -o \
+		-type f -name '*.png' -print0 \
+	| xargs -0 -r oxipng -o 4 --strip safe --alpha
 
 images-css: ## Rebuild stock/palette VCSS (+ preview) from PNGs on disk only
 	python3 tools/extract_workshop_images.py --css-only
