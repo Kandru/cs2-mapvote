@@ -36,6 +36,7 @@ namespace MapVote
         private readonly HashSet<ulong> _rtvVoters = [];
         private bool _rtvPassed;
         private bool _nativeVoteArmed;
+        private bool _winPanelSeen;
         private bool _unloaded;
         private readonly Dictionary<int, ulong> _steamBySlot = [];
 

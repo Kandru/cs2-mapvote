@@ -14,12 +14,12 @@ namespace MapVote
             _rtvVoters.Clear();
             _rtvPassed = false;
             _nativeVoteArmed = false;
+            _winPanelSeen = false;
             _steamBySlot.Clear();
             EndVoteUi();
             CustomHud.ResetRound();
             LoadPersistence();
             ArmEngineVote();
-            _catalog.RequestRefresh();
             PluginLog.Debug($"map start {mapName}");
         }
 
@@ -44,12 +44,14 @@ namespace MapVote
                 return;
             }
 
-            PluginLog.Debug("intermission: preparing vote");
+            PluginLog.Debug("intermission: refreshing map list");
+            _catalog.RequestRefresh();
             StartVote();
         }
 
         private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
         {
+            _winPanelSeen = true;
             PluginLog.Debug("WinPanel: starting vote");
             ShowVoteHud();
             return HookResult.Continue;

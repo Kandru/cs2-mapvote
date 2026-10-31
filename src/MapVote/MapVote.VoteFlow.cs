@@ -12,7 +12,7 @@ namespace MapVote
     public partial class MapVote
     {
         private const float CatalogWaitIntervalSeconds = 0.25f;
-        private const int CatalogWaitMaxSeconds = 2;
+        private const int CatalogWaitMaxSeconds = 3;
 
         private bool VoteBusy => _voteActive || _revealActive || _catalogWaitTimer is not null;
 
@@ -27,7 +27,11 @@ namespace MapVote
         private void ArmEngineVote()
         {
             VoteTiming timing = VoteClock.Resolve(Config.Endmatch);
-            if (_catalog.IsLoading || MapVisibility.AnyShown(_catalog.Maps, Config.MapsVotable))
+            // Empty at map start is not final — intermission refreshes the list.
+            // Keep the longer custom hold so a late list is not cut off by the native timer.
+            if (_catalog.Maps.Count == 0
+                || _catalog.IsLoading
+                || MapVisibility.AnyShown(_catalog.Maps, Config.MapsVotable))
             {
                 EngineVotePrep.PrepareCustomVote(timing.EngineHoldSeconds);
                 _nativeVoteArmed = false;
@@ -42,7 +46,7 @@ namespace MapVote
 
             EngineVotePrep.PrepareNativeVote(timing.OpenSeconds);
             _nativeVoteArmed = true;
-            PluginLog.Info($"catalog empty or no votable maps; enabling Valve end-match vote ({timing.OpenSeconds}s)");
+            PluginLog.Info($"no votable maps; enabling Valve end-match vote ({timing.OpenSeconds}s)");
         }
 
         private void StartVote()
@@ -57,16 +61,8 @@ namespace MapVote
             _scheduleEpochUtc = DateTime.UtcNow;
             _timing = VoteClock.Resolve(Config.Endmatch);
 
-            List<MapEntry> maps = SelectCandidates();
-            if (maps.Count > 0)
+            if (TryBeginFromCatalog())
             {
-                BeginVote(maps);
-                return;
-            }
-
-            if (!_catalog.IsLoading)
-            {
-                EnableNativeVote("catalog empty and not loading");
                 return;
             }
 
@@ -76,27 +72,39 @@ namespace MapVote
 
         private void OnCatalogWaitTick()
         {
-            if (_catalogWaitTimer is null)
+            if (_catalogWaitTimer is null || TryBeginFromCatalog())
             {
                 return;
+            }
+
+            if (RemainingUntil(CatalogWaitMaxSeconds) <= 0f)
+            {
+                EnableNativeVote("catalog still empty after wait");
+            }
+        }
+
+        /// <summary>
+        /// Starts the vote once the intermission refresh has finished.
+        /// Returns false while that refresh is still in flight.
+        /// </summary>
+        private bool TryBeginFromCatalog()
+        {
+            if (_catalog.IsLoading)
+            {
+                return false;
             }
 
             List<MapEntry> maps = SelectCandidates();
             if (maps.Count > 0)
             {
                 KillCatalogWaitTimer();
-                PluginLog.Debug("catalog wait succeeded");
+                PluginLog.Debug("intermission map list ready");
                 BeginVote(maps);
-                return;
+                return true;
             }
 
-            if (!_catalog.IsLoading || RemainingUntil(CatalogWaitMaxSeconds) <= 0f)
-            {
-                string reason = !_catalog.IsLoading
-                    ? "catalog empty and not loading"
-                    : "catalog still empty after wait";
-                EnableNativeVote(reason);
-            }
+            EnableNativeVote("catalog empty after intermission refresh");
+            return true;
         }
 
         private void EnableNativeVote(string reason)
@@ -140,6 +148,11 @@ namespace MapVote
             PluginLog.Info($"map voting started ({maps.Count} maps)");
             PluginLog.Debug(
                 $"vote armed: maps=[{string.Join(", ", maps.Select(static m => m.Name))}] open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s hold={_timing.EngineHoldSeconds}s (hud waits for win panel)");
+
+            if (_winPanelSeen)
+            {
+                ShowVoteHud();
+            }
         }
 
         /// <summary>
