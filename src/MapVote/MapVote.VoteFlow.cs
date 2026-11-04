@@ -15,7 +15,8 @@ namespace MapVote
             VoteClock.SecondsUntil(_scheduleEpochUtc, offsetSeconds, DateTime.UtcNow);
 
         /// <summary>
-        /// Prefer our overlay unless every catalog map is disabled (then enable the Valve vote).
+        /// When every catalog map is disabled, arm the Valve vote early.
+        /// Otherwise leave cvars alone until the win panel (do not disable native vote).
         /// Does not write <c>mp_match_restart_delay</c>.
         /// </summary>
         private void ArmEngineVote()
@@ -24,9 +25,8 @@ namespace MapVote
                 || _catalog.IsLoading
                 || MapVisibility.AnyShown(_catalog.Maps, Config.MapsVotable))
             {
-                EngineVotePrep.PrepareCustomVote();
                 _nativeVoteArmed = false;
-                PluginLog.Debug("engine vote: custom (native vote off)");
+                PluginLog.Debug("engine vote: defer to win panel");
                 return;
             }
 
@@ -35,15 +35,14 @@ namespace MapVote
                 return;
             }
 
-            int open = VoteClock.NativeVoteSeconds(Config.Endmatch);
-            EngineVotePrep.PrepareNativeVote(open);
+            EngineVotePrep.ArmNativeVote();
             _nativeVoteArmed = true;
-            PluginLog.Info($"no votable maps; enabling Valve end-match vote ({open}s)");
+            PluginLog.Info("no votable maps; enabling Valve end-match vote");
         }
 
         /// <summary>
-        /// Win-panel entry: disable the Valve vote, refresh the catalog inside the panel budget,
-        /// then open the HUD once that refresh settles.
+        /// Win-panel entry: apply overrides, arm the Valve vote, refresh the catalog during
+        /// the panel, then open our HUD after <c>mp_win_panel_display_time</c> when maps are ready.
         /// </summary>
         private void BeginEndMatchFromWinPanel()
         {
@@ -57,23 +56,50 @@ namespace MapVote
             _rtvVoters.Clear();
 
             _scheduleEpochUtc = DateTime.UtcNow;
-            _panelSeconds = VoteClock.ReadPanelSeconds(ConVars.ReadFloat);
-            int queryBudget = VoteClock.QueryBudgetSeconds(
+            _pendingCandidates = null;
+            _panelElapsed = false;
+
+            EngineVotePrep.ApplyEndMatchOverrides(
+                Config.Endmatch.VoteSeconds,
+                Config.Endmatch.WinPanelDisplayTime);
+            EngineVotePrep.ArmNativeVote();
+            _nativeVoteArmed = true;
+
+            // Prefer config overrides for the schedule; ExecuteCommand may not update ConVar reads yet.
+            _panelSeconds = Config.Endmatch.WinPanelDisplayTime is float panelOverride
+                ? Math.Max(0, (int)Math.Ceiling(panelOverride))
+                : VoteClock.ReadPanelSeconds(ConVars.ReadFloat);
+            _voteSeconds = Config.Endmatch.VoteSeconds is int voteOverride
+                ? Math.Max(1, voteOverride)
+                : VoteClock.ReadVoteSeconds(ConVars.ReadFloat);
+            _timing = VoteClock.ResolveCustom(
                 _panelSeconds,
-                Math.Max(0, Config.Endmatch.CatalogWaitSeconds),
+                _voteSeconds,
                 Config.Endmatch.WinnerRevealSeconds);
 
-            EngineVotePrep.PrepareCustomVote();
-            _nativeVoteArmed = false;
+            int catalogTimeout = VoteClock.CatalogTimeoutSeconds(_panelSeconds);
             _catalogPreparing = true;
             _catalogGeneration = _catalog.Generation;
 
             PluginLog.Debug(
-                $"win panel: panel={_panelSeconds}s query_budget={queryBudget}s generation={_catalogGeneration}");
+                $"win panel: panel={_panelSeconds}s vote={_voteSeconds}s catalog_timeout={catalogTimeout}s " +
+                $"open≈{_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s " +
+                $"generation={_catalogGeneration}");
 
             KillCatalogWaitTimer();
-            _catalogWaitTimer = AddTimer(Math.Max(0.25f, queryBudget + 0.5f), OnCatalogWatchdog);
-            _catalog.RequestRefresh(queryBudget);
+            KillPanelOpenTimer();
+            _catalogWaitTimer = AddTimer(Math.Max(0.25f, catalogTimeout + 0.5f), OnCatalogWatchdog);
+            _catalog.RequestRefresh(catalogTimeout);
+
+            float untilPanel = RemainingUntil(_panelSeconds);
+            if (untilPanel <= 0f)
+            {
+                OnPanelElapsed();
+            }
+            else
+            {
+                _panelOpenTimer = AddTimer(untilPanel, OnPanelElapsed);
+            }
         }
 
         private void OnCatalogWatchdog()
@@ -97,14 +123,7 @@ namespace MapVote
             }
 
             KillCatalogWaitTimer();
-            _catalogPreparing = false;
             SyncMapsVotable(maps);
-
-            float queryElapsed = (float)(DateTime.UtcNow - _scheduleEpochUtc).TotalSeconds;
-            _timing = VoteClock.ResolveCustom(
-                _panelSeconds,
-                Config.Endmatch.WinnerRevealSeconds,
-                queryElapsed);
 
             List<MapEntry> candidates = SelectCandidates();
             if (candidates.Count == 0)
@@ -113,18 +132,52 @@ namespace MapVote
                 return;
             }
 
+            float queryElapsed = (float)(DateTime.UtcNow - _scheduleEpochUtc).TotalSeconds;
+            _pendingCandidates = candidates;
             PluginLog.Debug(
-                $"win-panel map list ready: query={queryElapsed:0.###}s open≈{_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
-            BeginVote(candidates);
+                $"win-panel map list ready: query={queryElapsed:0.###}s maps={candidates.Count} " +
+                $"panel_elapsed={_panelElapsed} open≈{_timing.OpenSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
+
+            if (_panelElapsed)
+            {
+                BeginVote(candidates);
+            }
+        }
+
+        private void OnPanelElapsed()
+        {
+            _panelOpenTimer = null;
+            if (_unloaded || !_catalogPreparing || _voteActive || _revealActive)
+            {
+                return;
+            }
+
+            _panelElapsed = true;
+
+            if (_pendingCandidates is { Count: > 0 } candidates)
+            {
+                BeginVote(candidates);
+                return;
+            }
+
+            // Panel is only the earliest open time. While RCON is still running, keep waiting;
+            // settle / watchdog decides custom vs leaving the already-armed native vote.
+            if (_catalog.IsLoading || _catalogWaitTimer is not null)
+            {
+                PluginLog.Debug("win panel elapsed; waiting for catalog");
+                return;
+            }
+
+            EnableNativeVote("no candidates when win panel elapsed");
         }
 
         private void EnableNativeVote(string reason)
         {
             KillCatalogWaitTimer();
+            KillPanelOpenTimer();
             _catalogPreparing = false;
-            int open = VoteClock.NativeVoteSeconds(Config.Endmatch);
-            PluginLog.Info($"vote skipped: {reason}; enabling Valve end-match vote ({open}s)");
-            EngineVotePrep.PrepareNativeVote(open);
+            _pendingCandidates = null;
+            PluginLog.Info($"vote skipped: {reason}; leaving Valve end-match vote armed");
             _nativeVoteArmed = true;
         }
 
@@ -136,7 +189,9 @@ namespace MapVote
             }
 
             KillCatalogWaitTimer();
+            KillPanelOpenTimer();
             _catalogPreparing = false;
+            _pendingCandidates = null;
             SuppressNativeVoteSlots();
 
             _session = new VoteSession(maps.Select(static m => m.Name).ToList());
@@ -165,8 +220,8 @@ namespace MapVote
         }
 
         /// <summary>
-        /// Opens the overlay after the catalog settled. Timers are pinned to the win-panel epoch
-        /// so <c>changelevel</c> stays at panel − 1s regardless of query length.
+        /// Opens the overlay after the win panel. Timers are pinned to the win-panel epoch
+        /// so <c>changelevel</c> stays at <c>mp_endmatch_votenextleveltime</c> − 1s.
         /// </summary>
         private void ShowVoteHud()
         {
@@ -312,7 +367,10 @@ namespace MapVote
         {
             KillOpenTimers();
             KillCatalogWaitTimer();
+            KillPanelOpenTimer();
             _catalogPreparing = false;
+            _panelElapsed = false;
+            _pendingCandidates = null;
             _revealTimer?.Kill();
             _revealTimer = null;
             _voteActive = false;
@@ -333,6 +391,12 @@ namespace MapVote
         {
             _catalogWaitTimer?.Kill();
             _catalogWaitTimer = null;
+        }
+
+        private void KillPanelOpenTimer()
+        {
+            _panelOpenTimer?.Kill();
+            _panelOpenTimer = null;
         }
 
         private void OpenVoteHudForJoiner(CCSPlayerController player)

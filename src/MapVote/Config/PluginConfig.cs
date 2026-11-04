@@ -27,18 +27,22 @@ namespace MapVote.Config
         [JsonPropertyName("exclude_current_map")]
         public bool ExcludeCurrentMap { get; set; } = true;
 
+        /// <summary>
+        /// When set, written to <c>mp_endmatch_votenextleveltime</c> on the win-panel event.
+        /// Null leaves the server cvar alone.
+        /// </summary>
         [JsonPropertyName("vote_seconds")]
-        public int VoteSeconds { get; set; } = 15;
+        public int? VoteSeconds { get; set; }
+
+        /// <summary>
+        /// When set, written to <c>mp_win_panel_display_time</c> on the win-panel event.
+        /// Null leaves the server cvar alone.
+        /// </summary>
+        [JsonPropertyName("win_panel_display_time")]
+        public float? WinPanelDisplayTime { get; set; }
 
         [JsonPropertyName("winner_reveal_seconds")]
         public int WinnerRevealSeconds { get; set; } = 5;
-
-        /// <summary>
-        /// Max seconds to retry RCON map-list queries on the win panel.
-        /// Capped further by the remaining win-panel budget. 0 = one attempt.
-        /// </summary>
-        [JsonPropertyName("catalog_wait_seconds")]
-        public int CatalogWaitSeconds { get; set; } = 8;
     }
 
     public sealed class RtvConfig

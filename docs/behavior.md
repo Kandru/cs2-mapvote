@@ -4,18 +4,18 @@
 
 [`MapCatalog`](../src/MapVote/Maps/MapCatalog.cs) loads maps over localhost RCON (`127.0.0.1`, server port + `rcon_password`). Empty password → no load (logged once). Commands: `maps *` (local) and `print_mapgroup_sv` (workshop); merge capped at `MaxMaps` (100). Keys in config use `map_` / `ws_` from [`MapOrigin`](../src/MapVote/Maps/MapEntry.cs).
 
-Refresh runs on the match win panel (not on plugin load / map start). The worker retries until both replies look ready ([`MapListReadiness`](../src/MapVote/Maps/MapListReadiness.cs)) or `endmatch.catalog_wait_seconds` elapses (further capped by the win-panel budget). A blank or banner-only body is not published over a previous good list. Worker thread → `Server.NextFrame` for `maps_votable` sync and vote start. A generation counter invalidates late callbacks across map changes.
+Refresh runs on the match win panel (not on plugin load / map start). The worker retries until both replies look ready ([`MapListReadiness`](../src/MapVote/Maps/MapListReadiness.cs)) or the catalog timeout elapses: `max(2, mp_win_panel_display_time − 1)` (or 2s when the panel is 0). A blank or banner-only body is not published over a previous good list. Worker thread → `Server.NextFrame` for `maps_votable` sync and vote start. A generation counter invalidates late callbacks across map changes.
 
 ## End-match vote
 
 Only [`EventCsWinPanelMatch`](../src/MapVote/MapVote.cs) starts the vote ([`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)). `EventCsIntermission` fires earlier and only closes RTV until the next map; the win panel remains the menu trigger.
 
-1. `ArmEngineVote` (map start / RTV) - if any votable map exists (or catalog still loading / empty): turn the Valve vote off (`EngineVotePrep.PrepareCustomVote`); else enable native CS2 end-match vote. Does not write `mp_match_restart_delay` or `mp_win_panel_display_time`.
-2. Win panel - turn native vote off, start a catalog refresh inside the query budget, wait for that refresh (or a short watchdog).
-3. Settled list with candidates - open the Panorama HUD. Vote length is whatever time remains before the winner reveal inside the owner's `mp_win_panel_display_time` (not `endmatch.vote_seconds`). Then reveal (`winner_reveal_seconds`), then `changelevel` one second before the panel ends.
-4. Settled empty / no candidates - enable the Valve vote; `endmatch.vote_seconds` is how long that UI accepts clicks (`mp_endmatch_votenextleveltime` only).
+1. `ArmEngineVote` (map start / RTV) - if every catalog map is disabled: arm the Valve vote. Otherwise do nothing (do not disable native vote early). Does not write `mp_match_restart_delay`, `mp_win_panel_display_time`, or `mp_endmatch_votenextleveltime`.
+2. Win panel (synchronous, first) - optionally write config overrides for the win panel / vote duration; arm `mp_endmatch_votenextmap 1` and `mp_match_end_restart 0`; start the catalog refresh during the panel.
+3. After `mp_win_panel_display_time`, if candidates are ready - blank native vote slots and open the Panorama HUD. Vote + winner reveal fit inside `mp_endmatch_votenextleveltime − 1 − panel`. Then `changelevel` at `mp_endmatch_votenextleveltime − 1`.
+4. Empty catalog / no candidates (or settle after we already gave up) - leave the Valve vote that was armed on the win-panel event; do not rewrite its duration after the fact.
 
-Master clock: read `mp_win_panel_display_time` (example 60s). Schedule from the win-panel epoch via [`VoteClock.ResolveCustom`](../src/MapVote/Voting/VoteClock.cs): changelevel at panel−1s; reveal immediately before that; vote fills the rest after the query. Session state: [`VoteSession`](../src/MapVote/Voting/VoteSession.cs).
+Master clock: from the win-panel epoch via [`VoteClock.ResolveCustom`](../src/MapVote/Voting/VoteClock.cs). Menu opens at the panel delay; `changelevel` at vote-cvar − 1s; reveal is reserved at the end of that span; clicks fill the rest. Session state: [`VoteSession`](../src/MapVote/Voting/VoteSession.cs).
 
 ## RTV
 

@@ -10,24 +10,31 @@ namespace MapVote.Voting
         public const int EmptyVoteSlot = -1;
 
         /// <summary>
-        /// Disables the Valve end-match vote and same-map restart so the plugin can
-        /// show its own menu and <c>changelevel</c>. Does not write
-        /// <c>mp_match_restart_delay</c> or <c>mp_win_panel_display_time</c>.
+        /// Optionally writes <c>mp_win_panel_display_time</c> and
+        /// <c>mp_endmatch_votenextleveltime</c>. Null means leave the server cvar alone.
+        /// Does not write <c>mp_match_restart_delay</c>.
         /// </summary>
-        public static void PrepareCustomVote()
+        public static void ApplyEndMatchOverrides(int? voteSeconds, float? winPanelDisplayTime)
         {
-            Server.ExecuteCommand("mp_endmatch_votenextmap 0");
-            Server.ExecuteCommand("mp_match_end_restart 0");
+            if (winPanelDisplayTime is not null)
+            {
+                Server.ExecuteCommand($"mp_win_panel_display_time {winPanelDisplayTime.Value}");
+            }
+
+            if (voteSeconds is not null)
+            {
+                Server.ExecuteCommand($"mp_endmatch_votenextleveltime {Math.Max(1, voteSeconds.Value)}");
+            }
         }
 
         /// <summary>
-        /// Enables the Valve end-match vote. Sets how long that UI accepts clicks.
-        /// Does not write <c>mp_match_restart_delay</c> (same-map restart countdown only).
+        /// Enables the Valve end-match vote and disables same-map restart so the end-match
+        /// timer owns the post-panel window. Does not write vote duration or the win panel.
         /// </summary>
-        public static void PrepareNativeVote(int voteSeconds)
+        public static void ArmNativeVote()
         {
             Server.ExecuteCommand("mp_endmatch_votenextmap 1");
-            Server.ExecuteCommand($"mp_endmatch_votenextleveltime {voteSeconds}");
+            Server.ExecuteCommand("mp_match_end_restart 0");
         }
 
         /// <summary>
