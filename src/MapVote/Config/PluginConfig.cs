@@ -32,6 +32,13 @@ namespace MapVote.Config
 
         [JsonPropertyName("winner_reveal_seconds")]
         public int WinnerRevealSeconds { get; set; } = 5;
+
+        /// <summary>
+        /// Max seconds to retry RCON map-list queries on the win panel.
+        /// Capped further by the remaining win-panel budget. 0 = one attempt.
+        /// </summary>
+        [JsonPropertyName("catalog_wait_seconds")]
+        public int CatalogWaitSeconds { get; set; } = 8;
     }
 
     public sealed class RtvConfig

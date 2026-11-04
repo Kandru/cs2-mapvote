@@ -27,6 +27,9 @@ namespace MapVote
         private CssTimer? _revealTimer;
         private CssTimer? _catalogWaitTimer;
         private DateTime _scheduleEpochUtc;
+        private int _panelSeconds = VoteClock.DefaultPanelSeconds;
+        private int _catalogGeneration;
+        private bool _catalogPreparing;
         private bool _voteActive;
         private bool _voteHudOpen;
         private bool _revealActive;
@@ -36,7 +39,6 @@ namespace MapVote
         private readonly HashSet<ulong> _rtvVoters = [];
         private bool _rtvPassed;
         private bool _nativeVoteArmed;
-        private bool _winPanelSeen;
         private bool _unloaded;
         private readonly Dictionary<int, ulong> _steamBySlot = [];
 
@@ -64,12 +66,10 @@ namespace MapVote
             RegisterListener<Listeners.OnTick>(OnTick);
             RegisterListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
 
-            RegisterEventHandler<EventCsIntermission>(OnIntermission);
             RegisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
 
-            _catalog.RequestRefresh();
             if (hotReload)
             {
                 ArmEngineVote();
@@ -80,6 +80,7 @@ namespace MapVote
         {
             PluginLog.Debug($"unload (hotReload={hotReload})");
             _unloaded = true;
+            _catalog?.Invalidate();
             EndVoteUi();
             SavePersistence();
             CustomHud.Shutdown();
@@ -90,9 +91,15 @@ namespace MapVote
             RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
         }
 
-        private void OnCatalogLoaded(IReadOnlyList<MapEntry> maps) =>
+        private void OnCatalogLoaded(IReadOnlyList<MapEntry> maps, int generation) =>
             // RCON worker thread → main thread for config I/O and Server APIs.
-            Server.NextFrame(() => SyncMapsVotable(maps));
+            Server.NextFrame(() =>
+            {
+                if (!_unloaded && _catalogPreparing && generation == _catalogGeneration)
+                {
+                    OnCatalogSettled(maps, generation);
+                }
+            });
 
         private void SyncMapsVotable(IReadOnlyList<MapEntry> maps)
         {

@@ -2,17 +2,20 @@
 
 ## Catalog
 
-[`MapCatalog`](../src/MapVote/Maps/MapCatalog.cs) loads maps over localhost RCON (`127.0.0.1`, server port + `rcon_password`). Empty password → no load (logged once). Commands: `maps *` (local) and `print_mapgroup_sv` (workshop); merge capped at `MaxMaps` (100). Keys in config use `map_` / `ws_` from [`MapOrigin`](../src/MapVote/Maps/MapEntry.cs). Refresh on load; worker thread → `Server.NextFrame` for `maps_votable` sync.
+[`MapCatalog`](../src/MapVote/Maps/MapCatalog.cs) loads maps over localhost RCON (`127.0.0.1`, server port + `rcon_password`). Empty password → no load (logged once). Commands: `maps *` (local) and `print_mapgroup_sv` (workshop); merge capped at `MaxMaps` (100). Keys in config use `map_` / `ws_` from [`MapOrigin`](../src/MapVote/Maps/MapEntry.cs).
+
+Refresh runs on the match win panel (not on plugin load / map start). The worker retries until both replies look ready ([`MapListReadiness`](../src/MapVote/Maps/MapListReadiness.cs)) or `endmatch.catalog_wait_seconds` elapses (further capped by the win-panel budget). A blank or banner-only body is not published over a previous good list. Worker thread → `Server.NextFrame` for `maps_votable` sync and vote start. A generation counter invalidates late callbacks across map changes.
 
 ## End-match vote
 
-Intermission / win-panel events arm and start the vote ([`MapVote.Events.cs`](../src/MapVote/MapVote.Events.cs), [`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)).
+Only [`EventCsWinPanelMatch`](../src/MapVote/MapVote.Events.cs) starts the vote ([`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)). `EventCsIntermission` is not used (it always fires first; the win panel is the menu trigger).
 
-1. `ArmEngineVote` - if any votable map exists (or catalog still loading): hold the Valve vote closed (`EngineVotePrep.PrepareCustomVote`); else enable native CS2 end-match vote.
-2. `StartVote` - candidates from catalog + `maps_votable` (+ optional exclude current). Empty + not loading → native vote. Empty + loading → wait ≤2s, then native or custom.
-3. Custom path: open Panorama HUD, tick vote clock (`VoteClock` / `endmatch.vote_seconds`), then winner reveal (`winner_reveal_seconds`), then change map.
+1. `ArmEngineVote` (map start / RTV) - if any votable map exists (or catalog still loading / empty): turn the Valve vote off (`EngineVotePrep.PrepareCustomVote`); else enable native CS2 end-match vote. Does not write `mp_match_restart_delay` or `mp_win_panel_display_time`.
+2. Win panel - turn native vote off, start a catalog refresh inside the query budget, wait for that refresh (or a short watchdog).
+3. Settled list with candidates - open the Panorama HUD. Vote length is whatever time remains before the winner reveal inside the owner's `mp_win_panel_display_time` (not `endmatch.vote_seconds`). Then reveal (`winner_reveal_seconds`), then `changelevel` one second before the panel ends.
+4. Settled empty / no candidates - enable the Valve vote; `endmatch.vote_seconds` is how long that UI accepts clicks (`mp_endmatch_votenextleveltime` only).
 
-Timing resolved in [`VoteClock`](../src/MapVote/Voting/VoteClock.cs). Session state: [`VoteSession`](../src/MapVote/Voting/VoteSession.cs).
+Master clock: read `mp_win_panel_display_time` (example 60s). Schedule from the win-panel epoch via [`VoteClock.ResolveCustom`](../src/MapVote/Voting/VoteClock.cs): changelevel at panel−1s; reveal immediately before that; vote fills the rest after the query. Session state: [`VoteSession`](../src/MapVote/Voting/VoteSession.cs).
 
 ## RTV
 
@@ -34,8 +37,8 @@ Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.jso
 | File | Role |
 | --- | --- |
 | `MapVote.cs` | Load/unload, catalog/archive, config |
-| `MapVote.Events.cs` | Intermission, disconnect, HUD clicks |
-| `MapVote.VoteFlow.cs` | Arm / start / reveal / native fallback |
+| `MapVote.Events.cs` | Win panel, disconnect, HUD clicks |
+| `MapVote.VoteFlow.cs` | Arm / win-panel start / reveal / native fallback |
 | `MapVote.Commands.cs` | RTV |
 | `Huds/VoteHud.cs` | Panorama paint |
 | `Maps/MapCatalog.cs` | RCON list |

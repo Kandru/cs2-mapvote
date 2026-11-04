@@ -6,29 +6,28 @@ namespace MapVote.Utils
     {
         public static int? ReadInt(string name)
         {
-            ConVar? cvar = ConVar.Find(name);
-            if (cvar is null)
+            ConVar<int>? asInt = ConVar<int>.Find(name);
+            if (asInt is not null)
             {
-                return null;
+                return asInt.Value;
             }
 
-            try
-            {
-                return cvar.GetPrimitiveValue<int>();
-            }
-            catch
-            {
-                try
-                {
-                    return (int)cvar.GetPrimitiveValue<float>();
-                }
-                catch
-                {
-                    return null;
-                }
-            }
+            ConVar<float>? asFloat = ConVar<float>.Find(name);
+            return asFloat is null ? null : (int)asFloat.Value;
         }
 
-        public static string? ReadString(string name) => ConVar.Find(name)?.StringValue;
+        public static float? ReadFloat(string name)
+        {
+            ConVar<float>? asFloat = ConVar<float>.Find(name);
+            if (asFloat is not null)
+            {
+                return asFloat.Value;
+            }
+
+            ConVar<int>? asInt = ConVar<int>.Find(name);
+            return asInt?.Value;
+        }
+
+        public static string? ReadString(string name) => ConVar<string>.Find(name)?.Value;
     }
 }

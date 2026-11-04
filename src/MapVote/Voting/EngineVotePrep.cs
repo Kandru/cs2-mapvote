@@ -9,19 +9,25 @@ namespace MapVote.Voting
     {
         public const int EmptyVoteSlot = -1;
 
-        public static void PrepareCustomVote(int engineHoldSeconds)
+        /// <summary>
+        /// Disables the Valve end-match vote and same-map restart so the plugin can
+        /// show its own menu and <c>changelevel</c>. Does not write
+        /// <c>mp_match_restart_delay</c> or <c>mp_win_panel_display_time</c>.
+        /// </summary>
+        public static void PrepareCustomVote()
         {
             Server.ExecuteCommand("mp_endmatch_votenextmap 0");
             Server.ExecuteCommand("mp_match_end_restart 0");
-            Server.ExecuteCommand($"mp_endmatch_votenextleveltime {engineHoldSeconds}");
-            Server.ExecuteCommand($"mp_match_restart_delay {engineHoldSeconds}");
         }
 
+        /// <summary>
+        /// Enables the Valve end-match vote. Sets how long that UI accepts clicks.
+        /// Does not write <c>mp_match_restart_delay</c> (same-map restart countdown only).
+        /// </summary>
         public static void PrepareNativeVote(int voteSeconds)
         {
             Server.ExecuteCommand("mp_endmatch_votenextmap 1");
             Server.ExecuteCommand($"mp_endmatch_votenextleveltime {voteSeconds}");
-            Server.ExecuteCommand($"mp_match_restart_delay {voteSeconds}");
         }
 
         /// <summary>

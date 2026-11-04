@@ -5,37 +5,29 @@ using MapVote.Maps;
 using MapVote.Utils;
 using PlayerUtil = MapVote.Utils.Players;
 using MapVote.Voting;
-using TimerFlags = CounterStrikeSharp.API.Modules.Timers.TimerFlags;
 
 namespace MapVote
 {
     public partial class MapVote
     {
-        private const float CatalogWaitIntervalSeconds = 0.25f;
-        private const int CatalogWaitMaxSeconds = 3;
+        private bool VoteBusy => _voteActive || _revealActive || _catalogPreparing;
 
-        private bool VoteBusy => _voteActive || _revealActive || _catalogWaitTimer is not null;
-
-        /// <summary>Seconds left until intermission epoch + <paramref name="offsetSeconds"/>.</summary>
         private float RemainingUntil(int offsetSeconds) =>
             VoteClock.SecondsUntil(_scheduleEpochUtc, offsetSeconds, DateTime.UtcNow);
 
         /// <summary>
-        /// Snapshot end-match cvars before intermission. Prefer our overlay unless the
-        /// catalog is known empty / all maps disabled (then enable the Valve vote).
+        /// Prefer our overlay unless every catalog map is disabled (then enable the Valve vote).
+        /// Does not write <c>mp_match_restart_delay</c>.
         /// </summary>
         private void ArmEngineVote()
         {
-            VoteTiming timing = VoteClock.Resolve(Config.Endmatch);
-            // Empty at map start is not final — intermission refreshes the list.
-            // Keep the longer custom hold so a late list is not cut off by the native timer.
             if (_catalog.Maps.Count == 0
                 || _catalog.IsLoading
                 || MapVisibility.AnyShown(_catalog.Maps, Config.MapsVotable))
             {
-                EngineVotePrep.PrepareCustomVote(timing.EngineHoldSeconds);
+                EngineVotePrep.PrepareCustomVote();
                 _nativeVoteArmed = false;
-                PluginLog.Debug($"engine vote: custom hold={timing.EngineHoldSeconds}s");
+                PluginLog.Debug("engine vote: custom (native vote off)");
                 return;
             }
 
@@ -44,75 +36,93 @@ namespace MapVote
                 return;
             }
 
-            EngineVotePrep.PrepareNativeVote(timing.OpenSeconds);
+            int open = VoteClock.NativeVoteSeconds(Config.Endmatch);
+            EngineVotePrep.PrepareNativeVote(open);
             _nativeVoteArmed = true;
-            PluginLog.Info($"no votable maps; enabling Valve end-match vote ({timing.OpenSeconds}s)");
-        }
-
-        private void StartVote()
-        {
-            if (VoteBusy)
-            {
-                PluginLog.Debug("vote start ignored: already active");
-                return;
-            }
-
-            // Align plugin timers with the engine hold countdown (vote + reveal + 1s slack).
-            _scheduleEpochUtc = DateTime.UtcNow;
-            _timing = VoteClock.Resolve(Config.Endmatch);
-
-            if (TryBeginFromCatalog())
-            {
-                return;
-            }
-
-            PluginLog.Debug("vote waiting for catalog refresh");
-            _catalogWaitTimer = AddTimer(CatalogWaitIntervalSeconds, OnCatalogWaitTick, TimerFlags.REPEAT);
-        }
-
-        private void OnCatalogWaitTick()
-        {
-            if (_catalogWaitTimer is null || TryBeginFromCatalog())
-            {
-                return;
-            }
-
-            if (RemainingUntil(CatalogWaitMaxSeconds) <= 0f)
-            {
-                EnableNativeVote("catalog still empty after wait");
-            }
+            PluginLog.Info($"no votable maps; enabling Valve end-match vote ({open}s)");
         }
 
         /// <summary>
-        /// Starts the vote once the intermission refresh has finished.
-        /// Returns false while that refresh is still in flight.
+        /// Win-panel entry: disable the Valve vote, refresh the catalog inside the panel budget,
+        /// then open the HUD once that refresh settles.
         /// </summary>
-        private bool TryBeginFromCatalog()
+        private void BeginEndMatchFromWinPanel()
         {
-            if (_catalog.IsLoading)
+            if (VoteBusy)
             {
-                return false;
+                PluginLog.Debug("win panel ignored: vote already active or preparing");
+                return;
             }
 
-            List<MapEntry> maps = SelectCandidates();
-            if (maps.Count > 0)
+            _scheduleEpochUtc = DateTime.UtcNow;
+            _panelSeconds = VoteClock.ReadPanelSeconds(ConVars.ReadFloat);
+            int queryBudget = VoteClock.QueryBudgetSeconds(
+                _panelSeconds,
+                Math.Max(0, Config.Endmatch.CatalogWaitSeconds),
+                Config.Endmatch.WinnerRevealSeconds);
+
+            EngineVotePrep.PrepareCustomVote();
+            _nativeVoteArmed = false;
+            _catalogPreparing = true;
+            _catalogGeneration = _catalog.Generation;
+
+            PluginLog.Debug(
+                $"win panel: panel={_panelSeconds}s query_budget={queryBudget}s generation={_catalogGeneration}");
+
+            KillCatalogWaitTimer();
+            _catalogWaitTimer = AddTimer(Math.Max(0.25f, queryBudget + 0.5f), OnCatalogWatchdog);
+            _catalog.RequestRefresh(queryBudget);
+        }
+
+        private void OnCatalogWatchdog()
+        {
+            _catalogWaitTimer = null;
+            if (!_catalogPreparing || _voteActive || _revealActive)
             {
-                KillCatalogWaitTimer();
-                PluginLog.Debug("intermission map list ready");
-                BeginVote(maps);
-                return true;
+                return;
             }
 
-            EnableNativeVote("catalog empty after intermission refresh");
-            return true;
+            PluginLog.Debug("catalog watchdog: refresh did not settle; using current list");
+            OnCatalogSettled(_catalog.Maps, _catalogGeneration);
+        }
+
+        /// <summary>Main-thread settle after RCON refresh (or watchdog).</summary>
+        private void OnCatalogSettled(IReadOnlyList<MapEntry> maps, int generation)
+        {
+            if (_unloaded || generation != _catalogGeneration || !_catalogPreparing)
+            {
+                return;
+            }
+
+            KillCatalogWaitTimer();
+            _catalogPreparing = false;
+            SyncMapsVotable(maps);
+
+            float queryElapsed = (float)(DateTime.UtcNow - _scheduleEpochUtc).TotalSeconds;
+            _timing = VoteClock.ResolveCustom(
+                _panelSeconds,
+                Config.Endmatch.WinnerRevealSeconds,
+                queryElapsed);
+
+            List<MapEntry> candidates = SelectCandidates();
+            if (candidates.Count == 0)
+            {
+                EnableNativeVote("catalog empty after win-panel refresh");
+                return;
+            }
+
+            PluginLog.Debug(
+                $"win-panel map list ready: query={queryElapsed:0.###}s open≈{_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
+            BeginVote(candidates);
         }
 
         private void EnableNativeVote(string reason)
         {
             KillCatalogWaitTimer();
-            VoteTiming timing = VoteClock.Resolve(Config.Endmatch);
-            PluginLog.Info($"vote skipped: {reason}; enabling Valve end-match vote ({timing.OpenSeconds}s)");
-            EngineVotePrep.PrepareNativeVote(timing.OpenSeconds);
+            _catalogPreparing = false;
+            int open = VoteClock.NativeVoteSeconds(Config.Endmatch);
+            PluginLog.Info($"vote skipped: {reason}; enabling Valve end-match vote ({open}s)");
+            EngineVotePrep.PrepareNativeVote(open);
             _nativeVoteArmed = true;
         }
 
@@ -124,7 +134,7 @@ namespace MapVote
             }
 
             KillCatalogWaitTimer();
-            ArmEngineVote();
+            _catalogPreparing = false;
             SuppressNativeVoteSlots();
 
             _session = new VoteSession(maps.Select(static m => m.Name).ToList());
@@ -147,17 +157,14 @@ namespace MapVote
 
             PluginLog.Info($"map voting started ({maps.Count} maps)");
             PluginLog.Debug(
-                $"vote armed: maps=[{string.Join(", ", maps.Select(static m => m.Name))}] open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s hold={_timing.EngineHoldSeconds}s (hud waits for win panel)");
+                $"vote armed: maps=[{string.Join(", ", maps.Select(static m => m.Name))}] open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
 
-            if (_winPanelSeen)
-            {
-                ShowVoteHud();
-            }
+            ShowVoteHud();
         }
 
         /// <summary>
-        /// Opens the overlay when the match win panel fires. Session setup already ran at intermission.
-        /// Uses remaining time from the intermission epoch so changelevel stays at the start of the slack second.
+        /// Opens the overlay after the catalog settled. Timers are pinned to the win-panel epoch
+        /// so <c>changelevel</c> stays at panel − 1s regardless of query length.
         /// </summary>
         private void ShowVoteHud()
         {
@@ -166,29 +173,54 @@ namespace MapVote
                 return;
             }
 
+            float untilReveal = RemainingUntil(_timing.RevealOffsetSeconds);
+            float untilChangelevel = RemainingUntil(_timing.ChangelevelOffsetSeconds);
+
+            if (untilChangelevel <= 0f)
+            {
+                PluginLog.Debug("vote hud skipped: changelevel deadline passed; changing now");
+                LockWinner();
+                ChangeToWinner();
+                return;
+            }
+
+            bool openForVote = untilReveal > 0f;
             foreach (CCSPlayerController player in PlayerUtil.GetHumans())
             {
-                VoteHud.OpenFor(player);
+                VoteHud.OpenFor(player, captureMouse: openForVote);
             }
 
             _voteHudOpen = true;
             KillOpenTimers();
 
-            float remainingOpen = RemainingUntil(_timing.OpenSeconds);
-            if (remainingOpen <= 0f)
+            if (!openForVote)
             {
                 PluginLog.Debug("vote hud open: open window elapsed; starting reveal");
                 BeginReveal();
                 return;
             }
 
-            _openTimer = AddTimer(remainingOpen, BeginReveal);
-            PluginLog.Debug($"vote hud open: {remainingOpen:0.###}s until reveal");
+            _openTimer = AddTimer(untilReveal, BeginReveal);
+            PluginLog.Debug(
+                $"vote hud open: {untilReveal:0.###}s until reveal, {untilChangelevel:0.###}s until changelevel");
+        }
+
+        private void LockWinner()
+        {
+            if (_session is null)
+            {
+                return;
+            }
+
+            _session.Lock();
+            string winner = _session.Winner ?? _session.Maps[0];
+            _pendingWinner = winner;
+            _pendingOrigin = _origins.GetValueOrDefault(winner, MapOrigin.Local);
         }
 
         /// <summary>
         /// Blank native end-match vote slots now and once more next frame so a late
-        /// engine write after intermission cannot repopulate the Valve panel.
+        /// engine write cannot repopulate the Valve panel.
         /// </summary>
         private void SuppressNativeVoteSlots()
         {
@@ -233,18 +265,14 @@ namespace MapVote
             }
 
             KillOpenTimers();
-            _session.Lock();
-
-            string winner = _session.Winner ?? _session.Maps[0];
-            _pendingWinner = winner;
-            _pendingOrigin = _origins.GetValueOrDefault(winner, MapOrigin.Local);
+            LockWinner();
             _revealActive = true;
 
+            string winner = _pendingWinner!;
             VoteHud.BeginReveal(winner);
 
-            float remaining = RemainingUntil(_timing.TotalSeconds);
-            int winnerVotes = _session.CountOf(winner);
-            PluginLog.Info($"map voting completed: winner={winner} ({winnerVotes} votes)");
+            float remaining = RemainingUntil(_timing.ChangelevelOffsetSeconds);
+            PluginLog.Info($"map voting completed: winner={winner} ({_session.CountOf(winner)} votes)");
             PluginLog.Debug(
                 $"vote locked: tally=[{string.Join(", ", _session.Maps.Select(m => $"{m}={_session.CountOf(m)}"))}] changelevel in {Math.Max(0f, remaining):0.###}s");
 
@@ -282,6 +310,7 @@ namespace MapVote
         {
             KillOpenTimers();
             KillCatalogWaitTimer();
+            _catalogPreparing = false;
             _revealTimer?.Kill();
             _revealTimer = null;
             _voteActive = false;

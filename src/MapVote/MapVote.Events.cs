@@ -1,4 +1,3 @@
-using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using MapVote.Huds;
 using MapVote.Players;
@@ -11,10 +10,10 @@ namespace MapVote
     {
         private void OnMapStart(string mapName)
         {
+            _catalog.Invalidate();
             _rtvVoters.Clear();
             _rtvPassed = false;
             _nativeVoteArmed = false;
-            _winPanelSeen = false;
             _steamBySlot.Clear();
             EndVoteUi();
             CustomHud.ResetRound();
@@ -25,35 +24,16 @@ namespace MapVote
 
         private void OnMapEnd()
         {
+            _catalog.Invalidate();
             EndVoteUi();
             SavePersistence();
             CustomHud.Shutdown();
         }
 
-        private HookResult OnIntermission(EventCsIntermission @event, GameEventInfo info)
-        {
-            // Let GoToIntermission finish writing native vote slots, then start ours.
-            Server.NextFrame(OnIntermissionNextFrame);
-            return HookResult.Continue;
-        }
-
-        private void OnIntermissionNextFrame()
-        {
-            if (_voteActive || _revealActive || _catalogWaitTimer is not null)
-            {
-                return;
-            }
-
-            PluginLog.Debug("intermission: refreshing map list");
-            _catalog.RequestRefresh();
-            StartVote();
-        }
-
         private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
         {
-            _winPanelSeen = true;
-            PluginLog.Debug("WinPanel: starting vote");
-            ShowVoteHud();
+            PluginLog.Debug("WinPanel: preparing end-match vote");
+            BeginEndMatchFromWinPanel();
             return HookResult.Continue;
         }
 

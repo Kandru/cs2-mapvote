@@ -5,15 +5,18 @@ namespace MapVote.Maps
     public sealed class MapCatalog
     {
         public const int MaxMaps = 100;
+        public const int RetryPauseMilliseconds = 400;
+        public const int MaxCommandTimeoutMilliseconds = 3000;
 
         private readonly Action<string> _log;
-        private readonly Action<IReadOnlyList<MapEntry>>? _onLoaded;
+        private readonly Action<IReadOnlyList<MapEntry>, int>? _onLoaded;
         private readonly object _gate = new();
         private IReadOnlyList<MapEntry> _maps = [];
         private bool _loading;
         private bool _loggedMissingPassword;
+        private int _generation;
 
-        public MapCatalog(Action<string> log, Action<IReadOnlyList<MapEntry>>? onLoaded = null)
+        public MapCatalog(Action<string> log, Action<IReadOnlyList<MapEntry>, int>? onLoaded = null)
         {
             _log = log;
             _onLoaded = onLoaded;
@@ -29,8 +32,31 @@ namespace MapVote.Maps
             get { lock (_gate) { return _loading; } }
         }
 
-        public void RequestRefresh()
+        public int Generation
         {
+            get { lock (_gate) { return _generation; } }
+        }
+
+        /// <summary>
+        /// Bumps the generation so a late RCON callback from a previous map is ignored.
+        /// </summary>
+        public void Invalidate()
+        {
+            lock (_gate)
+            {
+                _generation++;
+                _loading = false;
+            }
+        }
+
+        /// <summary>
+        /// Background refresh that retries until both RCON replies look ready or
+        /// <paramref name="budgetSeconds"/> elapses. Never replaces a previous good list
+        /// with an empty result. <c>0</c> budget = one attempt.
+        /// </summary>
+        public void RequestRefresh(int budgetSeconds = 0)
+        {
+            int generation;
             lock (_gate)
             {
                 if (_loading)
@@ -39,66 +65,184 @@ namespace MapVote.Maps
                 }
 
                 _loading = true;
+                generation = _generation;
             }
 
             if (!TryGetRconCredentials(out int port, out string password))
             {
-                lock (_gate) { _loading = false; }
-
                 if (!_loggedMissingPassword)
                 {
                     _loggedMissingPassword = true;
                     _log("rcon_password empty; cannot load maps.");
                 }
 
+                NotifyCurrent(generation);
+                ClearLoading(generation);
                 return;
             }
 
-            _log("catalog refresh started");
-            _ = Task.Run(() => LoadWorker(port, password));
+            int budget = Math.Max(0, budgetSeconds);
+            _log($"catalog refresh started (budget={budget}s generation={generation})");
+            _ = Task.Run(() => LoadWorker(port, password, budget, generation));
         }
 
-        private void LoadWorker(int port, string password)
+        private void LoadWorker(int port, string password, int budgetSeconds, int generation)
         {
+            DateTime deadlineUtc = DateTime.UtcNow.AddSeconds(budgetSeconds);
+            List<MapEntry>? bestMaps = null;
+            string? bestSummary = null;
+
             try
             {
-                using RconClient client = new("127.0.0.1", port, password, 1000);
-                client.Connect();
-
-                (List<MapEntry> local, int localSkipped) = ParseMaps(
-                    client.SendCommand("maps *"), MapOrigin.Local, MapNameFilter.ClassifyLocalLine);
-                (List<MapEntry> workshop, int workshopFilterSkipped) = ParseMaps(
-                    client.SendCommand("print_mapgroup_sv"),
-                    MapOrigin.Workshop,
-                    MapNameFilter.ClassifyMapgroupLine);
-
-                (List<MapEntry> maps, int workshopOverlapSkipped) = Merge(local, workshop);
-                int workshopSkipped = workshopFilterSkipped + workshopOverlapSkipped;
-
-                lock (_gate)
+                while (IsCurrentGeneration(generation))
                 {
-                    _maps = maps;
+                    int remainingMs = RemainingMilliseconds(deadlineUtc);
+                    if (budgetSeconds > 0 && remainingMs <= 0)
+                    {
+                        break;
+                    }
+
+                    int timeoutMs = budgetSeconds > 0
+                        ? Math.Clamp(remainingMs, 1, MaxCommandTimeoutMilliseconds)
+                        : MaxCommandTimeoutMilliseconds;
+
+                    try
+                    {
+                        using RconClient client = new("127.0.0.1", port, password, timeoutMs);
+                        client.Connect();
+
+                        string localBody = client.SendCommand("maps *");
+                        string workshopBody = client.SendCommand("print_mapgroup_sv");
+                        bool localReady = MapListReadiness.IsLocalReady(localBody);
+                        bool workshopReady = MapListReadiness.IsMapgroupReady(workshopBody);
+
+                        (List<MapEntry> local, int localSkipped) = ParseMaps(
+                            localBody, MapOrigin.Local, MapNameFilter.ClassifyLocalLine);
+                        (List<MapEntry> workshop, int workshopFilterSkipped) = ParseMaps(
+                            workshopBody, MapOrigin.Workshop, MapNameFilter.ClassifyMapgroupLine);
+                        (List<MapEntry> maps, int workshopOverlapSkipped) = Merge(local, workshop);
+
+                        string summary =
+                            $"local={local.Count}, local_skipped={localSkipped}, workshop={workshop.Count}, workshop_skipped={workshopFilterSkipped + workshopOverlapSkipped}";
+
+                        if (maps.Count > 0)
+                        {
+                            bestMaps = maps;
+                            bestSummary = summary;
+                        }
+
+                        if (localReady && workshopReady)
+                        {
+                            if (maps.Count == 0)
+                            {
+                                _log($"catalog ready but empty ({summary}); keeping previous list");
+                                break;
+                            }
+
+                            Publish(maps, generation, summary, partial: false);
+                            return;
+                        }
+
+                        _log(
+                            $"catalog not ready (local_ready={localReady}, workshop_ready={workshopReady}, {summary}); retrying");
+                    }
+                    catch (Exception ex)
+                    {
+                        _log($"map load attempt failed: {ex.Message}");
+                    }
+
+                    if (budgetSeconds <= 0)
+                    {
+                        break;
+                    }
+
+                    remainingMs = RemainingMilliseconds(deadlineUtc);
+                    if (remainingMs <= 0)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(Math.Min(RetryPauseMilliseconds, remainingMs));
                 }
 
-                _log(
-                    $"loaded {maps.Count} maps (local={local.Count}, local_skipped={localSkipped}, workshop={workshop.Count}, workshop_skipped={workshopSkipped}).");
-                _onLoaded?.Invoke(maps);
-            }
-            catch (Exception ex)
-            {
-                _log($"map load failed: {ex.Message}");
+                if (!IsCurrentGeneration(generation))
+                {
+                    return;
+                }
+
+                if (bestMaps is { Count: > 0 })
+                {
+                    Publish(bestMaps, generation, bestSummary ?? "partial", partial: true);
+                    return;
+                }
+
+                _log("catalog refresh ended with no maps; keeping previous list");
+                NotifyCurrent(generation);
             }
             finally
             {
-                lock (_gate) { _loading = false; }
+                ClearLoading(generation);
             }
         }
+
+        private void Publish(List<MapEntry> maps, int generation, string summary, bool partial)
+        {
+            lock (_gate)
+            {
+                if (generation != _generation)
+                {
+                    return;
+                }
+
+                _maps = maps;
+            }
+
+            _log($"loaded {maps.Count} maps ({(partial ? "partial" : "ready")}; {summary}).");
+            _onLoaded?.Invoke(maps, generation);
+        }
+
+        private void NotifyCurrent(int generation)
+        {
+            IReadOnlyList<MapEntry> current;
+            lock (_gate)
+            {
+                if (generation != _generation)
+                {
+                    return;
+                }
+
+                current = _maps;
+            }
+
+            _onLoaded?.Invoke(current, generation);
+        }
+
+        private void ClearLoading(int generation)
+        {
+            lock (_gate)
+            {
+                if (generation == _generation)
+                {
+                    _loading = false;
+                }
+            }
+        }
+
+        private bool IsCurrentGeneration(int generation)
+        {
+            lock (_gate)
+            {
+                return generation == _generation;
+            }
+        }
+
+        private static int RemainingMilliseconds(DateTime deadlineUtc) =>
+            (int)Math.Ceiling((deadlineUtc - DateTime.UtcNow).TotalMilliseconds);
 
         /// <summary>
         /// Local maps first (keep their order), then mapgroup-only names as workshop.
         /// Names present in both keep Local origin.
         /// </summary>
-        /// <returns>Merged list and how many workshop entries were omitted as duplicates of local.</returns>
         internal static (List<MapEntry> Maps, int WorkshopSkipped) Merge(
             IReadOnlyList<MapEntry> local,
             IReadOnlyList<MapEntry> workshop)
@@ -110,7 +254,6 @@ namespace MapVote.Maps
             return (maps, workshopSkipped);
         }
 
-        /// <returns>Number of source entries that were not appended (already seen).</returns>
         private static int AppendUnique(
             List<MapEntry> maps,
             HashSet<string> seen,
