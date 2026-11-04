@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Timers;
 using MapVote.Utils;
 
 namespace MapVote
@@ -22,6 +23,13 @@ namespace MapVote
             }
 
             string label = Humans.Label(player, id);
+
+            if (_rtvClosed)
+            {
+                PluginLog.Info($"rtv failed: {label} - closed until next map");
+                info.ReplyToCommand(Chat(Localizer["rtv.ended"]));
+                return;
+            }
 
             if (VoteBusy)
             {
@@ -56,6 +64,10 @@ namespace MapVote
 
             PluginLog.Info($"rtv open: {label} - {have}/{need}");
             Server.PrintToChatAll(Chat(Localizer["rtv.need", have, need]));
+            if (have == 1)
+            {
+                StartRtvWindow();
+            }
         }
 
         private int RtvVotesNeeded(int humanCount) =>
@@ -73,7 +85,7 @@ namespace MapVote
         /// </summary>
         private bool TrySucceedRtv(int humanCount, string reason, bool deferCommand = false)
         {
-            if (!Config.Rtv.Enabled || _rtvPassed || VoteBusy)
+            if (!Config.Rtv.Enabled || _rtvPassed || _rtvClosed || VoteBusy)
             {
                 return false;
             }
@@ -85,6 +97,7 @@ namespace MapVote
                 return false;
             }
 
+            StopRtvWindow();
             _rtvVoters.Clear();
             _rtvPassed = true;
             Server.PrintToChatAll(Chat(Localizer["rtv.success", have, need]));
@@ -100,6 +113,79 @@ namespace MapVote
             }
 
             return true;
+        }
+
+        private void StartRtvWindow()
+        {
+            StopRtvWindow();
+
+            int duration = Math.Max(0, Config.Rtv.DurationSeconds);
+            if (duration > 0)
+            {
+                _rtvDeadlineUtc = DateTime.UtcNow.AddSeconds(duration);
+                _rtvExpireTimer = AddTimer(duration, OnRtvExpired);
+            }
+
+            int announce = Math.Max(0, Config.Rtv.AnnounceSeconds);
+            if (announce > 0)
+            {
+                _rtvAnnounceTimer = AddTimer(announce, OnRtvAnnounce, TimerFlags.REPEAT);
+            }
+        }
+
+        private void StopRtvWindow()
+        {
+            _rtvExpireTimer?.Kill();
+            _rtvExpireTimer = null;
+            _rtvAnnounceTimer?.Kill();
+            _rtvAnnounceTimer = null;
+            _rtvDeadlineUtc = null;
+        }
+
+        private void OnRtvExpired()
+        {
+            _rtvExpireTimer = null;
+            if (_unloaded || _rtvPassed || _rtvClosed || _rtvVoters.Count == 0)
+            {
+                StopRtvWindow();
+                return;
+            }
+
+            _rtvVoters.Clear();
+            StopRtvWindow();
+            PluginLog.Info("rtv expired");
+            Server.PrintToChatAll(Chat(Localizer["rtv.expired"]));
+        }
+
+        private void OnRtvAnnounce()
+        {
+            if (_unloaded || _rtvPassed || _rtvClosed || _rtvVoters.Count == 0)
+            {
+                return;
+            }
+
+            int humans = CountRtvHumans();
+            int need = RtvVotesNeeded(humans);
+            int have = _rtvVoters.Count;
+            if (_rtvDeadlineUtc is DateTime deadline)
+            {
+                int left = Math.Max(0, (int)Math.Ceiling((deadline - DateTime.UtcNow).TotalSeconds));
+                Server.PrintToChatAll(Chat(Localizer["rtv.running", have, need, left]));
+                return;
+            }
+
+            Server.PrintToChatAll(Chat(Localizer["rtv.need", have, need]));
+        }
+
+        /// <summary>
+        /// Clears an open RTV window and blocks further votes until the next map start.
+        /// </summary>
+        private void CloseRtvForMatchEnd()
+        {
+            _rtvVoters.Clear();
+            StopRtvWindow();
+            _rtvClosed = true;
+            PluginLog.Debug("rtv closed until next map (intermission)");
         }
 
         private void ExecuteRtvSuccessCommand() =>

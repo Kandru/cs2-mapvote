@@ -53,6 +53,9 @@ namespace MapVote
                 return;
             }
 
+            StopRtvWindow();
+            _rtvVoters.Clear();
+
             _scheduleEpochUtc = DateTime.UtcNow;
             _panelSeconds = VoteClock.ReadPanelSeconds(ConVars.ReadFloat);
             int queryBudget = VoteClock.QueryBudgetSeconds(

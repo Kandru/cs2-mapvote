@@ -27,7 +27,10 @@ namespace MapVote
         private CssTimer? _openTimer;
         private CssTimer? _revealTimer;
         private CssTimer? _catalogWaitTimer;
+        private CssTimer? _rtvExpireTimer;
+        private CssTimer? _rtvAnnounceTimer;
         private DateTime _scheduleEpochUtc;
+        private DateTime? _rtvDeadlineUtc;
         private int _panelSeconds = VoteClock.DefaultPanelSeconds;
         private int _catalogGeneration;
         private bool _catalogPreparing;
@@ -39,6 +42,7 @@ namespace MapVote
         private Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);
         private readonly HashSet<ulong> _rtvVoters = [];
         private bool _rtvPassed;
+        private bool _rtvClosed;
         private bool _nativeVoteArmed;
         private bool _unloaded;
         private readonly Dictionary<int, ulong> _steamBySlot = [];
@@ -68,6 +72,7 @@ namespace MapVote
             RegisterListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
 
             RegisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
+            RegisterEventHandler<EventCsIntermission>(OnCsIntermission);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
 
@@ -81,6 +86,7 @@ namespace MapVote
         {
             PluginLog.Debug($"unload (hotReload={hotReload})");
             _unloaded = true;
+            StopRtvWindow();
             _catalog?.Invalidate();
             EndVoteUi();
             SavePersistence();
@@ -174,8 +180,10 @@ namespace MapVote
         private void OnMapStart(string mapName)
         {
             _catalog.Invalidate();
+            StopRtvWindow();
             _rtvVoters.Clear();
             _rtvPassed = false;
+            _rtvClosed = false;
             _nativeVoteArmed = false;
             _steamBySlot.Clear();
             EndVoteUi();
@@ -197,6 +205,12 @@ namespace MapVote
         {
             PluginLog.Debug("WinPanel: preparing end-match vote");
             BeginEndMatchFromWinPanel();
+            return HookResult.Continue;
+        }
+
+        private HookResult OnCsIntermission(EventCsIntermission @event, GameEventInfo info)
+        {
+            CloseRtvForMatchEnd();
             return HookResult.Continue;
         }
 
@@ -257,6 +271,11 @@ namespace MapVote
             if (steamId is > 0)
             {
                 _rtvVoters.Remove(steamId.Value);
+                if (_rtvVoters.Count == 0)
+                {
+                    StopRtvWindow();
+                }
+
                 if (_session is { IsOpen: true } && _session.RemovePlayer(steamId.Value))
                 {
                     VoteHud.PaintAll();

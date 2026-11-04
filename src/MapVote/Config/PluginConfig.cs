@@ -49,6 +49,18 @@ namespace MapVote.Config
         [JsonPropertyName("ratio")]
         public float Ratio { get; set; } = 0.6f;
 
+        /// <summary>
+        /// Seconds the RTV window stays open after the first vote. 0 = no limit.
+        /// </summary>
+        [JsonPropertyName("duration_seconds")]
+        public int DurationSeconds { get; set; } = 60;
+
+        /// <summary>
+        /// Seconds between chat reminders while RTV is open. 0 = no reminders.
+        /// </summary>
+        [JsonPropertyName("announce_seconds")]
+        public int AnnounceSeconds { get; set; } = 15;
+
         [JsonPropertyName("success_command")]
         public string SuccessCommand { get; set; } = "mp_halftime 0; mp_maxrounds 1";
     }

@@ -8,7 +8,7 @@ Refresh runs on the match win panel (not on plugin load / map start). The worker
 
 ## End-match vote
 
-Only [`EventCsWinPanelMatch`](../src/MapVote/MapVote.cs) starts the vote ([`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)). `EventCsIntermission` is not used (it always fires first; the win panel is the menu trigger).
+Only [`EventCsWinPanelMatch`](../src/MapVote/MapVote.cs) starts the vote ([`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)). `EventCsIntermission` fires earlier and only closes RTV until the next map; the win panel remains the menu trigger.
 
 1. `ArmEngineVote` (map start / RTV) - if any votable map exists (or catalog still loading / empty): turn the Valve vote off (`EngineVotePrep.PrepareCustomVote`); else enable native CS2 end-match vote. Does not write `mp_match_restart_delay` or `mp_win_panel_display_time`.
 2. Win panel - turn native vote off, start a catalog refresh inside the query budget, wait for that refresh (or a short watchdog).
@@ -20,6 +20,10 @@ Master clock: read `mp_win_panel_display_time` (example 60s). Schedule from the 
 ## RTV
 
 [`MapVote.Commands.cs`](../src/MapVote/MapVote.Commands.cs): `css_rtv` / `rtv` (chat `!rtv`). Humans only; one vote per SteamID. Need `ceil(humans * ratio)`. On success: chat, `ArmEngineVote`, run `rtv.success_command`. Blocked while a vote is already busy.
+
+The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limit) cancels and clears votes when it elapses; `rtv.announce_seconds` (default 15; `0` = off) posts the tally in chat on that interval. Later votes do not reset the deadline. Timers stop without an expiry line when RTV passes, the last voter leaves, the win panel starts, intermission fires, the map starts, or the plugin unloads.
+
+`EventCsIntermission` closes RTV for the rest of the map (clears voters, stops timers, rejects further `!rtv` with `rtv.ended`). `OnMapStart` clears that lock.
 
 ## HUD
 

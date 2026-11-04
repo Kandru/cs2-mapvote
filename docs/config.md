@@ -11,6 +11,8 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | `endmatch.catalog_wait_seconds` | `8` | Max seconds to retry RCON map-list queries on the win panel. Further capped so the reveal and a 1s spare still fit. `0` = one attempt |
 | `rtv.enabled` | `true` | `!rtv` / `css_rtv` / `rtv` |
 | `rtv.ratio` | `0.6` | Fraction of humans required (clamped 0.01–1) |
+| `rtv.duration_seconds` | `60` | Seconds the RTV window stays open after the first vote. `0` = no limit |
+| `rtv.announce_seconds` | `15` | Seconds between chat reminders while RTV is open. `0` = no reminders |
 | `rtv.success_command` | `mp_halftime 0; mp_maxrounds 1` | Server command after RTV passes (forces match toward end) |
 | `filters.enabled` | `true` | Type / sort chip bar |
 | `filters.types` | bomb/hostage/… | Chip groups: `id` + `prefixes` (map-name prefixes; empty → “other”) |
