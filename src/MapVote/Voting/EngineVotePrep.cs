@@ -10,17 +10,11 @@ namespace MapVote.Voting
         public const int EmptyVoteSlot = -1;
 
         /// <summary>
-        /// Optionally writes <c>mp_win_panel_display_time</c> and
-        /// <c>mp_endmatch_votenextleveltime</c>. Null means leave the server cvar alone.
-        /// Does not write <c>mp_match_restart_delay</c>.
+        /// Optionally writes <c>mp_endmatch_votenextleveltime</c>. Null means leave the server cvar alone.
+        /// Does not write <c>mp_match_restart_delay</c> or <c>mp_win_panel_display_time</c>.
         /// </summary>
-        public static void ApplyEndMatchOverrides(int? voteSeconds, float? winPanelDisplayTime)
+        public static void ApplyEndMatchOverrides(int? voteSeconds)
         {
-            if (winPanelDisplayTime is not null)
-            {
-                Server.ExecuteCommand($"mp_win_panel_display_time {winPanelDisplayTime.Value}");
-            }
-
             if (voteSeconds is not null)
             {
                 Server.ExecuteCommand($"mp_endmatch_votenextleveltime {Math.Max(1, voteSeconds.Value)}");
@@ -28,13 +22,20 @@ namespace MapVote.Voting
         }
 
         /// <summary>
-        /// Enables the Valve end-match vote and disables same-map restart so the end-match
-        /// timer owns the post-panel window. Does not write vote duration or the win panel.
+        /// Disables same-map restart so the end-match timer owns the post-match window.
+        /// Does not arm the Valve vote UI.
+        /// </summary>
+        public static void DisableMatchEndRestart() =>
+            Server.ExecuteCommand("mp_match_end_restart 0");
+
+        /// <summary>
+        /// Enables the Valve end-match vote and disables same-map restart.
+        /// Does not write vote duration.
         /// </summary>
         public static void ArmNativeVote()
         {
             Server.ExecuteCommand("mp_endmatch_votenextmap 1");
-            Server.ExecuteCommand("mp_match_end_restart 0");
+            DisableMatchEndRestart();
         }
 
         /// <summary>

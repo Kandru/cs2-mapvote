@@ -41,8 +41,8 @@ namespace MapVote
         }
 
         /// <summary>
-        /// Win-panel entry: apply overrides, arm the Valve vote, refresh the catalog during
-        /// the panel, then open our HUD after <c>mp_win_panel_display_time</c> when maps are ready.
+        /// Win-panel entry: apply vote-time override, disable same-map restart, refresh the
+        /// catalog during the match-results hold, decide custom vs native at 4s, open our HUD at 5s.
         /// </summary>
         private void BeginEndMatchFromWinPanel()
         {
@@ -57,102 +57,117 @@ namespace MapVote
 
             _scheduleEpochUtc = DateTime.UtcNow;
             _pendingCandidates = null;
-            _panelElapsed = false;
+            _customPathChosen = false;
 
-            EngineVotePrep.ApplyEndMatchOverrides(
-                Config.Endmatch.VoteSeconds,
-                Config.Endmatch.WinPanelDisplayTime);
-            EngineVotePrep.ArmNativeVote();
-            _nativeVoteArmed = true;
+            EngineVotePrep.ApplyEndMatchOverrides(Config.Endmatch.VoteSeconds);
+            EngineVotePrep.DisableMatchEndRestart();
 
             // Prefer config overrides for the schedule; ExecuteCommand may not update ConVar reads yet.
-            _panelSeconds = Config.Endmatch.WinPanelDisplayTime is float panelOverride
-                ? Math.Max(0, (int)Math.Ceiling(panelOverride))
-                : VoteClock.ReadPanelSeconds(ConVars.ReadFloat);
             _voteSeconds = Config.Endmatch.VoteSeconds is int voteOverride
                 ? Math.Max(1, voteOverride)
                 : VoteClock.ReadVoteSeconds(ConVars.ReadFloat);
             _timing = VoteClock.ResolveCustom(
-                _panelSeconds,
                 _voteSeconds,
                 Config.Endmatch.WinnerRevealSeconds);
 
-            int catalogTimeout = VoteClock.CatalogTimeoutSeconds(_panelSeconds);
+            int catalogTimeout = VoteClock.CatalogTimeoutSeconds();
+            int decisionAt = VoteClock.DecisionOffsetSeconds;
             _catalogPreparing = true;
             _catalogGeneration = _catalog.Generation;
 
             PluginLog.Debug(
-                $"win panel: panel={_panelSeconds}s vote={_voteSeconds}s catalog_timeout={catalogTimeout}s " +
+                $"win panel: vote={_voteSeconds}s catalog_timeout={catalogTimeout}s decision={decisionAt}s " +
                 $"open≈{_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s " +
                 $"generation={_catalogGeneration}");
 
             KillCatalogWaitTimer();
             KillPanelOpenTimer();
-            _catalogWaitTimer = AddTimer(Math.Max(0.25f, catalogTimeout + 0.5f), OnCatalogWatchdog);
             _catalog.RequestRefresh(catalogTimeout);
 
-            float untilPanel = RemainingUntil(_panelSeconds);
-            if (untilPanel <= 0f)
+            float untilDecision = RemainingUntil(decisionAt);
+            if (untilDecision <= 0f)
             {
-                OnPanelElapsed();
+                OnVotePathDecision();
             }
             else
             {
-                _panelOpenTimer = AddTimer(untilPanel, OnPanelElapsed);
+                _catalogWaitTimer = AddTimer(untilDecision, OnVotePathDecision);
             }
         }
 
-        private void OnCatalogWatchdog()
-        {
-            _catalogWaitTimer = null;
-            if (!_catalogPreparing || _voteActive || _revealActive)
-            {
-                return;
-            }
-
-            PluginLog.Debug("catalog watchdog: refresh did not settle; using current list");
-            OnCatalogSettled(_catalog.Maps, _catalogGeneration);
-        }
-
-        /// <summary>Main-thread settle after RCON refresh (or watchdog).</summary>
+        /// <summary>Main-thread settle after RCON refresh. Does not open the HUD or blank slots.</summary>
         private void OnCatalogSettled(IReadOnlyList<MapEntry> maps, int generation)
         {
-            if (_unloaded || generation != _catalogGeneration || !_catalogPreparing)
+            if (_unloaded || generation != _catalogGeneration || !_catalogPreparing || _customPathChosen)
             {
                 return;
             }
 
-            KillCatalogWaitTimer();
             SyncMapsVotable(maps);
 
             List<MapEntry> candidates = SelectCandidates();
+            float queryElapsed = (float)(DateTime.UtcNow - _scheduleEpochUtc).TotalSeconds;
             if (candidates.Count == 0)
             {
-                EnableNativeVote("catalog empty after win-panel refresh");
+                _pendingCandidates = null;
+                PluginLog.Debug($"win-panel map list empty: query={queryElapsed:0.###}s");
                 return;
             }
 
-            float queryElapsed = (float)(DateTime.UtcNow - _scheduleEpochUtc).TotalSeconds;
             _pendingCandidates = candidates;
             PluginLog.Debug(
                 $"win-panel map list ready: query={queryElapsed:0.###}s maps={candidates.Count} " +
-                $"panel_elapsed={_panelElapsed} open≈{_timing.OpenSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
-
-            if (_panelElapsed)
-            {
-                BeginVote(candidates);
-            }
+                $"open≈{_timing.OpenSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
         }
 
-        private void OnPanelElapsed()
+        /// <summary>
+        /// At match-results − 1s: blank native slots for the custom path, or arm the Valve vote.
+        /// </summary>
+        private void OnVotePathDecision()
         {
-            _panelOpenTimer = null;
+            _catalogWaitTimer = null;
             if (_unloaded || !_catalogPreparing || _voteActive || _revealActive)
             {
                 return;
             }
 
-            _panelElapsed = true;
+            if (_pendingCandidates is { Count: > 0 } candidates)
+            {
+                EngineVotePrep.ClearNativeVoteSlots();
+                _customPathChosen = true;
+                PluginLog.Debug(
+                    $"vote path: custom ({candidates.Count} maps); blanked native slots");
+
+                // No room after the match-results hold: open (or changelevel) immediately.
+                if (_timing.ChangelevelOffsetSeconds <= VoteClock.MatchResultsSeconds)
+                {
+                    BeginVote(candidates);
+                    return;
+                }
+
+                float untilOpen = RemainingUntil(VoteClock.MatchResultsSeconds);
+                if (untilOpen <= 0f)
+                {
+                    OnMatchResultsElapsed();
+                }
+                else
+                {
+                    _panelOpenTimer = AddTimer(untilOpen, OnMatchResultsElapsed);
+                }
+
+                return;
+            }
+
+            EnableNativeVote("no candidates at decision deadline");
+        }
+
+        private void OnMatchResultsElapsed()
+        {
+            _panelOpenTimer = null;
+            if (_unloaded || !_catalogPreparing || !_customPathChosen || _voteActive || _revealActive)
+            {
+                return;
+            }
 
             if (_pendingCandidates is { Count: > 0 } candidates)
             {
@@ -160,15 +175,7 @@ namespace MapVote
                 return;
             }
 
-            // Panel is only the earliest open time. While RCON is still running, keep waiting;
-            // settle / watchdog decides custom vs leaving the already-armed native vote.
-            if (_catalog.IsLoading || _catalogWaitTimer is not null)
-            {
-                PluginLog.Debug("win panel elapsed; waiting for catalog");
-                return;
-            }
-
-            EnableNativeVote("no candidates when win panel elapsed");
+            EnableNativeVote("custom path lost candidates before menu open");
         }
 
         private void EnableNativeVote(string reason)
@@ -176,8 +183,10 @@ namespace MapVote
             KillCatalogWaitTimer();
             KillPanelOpenTimer();
             _catalogPreparing = false;
+            _customPathChosen = false;
             _pendingCandidates = null;
-            PluginLog.Info($"vote skipped: {reason}; leaving Valve end-match vote armed");
+            EngineVotePrep.ArmNativeVote();
+            PluginLog.Info($"vote skipped: {reason}; Valve end-match vote armed");
             _nativeVoteArmed = true;
         }
 
@@ -191,8 +200,8 @@ namespace MapVote
             KillCatalogWaitTimer();
             KillPanelOpenTimer();
             _catalogPreparing = false;
+            _customPathChosen = false;
             _pendingCandidates = null;
-            SuppressNativeVoteSlots();
 
             _session = new VoteSession(maps.Select(static m => m.Name).ToList());
             _origins = maps.ToDictionary(
@@ -220,7 +229,7 @@ namespace MapVote
         }
 
         /// <summary>
-        /// Opens the overlay after the win panel. Timers are pinned to the win-panel epoch
+        /// Opens the overlay after the match-results hold. Timers are pinned to the win-panel epoch
         /// so <c>changelevel</c> stays at <c>mp_endmatch_votenextleveltime</c> − 1s.
         /// </summary>
         private void ShowVoteHud()
@@ -273,22 +282,6 @@ namespace MapVote
             string winner = _session.Winner ?? _session.Maps[0];
             _pendingWinner = winner;
             _pendingOrigin = _origins.GetValueOrDefault(winner, MapOrigin.Local);
-        }
-
-        /// <summary>
-        /// Blank native end-match vote slots now and once more next frame so a late
-        /// engine write cannot repopulate the Valve panel.
-        /// </summary>
-        private void SuppressNativeVoteSlots()
-        {
-            EngineVotePrep.ClearNativeVoteSlots();
-            Server.NextFrame(() =>
-            {
-                if (_voteActive || _revealActive)
-                {
-                    EngineVotePrep.ClearNativeVoteSlots();
-                }
-            });
         }
 
         private List<MapEntry> SelectCandidates()
@@ -369,7 +362,7 @@ namespace MapVote
             KillCatalogWaitTimer();
             KillPanelOpenTimer();
             _catalogPreparing = false;
-            _panelElapsed = false;
+            _customPathChosen = false;
             _pendingCandidates = null;
             _revealTimer?.Kill();
             _revealTimer = null;

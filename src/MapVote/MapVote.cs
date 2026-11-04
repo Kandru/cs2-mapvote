@@ -32,11 +32,10 @@ namespace MapVote
         private CssTimer? _rtvAnnounceTimer;
         private DateTime _scheduleEpochUtc;
         private DateTime? _rtvDeadlineUtc;
-        private int _panelSeconds = VoteClock.DefaultPanelSeconds;
         private int _voteSeconds = VoteClock.DefaultVoteSeconds;
         private int _catalogGeneration;
         private bool _catalogPreparing;
-        private bool _panelElapsed;
+        private bool _customPathChosen;
         private List<MapEntry>? _pendingCandidates;
         private bool _voteActive;
         private bool _voteHudOpen;

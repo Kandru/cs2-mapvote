@@ -34,13 +34,6 @@ namespace MapVote.Config
         [JsonPropertyName("vote_seconds")]
         public int? VoteSeconds { get; set; }
 
-        /// <summary>
-        /// When set, written to <c>mp_win_panel_display_time</c> on the win-panel event.
-        /// Null leaves the server cvar alone.
-        /// </summary>
-        [JsonPropertyName("win_panel_display_time")]
-        public float? WinPanelDisplayTime { get; set; }
-
         [JsonPropertyName("winner_reveal_seconds")]
         public int WinnerRevealSeconds { get; set; } = 5;
     }

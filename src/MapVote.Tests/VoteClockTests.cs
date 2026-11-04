@@ -25,52 +25,36 @@ public class VoteClockTests
     }
 
     [Fact]
-    public void ResolveCustom_Panel3Vote20Reveal5_Opens11ChangesAt19()
+    public void ResolveCustom_Vote20Reveal5_Opens9ChangesAt19()
     {
         VoteTiming timing = VoteClock.ResolveCustom(
-            panelSeconds: 3,
             voteSeconds: 20,
             winnerRevealSeconds: 5);
 
         Assert.Equal(19, timing.ChangelevelOffsetSeconds);
         Assert.Equal(14, timing.RevealOffsetSeconds);
         Assert.Equal(5, timing.RevealSeconds);
-        Assert.Equal(11, timing.OpenSeconds);
+        Assert.Equal(9, timing.OpenSeconds);
     }
 
     [Fact]
-    public void ResolveCustom_Panel0Vote20Reveal5_Opens14ChangesAt19()
+    public void CatalogTimeout_IsDecisionOffset()
+    {
+        Assert.Equal(4, VoteClock.DecisionOffsetSeconds);
+        Assert.Equal(4, VoteClock.CatalogTimeoutSeconds());
+        Assert.Equal(5, VoteClock.MatchResultsSeconds);
+        Assert.Equal(1, VoteClock.NativeCommandLeadSeconds);
+    }
+
+    [Fact]
+    public void ResolveCustom_MatchResultsConsumesDeadline_SkipsVote()
     {
         VoteTiming timing = VoteClock.ResolveCustom(
-            panelSeconds: 0,
-            voteSeconds: 20,
+            voteSeconds: 6,
             winnerRevealSeconds: 5);
 
-        Assert.Equal(19, timing.ChangelevelOffsetSeconds);
-        Assert.Equal(14, timing.RevealOffsetSeconds);
-        Assert.Equal(5, timing.RevealSeconds);
-        Assert.Equal(14, timing.OpenSeconds);
-    }
-
-    [Fact]
-    public void CatalogTimeout_UsesPanelMinusOneWithFloorOfTwo()
-    {
-        Assert.Equal(2, VoteClock.CatalogTimeoutSeconds(0));
-        Assert.Equal(2, VoteClock.CatalogTimeoutSeconds(-1));
-        Assert.Equal(2, VoteClock.CatalogTimeoutSeconds(3));
-        Assert.Equal(59, VoteClock.CatalogTimeoutSeconds(60));
-    }
-
-    [Fact]
-    public void ResolveCustom_PanelConsumesDeadline_SkipsVote()
-    {
-        VoteTiming timing = VoteClock.ResolveCustom(
-            panelSeconds: 19,
-            voteSeconds: 20,
-            winnerRevealSeconds: 5);
-
-        Assert.Equal(19, timing.ChangelevelOffsetSeconds);
-        Assert.Equal(19, timing.RevealOffsetSeconds);
+        Assert.Equal(5, timing.ChangelevelOffsetSeconds);
+        Assert.Equal(5, timing.RevealOffsetSeconds);
         Assert.Equal(0, timing.OpenSeconds);
         Assert.Equal(0, timing.RevealSeconds);
     }
@@ -79,23 +63,12 @@ public class VoteClockTests
     public void ResolveCustom_ShortPhase_ShrinksReveal()
     {
         VoteTiming timing = VoteClock.ResolveCustom(
-            panelSeconds: 15,
-            voteSeconds: 20,
+            voteSeconds: 10,
             winnerRevealSeconds: 5);
 
-        Assert.Equal(19, timing.ChangelevelOffsetSeconds);
-        Assert.Equal(15, timing.RevealOffsetSeconds);
+        Assert.Equal(9, timing.ChangelevelOffsetSeconds);
+        Assert.Equal(5, timing.RevealOffsetSeconds);
         Assert.Equal(4, timing.RevealSeconds);
         Assert.Equal(0, timing.OpenSeconds);
-    }
-
-    [Fact]
-    public void ReadPanelSeconds_AllowsZeroAndFallsBack()
-    {
-        Assert.Equal(3, VoteClock.ReadPanelSeconds(_ => null));
-        Assert.Equal(0, VoteClock.ReadPanelSeconds(name => name == "mp_win_panel_display_time" ? 0f : null));
-        Assert.Equal(4, VoteClock.ReadPanelSeconds(name => name == "mp_win_panel_display_time" ? 3.2f : null));
-        Assert.Equal(60, VoteClock.ReadPanelSeconds(name => name == "mp_win_panel_display_time" ? 60f : null));
-        Assert.Equal(3, VoteClock.ReadPanelSeconds(name => name == "mp_win_panel_display_time" ? -1f : null));
     }
 }
