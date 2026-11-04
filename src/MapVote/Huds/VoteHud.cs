@@ -4,7 +4,6 @@ using MapVote.Maps;
 using MapVote.Players;
 using MapVote.Utils;
 using MapVote.Voting;
-using PlayerUtil = MapVote.Utils.Players;
 
 namespace MapVote.Huds
 {
@@ -58,7 +57,7 @@ namespace MapVote.Huds
             _winner = null;
         }
 
-        public static void Clear()
+        private static void Clear()
         {
             _session = null;
             _archive = null;
@@ -122,7 +121,7 @@ namespace MapVote.Huds
 
         public static void OpenFor(CCSPlayerController player, bool captureMouse = true)
         {
-            if (_session is null || !PlayerUtil.IsHumanViewer(player))
+            if (_session is null || !Humans.IsHumanViewer(player))
             {
                 return;
             }
@@ -130,12 +129,12 @@ namespace MapVote.Huds
             WriteDefaults(player);
             Paint(player);
             HudMenu.Open(player, new HudMenuOpenOptions { OnButton = OnButton, CaptureMouse = captureMouse });
-            PluginLog.Debug($"hud open: {PlayerUtil.Label(player)} slot={player.Slot}");
+            PluginLog.Debug($"hud open: {Humans.Label(player)} slot={player.Slot}");
         }
 
         public static void PaintRevealFor(CCSPlayerController player, string winner)
         {
-            if (_session is null || !PlayerUtil.IsHumanViewer(player))
+            if (_session is null || !Humans.IsHumanViewer(player))
             {
                 return;
             }
@@ -165,7 +164,7 @@ namespace MapVote.Huds
 
         public static void Paint(CCSPlayerController player)
         {
-            if (_session is null || !PlayerUtil.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
+            if (_session is null || !Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
@@ -222,7 +221,7 @@ namespace MapVote.Huds
 
         public static void CloseAll()
         {
-            foreach (CCSPlayerController player in PlayerUtil.GetHumans().ToList())
+            foreach (CCSPlayerController player in Humans.GetHumans().ToList())
             {
                 HudMenu.Close(player);
             }
@@ -306,7 +305,7 @@ namespace MapVote.Huds
             string? previous = _session.VoteOf(steamId);
             if (_session.Cast(steamId, votedMap))
             {
-                string label = PlayerUtil.Label(player, steamId);
+                string label = Humans.Label(player, steamId);
                 PluginLog.Debug(previous is null
                     ? $"cast {label} → {votedMap}"
                     : $"cast {label} {previous} → {votedMap}");
@@ -961,7 +960,7 @@ namespace MapVote.Huds
 
         private static void ForEachOpen(Action<CCSPlayerController> action)
         {
-            foreach (CCSPlayerController player in PlayerUtil.GetHumans())
+            foreach (CCSPlayerController player in Humans.GetHumans())
             {
                 if (HudMenu.IsOpen(player))
                 {

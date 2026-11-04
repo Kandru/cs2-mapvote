@@ -5,7 +5,7 @@ using MapVote.Config;
 
 namespace MapVote.Players
 {
-    /// <summary>On-disk player JSON paths and (de)serialization (trimmed from cs2-challenges).</summary>
+    /// <summary>On-disk player JSON paths and (de)serialization.</summary>
     internal static partial class PlayerFiles
     {
         public static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };

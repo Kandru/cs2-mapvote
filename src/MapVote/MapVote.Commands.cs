@@ -4,7 +4,6 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Commands;
 using MapVote.Utils;
-using PlayerUtil = MapVote.Utils.Players;
 
 namespace MapVote
 {
@@ -15,14 +14,14 @@ namespace MapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void OnRtvCommand(CCSPlayerController? player, CommandInfo info)
         {
-            if (!Config.Rtv.Enabled || player is null || !PlayerUtil.IsHumanViewer(player)
+            if (!Config.Rtv.Enabled || player is null || !Humans.IsHumanViewer(player)
                 || player.AuthorizedSteamID is not { SteamId64: var id })
             {
                 PluginLog.Debug("rtv ignored: disabled or invalid player");
                 return;
             }
 
-            string label = PlayerUtil.Label(player, id);
+            string label = Humans.Label(player, id);
 
             if (VoteBusy)
             {
@@ -62,22 +61,10 @@ namespace MapVote
         private int RtvVotesNeeded(int humanCount) =>
             Math.Max(1, (int)Math.Ceiling(humanCount * Math.Clamp(Config.Rtv.Ratio, 0.01f, 1f)));
 
-        private int CountRtvHumans(ulong? excludeSteamId = null)
-        {
-            int count = 0;
-            foreach (CCSPlayerController human in PlayerUtil.GetHumans())
-            {
-                if (excludeSteamId is ulong id
-                    && human.AuthorizedSteamID?.SteamId64 == id)
-                {
-                    continue;
-                }
-
-                count++;
-            }
-
-            return count;
-        }
+        private int CountRtvHumans(ulong? excludeSteamId = null) =>
+            Humans.GetHumans().Count(human =>
+                excludeSteamId is not ulong id
+                || human.AuthorizedSteamID?.SteamId64 != id);
 
         /// <summary>
         /// Passes RTV when enough votes remain for the current human count.

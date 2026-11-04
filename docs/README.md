@@ -4,9 +4,29 @@ Compressed reference for people changing MapVote and for AI agents. Server owner
 
 | Doc | Contents |
 | --- | --- |
-| [build.md](build.md) | `make` targets, Docker SDK, panorama validation |
 | [config.md](config.md) | `MapVote.json` keys |
 | [behavior.md](behavior.md) | Vote flow, RCON catalog, RTV, HUD wiring, entry points |
 | [images.md](images.md) | Workshop map tiles, extractor, class naming, custom addons |
 
 Panorama binding rules (layouts, classes, transmit, overflows): [stuff/PANORAMA_RULESET.md](../stuff/PANORAMA_RULESET.md). Cursor rule: `.cursor/rules/panorama.mdc`.
+
+## Build
+
+Dockerized .NET via `mcr.microsoft.com/dotnet/sdk:10.0` (no project Dockerfile). Host user UID/GID; NuGet cache `~/.nuget`. Optional absolute `<OutputPath>` in the csproj is bind-mounted for direct plugin deploy.
+
+`make debug`, `make release`, and `make test` run `make panorama` first.
+
+| Target | Effect |
+| --- | --- |
+| `make debug` | `dotnet build` Debug |
+| `make release` | `dotnet publish` Release |
+| `make test` | unit tests (Release) |
+| `make panorama` | `tools/validate_panorama.py` (+ preview sync) |
+| `make restore` | NuGet restore |
+| `make clean` | clean plugin + tests |
+| `make images` | extract map tiles (`WORKSHOP_DIR` and/or `GAME_DIR`) |
+| `make images-check` | rewrite tiles that are not 350×197 PNG |
+| `make images-css` | rebuild stock/palette VCSS from PNGs on disk |
+| `make images-opt` | lossless-compress PNG files in place (needs oxipng) |
+
+See [images.md](images.md) for extractor setup (`SOURCE2VIEWER_CLI`, Pillow).

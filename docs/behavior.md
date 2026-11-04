@@ -8,7 +8,7 @@ Refresh runs on the match win panel (not on plugin load / map start). The worker
 
 ## End-match vote
 
-Only [`EventCsWinPanelMatch`](../src/MapVote/MapVote.Events.cs) starts the vote ([`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)). `EventCsIntermission` is not used (it always fires first; the win panel is the menu trigger).
+Only [`EventCsWinPanelMatch`](../src/MapVote/MapVote.cs) starts the vote ([`MapVote.VoteFlow.cs`](../src/MapVote/MapVote.VoteFlow.cs)). `EventCsIntermission` is not used (it always fires first; the win panel is the menu trigger).
 
 1. `ArmEngineVote` (map start / RTV) - if any votable map exists (or catalog still loading / empty): turn the Valve vote off (`EngineVotePrep.PrepareCustomVote`); else enable native CS2 end-match vote. Does not write `mp_match_restart_delay` or `mp_win_panel_display_time`.
 2. Win panel - turn native vote off, start a catalog refresh inside the query budget, wait for that refresh (or a short watchdog).
@@ -36,8 +36,7 @@ Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.jso
 
 | File | Role |
 | --- | --- |
-| `MapVote.cs` | Load/unload, catalog/archive, config |
-| `MapVote.Events.cs` | Win panel, disconnect, HUD clicks |
+| `MapVote.cs` | Load/unload, catalog/archive, config, win panel, disconnect, HUD clicks |
 | `MapVote.VoteFlow.cs` | Arm / win-panel start / reveal / native fallback |
 | `MapVote.Commands.cs` | RTV |
 | `Huds/VoteHud.cs` | Panorama paint |

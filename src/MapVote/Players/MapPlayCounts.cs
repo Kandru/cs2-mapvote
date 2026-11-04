@@ -7,8 +7,6 @@ namespace MapVote.Players
     /// <summary>Server-wide map play counts. Memory during the map; disk at map boundaries.</summary>
     public sealed class MapPlayCounts
     {
-        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
-
         private readonly object _gate = new();
         private Dictionary<string, int> _counts = new(StringComparer.Ordinal);
         private bool _dirty;
@@ -33,7 +31,7 @@ namespace MapVote.Players
             try
             {
                 Dictionary<string, int>? loaded =
-                    JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllBytes(path), JsonOptions);
+                    JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllBytes(path), PlayerFiles.JsonOptions);
                 if (loaded is null)
                 {
                     return;
@@ -95,7 +93,7 @@ namespace MapVote.Players
                     Directory.CreateDirectory(dir);
                 }
 
-                PlayerFiles.WriteBytes(path, JsonSerializer.SerializeToUtf8Bytes(snapshot, JsonOptions));
+                PlayerFiles.WriteBytes(path, JsonSerializer.SerializeToUtf8Bytes(snapshot, PlayerFiles.JsonOptions));
                 lock (_gate)
                 {
                     _dirty = false;

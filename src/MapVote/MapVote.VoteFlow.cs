@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using MapVote.Huds;
 using MapVote.Maps;
 using MapVote.Utils;
-using PlayerUtil = MapVote.Utils.Players;
 using MapVote.Voting;
 
 namespace MapVote
@@ -185,7 +184,7 @@ namespace MapVote
             }
 
             bool openForVote = untilReveal > 0f;
-            foreach (CCSPlayerController player in PlayerUtil.GetHumans())
+            foreach (CCSPlayerController player in Humans.GetHumans())
             {
                 VoteHud.OpenFor(player, captureMouse: openForVote);
             }
