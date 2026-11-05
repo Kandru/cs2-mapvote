@@ -14,7 +14,7 @@ public class EndMatchFlowTests
 
         Assert.True(choice.Custom);
         Assert.Equal(EndMatchPhase.Ready, flow.Phase);
-        Assert.True(flow.WatchNativeSlots);
+        Assert.True(flow.IsCustomVote);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class EndMatchFlowTests
 
         Assert.False(choice.Custom);
         Assert.Equal(EndMatchPhase.Native, flow.Phase);
-        Assert.False(flow.WatchNativeSlots);
+        Assert.False(flow.IsCustomVote);
     }
 
     [Fact]

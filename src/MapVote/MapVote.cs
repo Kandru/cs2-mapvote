@@ -34,6 +34,7 @@ namespace MapVote
         private DateTime _intermissionEpochUtc;
         private DateTime? _rtvDeadlineUtc;
         private int _voteSeconds = VoteClock.DefaultVoteSeconds;
+        private int? _baseVoteSeconds;
         private int _catalogGeneration;
         private List<MapEntry>? _pendingCandidates;
         private string? _pendingWinner;
@@ -77,6 +78,11 @@ namespace MapVote
             RegisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+
+            if (hotReload)
+            {
+                ArmEngineHold();
+            }
         }
 
         public override void Unload(bool hotReload)
@@ -190,6 +196,7 @@ namespace MapVote
             ResetRtv();
             CustomHud.ResetRound();
             LoadPersistence();
+            ArmEngineHold();
             PluginLog.Debug(() => $"map start {mapName}");
         }
 
@@ -206,9 +213,9 @@ namespace MapVote
         {
             PluginLog.Debug("win panel");
             BeginEndMatchFromWinPanel();
-            if (_flow.WatchNativeSlots)
+            if (_flow.IsCustomVote)
             {
-                EngineVotePrep.ClearNativeVoteSlots();
+                SuppressNativeVoteSlots();
             }
 
             return HookResult.Continue;

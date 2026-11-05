@@ -10,18 +10,6 @@ namespace MapVote.Voting
         public const int EmptyVoteSlot = -1;
 
         /// <summary>
-        /// Optionally writes <c>mp_endmatch_votenextleveltime</c>. Null means leave the server cvar alone.
-        /// Does not write <c>mp_match_restart_delay</c> or <c>mp_win_panel_display_time</c>.
-        /// </summary>
-        public static void ApplyEndMatchOverrides(int? voteSeconds)
-        {
-            if (voteSeconds is not null)
-            {
-                Server.ExecuteCommand($"mp_endmatch_votenextleveltime {Math.Max(1, voteSeconds.Value)}");
-            }
-        }
-
-        /// <summary>
         /// Disables same-map restart so the end-match timer owns the post-match window.
         /// Does not arm the Valve vote UI.
         /// </summary>
@@ -39,13 +27,16 @@ namespace MapVote.Voting
         }
 
         /// <summary>
-        /// Turns the Valve end-match vote cvar off. Does not touch the option list;
-        /// the win panel overwrites that when our vote is the one in use.
+        /// Turns the Valve end-match vote off and stretches the engine timer past our changelevel.
+        /// Does not blank the option list; the caller does that once the engine has finished writing it.
         /// </summary>
-        public static void SuppressNativeVote()
+        public static void SuppressNativeVote(int engineHoldSeconds)
         {
+            int hold = Math.Max(1, engineHoldSeconds);
             Server.ExecuteCommand("mp_endmatch_votenextmap 0");
             DisableMatchEndRestart();
+            Server.ExecuteCommand($"mp_endmatch_votenextleveltime {hold}");
+            Server.ExecuteCommand($"mp_match_restart_delay {hold}");
         }
 
         /// <summary>Points a leftover engine level-change at our winner. The plugin still runs <c>changelevel</c>.</summary>
@@ -65,23 +56,19 @@ namespace MapVote.Voting
         /// </summary>
         public static void ClearNativeVoteSlots()
         {
-            CCSGameRules? rules = null;
-            foreach (CCSGameRulesProxy proxy in Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules"))
-            {
-                if (proxy.IsValid)
-                {
-                    rules = proxy.GameRules;
-                    break;
-                }
-            }
-
-            if (rules is null)
+            CCSGameRulesProxy? proxy = Utilities
+                .FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules")
+                .FirstOrDefault(static candidate => candidate.IsValid);
+            if (proxy?.GameRules is not CCSGameRules rules)
             {
                 return;
             }
 
             BlankVoteSlots(rules.EndMatchMapGroupVoteOptions);
             BlankVoteSlots(rules.EndMatchMapGroupVoteTypes);
+            // Span writes do not mark the rules dirty, so the client would keep the list
+            // the engine already sent.
+            Utilities.SetStateChanged(proxy, "CCSGameRulesProxy", "m_pGameRules");
         }
 
         /// <summary>Sets every slot to <see cref="EmptyVoteSlot"/>.</summary>

@@ -5,7 +5,8 @@ namespace MapVote.Voting
     /// <param name="RevealOffsetSeconds">Seconds after the win-panel epoch when reveal starts.</param>
     /// <param name="ChangelevelOffsetSeconds">
     /// Seconds after the win-panel epoch when the plugin must <c>changelevel</c>
-    /// (<c>mp_endmatch_votenextleveltime</c> minus <see cref="VoteClock.EngineChangelevelSlackSeconds"/>).
+    /// (vote length minus <see cref="VoteClock.EngineChangelevelSlackSeconds"/>).
+    /// The engine cvar is longer: <see cref="VoteClock.EngineHoldFromIntermission"/>.
     /// </param>
     public readonly record struct VoteTiming(
         int OpenSeconds,
@@ -14,12 +15,17 @@ namespace MapVote.Voting
         int ChangelevelOffsetSeconds);
 
     /// <summary>
-    /// End-match schedule from the win-panel epoch: fixed match-results hold, then custom menu,
-    /// <c>changelevel</c> at <c>mp_endmatch_votenextleveltime</c> − 1s.
+    /// Menu schedule from the win-panel epoch: match-results hold, then the custom menu,
+    /// <c>changelevel</c> one second before the vote length elapses.
+    /// The engine end-match timer is <see cref="EngineHoldFromIntermission"/>, measured from intermission.
     /// </summary>
     public static class VoteClock
     {
         public const int EngineChangelevelSlackSeconds = 1;
+
+        /// <summary>Win panel arrives about this long after intermission, which is when the engine timer starts.</summary>
+        public const int WinPanelDelaySeconds = 3;
+
         public const int MatchResultsSeconds = 6;
         public const int CatalogBudgetSeconds = 1;
         public const int DecisionOffsetSeconds = 2;
@@ -45,6 +51,14 @@ namespace MapVote.Voting
             int open = Math.Max(0, revealAt - hold);
             return new VoteTiming(open, reveal, revealAt, changelevelAt);
         }
+
+        /// <summary>
+        /// Engine end-match budget measured from intermission.
+        /// Our <c>changelevel</c> is <c>voteSeconds − 1</c> after the win panel, so the engine
+        /// timer has to cover that delay plus one second of slack.
+        /// </summary>
+        public static int EngineHoldFromIntermission(int voteSeconds) =>
+            Math.Max(1, voteSeconds) + WinPanelDelaySeconds + EngineChangelevelSlackSeconds;
 
         /// <summary>RCON catalog retry budget, measured from intermission. The path decision follows at <see cref="DecisionOffsetSeconds"/>.</summary>
         public static int CatalogTimeoutSeconds() => CatalogBudgetSeconds;

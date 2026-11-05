@@ -28,8 +28,8 @@ namespace MapVote.Config
         public bool ExcludeCurrentMap { get; set; } = true;
 
         /// <summary>
-        /// When set, written to <c>mp_endmatch_votenextleveltime</c> as the custom vote starts (win panel).
-        /// Null leaves the server cvar alone. Does not arm or disable the native vote.
+        /// Menu length in seconds. Null uses the server cvar, read once before the plugin stretches it.
+        /// The engine timer is written to this length plus 4s so intermission does not change the map first.
         /// </summary>
         [JsonPropertyName("vote_seconds")]
         public int? VoteSeconds { get; set; }

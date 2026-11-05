@@ -26,7 +26,7 @@ namespace MapVote.Voting
         public bool BlocksRtv => Phase != EndMatchPhase.Idle;
 
         /// <summary>Custom vote is in progress, from the decision through the reveal.</summary>
-        public bool WatchNativeSlots => Phase is EndMatchPhase.Ready
+        public bool IsCustomVote => Phase is EndMatchPhase.Ready
             or EndMatchPhase.Holding
             or EndMatchPhase.Voting
             or EndMatchPhase.Revealing;

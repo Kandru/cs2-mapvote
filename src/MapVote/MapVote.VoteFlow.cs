@@ -139,18 +139,53 @@ namespace MapVote
                 return;
             }
 
-            EngineVotePrep.SuppressNativeVote();
+            int engineHold = WriteEngineHold();
+            SuppressNativeVoteSlots();
             int maps = _pendingCandidates?.Count ?? 0;
-            PluginLog.Info($"custom vote: {maps} maps; native vote disabled");
+            PluginLog.Info($"custom vote: {maps} maps; native vote disabled; engine hold={engineHold}s");
+        }
+
+        /// <summary>Menu length: config override, otherwise the server cvar captured before we stretch it.</summary>
+        private int BaseVoteSeconds() =>
+            Config.Endmatch.VoteSeconds is int configured
+                ? Math.Max(1, configured)
+                : _baseVoteSeconds ??= VoteClock.ReadVoteSeconds(ConVars.ReadFloat);
+
+        /// <summary>Stretches the engine end-match timer past our changelevel and turns its vote off.</summary>
+        private int WriteEngineHold()
+        {
+            int hold = VoteClock.EngineHoldFromIntermission(BaseVoteSeconds());
+            EngineVotePrep.SuppressNativeVote(hold);
+            return hold;
+        }
+
+        /// <summary>Map start and hot reload: the next intermission must already see the stretched timer.</summary>
+        private void ArmEngineHold()
+        {
+            int hold = WriteEngineHold();
+            PluginLog.Debug(() => $"engine hold armed: {hold}s");
+        }
+
+        /// <summary>
+        /// Blank native end-match vote slots now and once more next frame so a late
+        /// engine write after intermission cannot repopulate the Valve panel.
+        /// </summary>
+        private void SuppressNativeVoteSlots()
+        {
+            EngineVotePrep.ClearNativeVoteSlots();
+            Server.NextFrame(() =>
+            {
+                if (!_unloaded && _flow.IsCustomVote)
+                {
+                    EngineVotePrep.ClearNativeVoteSlots();
+                }
+            });
         }
 
         private void StartHudClock()
         {
             _scheduleEpochUtc = DateTime.UtcNow;
-            EngineVotePrep.ApplyEndMatchOverrides(Config.Endmatch.VoteSeconds);
-            _voteSeconds = Config.Endmatch.VoteSeconds is int voteOverride
-                ? Math.Max(1, voteOverride)
-                : VoteClock.ReadVoteSeconds(ConVars.ReadFloat);
+            _voteSeconds = BaseVoteSeconds();
             _timing = VoteClock.ResolveCustom(_voteSeconds, Config.Endmatch.WinnerRevealSeconds);
 
             PluginLog.Debug(() =>

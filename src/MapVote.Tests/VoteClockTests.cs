@@ -44,6 +44,7 @@ public class VoteClockTests
         Assert.Equal(1, VoteClock.CatalogTimeoutSeconds());
         Assert.Equal(2, VoteClock.DecisionOffsetSeconds);
         Assert.Equal(6, VoteClock.MatchResultsSeconds);
+        Assert.Equal(24, VoteClock.EngineHoldFromIntermission(20));
     }
 
     [Fact]
