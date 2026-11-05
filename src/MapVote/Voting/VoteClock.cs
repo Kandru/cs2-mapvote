@@ -20,7 +20,7 @@ namespace MapVote.Voting
     public static class VoteClock
     {
         public const int EngineChangelevelSlackSeconds = 1;
-        public const int MatchResultsSeconds = 5;
+        public const int MatchResultsSeconds = 6;
         public const int CatalogBudgetSeconds = 1;
         public const int DecisionOffsetSeconds = 2;
         public const int DefaultVoteSeconds = 20;

@@ -25,7 +25,7 @@ public class VoteClockTests
     }
 
     [Fact]
-    public void ResolveCustom_Vote20Reveal5_Opens9ChangesAt19()
+    public void ResolveCustom_Vote20Reveal5_Opens8ChangesAt19()
     {
         VoteTiming timing = VoteClock.ResolveCustom(
             voteSeconds: 20,
@@ -34,7 +34,7 @@ public class VoteClockTests
         Assert.Equal(19, timing.ChangelevelOffsetSeconds);
         Assert.Equal(14, timing.RevealOffsetSeconds);
         Assert.Equal(5, timing.RevealSeconds);
-        Assert.Equal(9, timing.OpenSeconds);
+        Assert.Equal(8, timing.OpenSeconds);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class VoteClockTests
         Assert.Equal(1, VoteClock.CatalogBudgetSeconds);
         Assert.Equal(1, VoteClock.CatalogTimeoutSeconds());
         Assert.Equal(2, VoteClock.DecisionOffsetSeconds);
-        Assert.Equal(5, VoteClock.MatchResultsSeconds);
+        Assert.Equal(6, VoteClock.MatchResultsSeconds);
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public class VoteClockTests
             winnerRevealSeconds: 5);
 
         Assert.Equal(9, timing.ChangelevelOffsetSeconds);
-        Assert.Equal(5, timing.RevealOffsetSeconds);
-        Assert.Equal(4, timing.RevealSeconds);
+        Assert.Equal(6, timing.RevealOffsetSeconds);
+        Assert.Equal(3, timing.RevealSeconds);
         Assert.Equal(0, timing.OpenSeconds);
     }
 }
