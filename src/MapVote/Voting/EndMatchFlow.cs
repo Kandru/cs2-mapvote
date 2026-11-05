@@ -25,7 +25,7 @@ namespace MapVote.Voting
 
         public bool BlocksRtv => Phase != EndMatchPhase.Idle;
 
-        /// <summary>Custom path is committed and the engine may still refill native vote slots.</summary>
+        /// <summary>Custom vote is in progress, from the decision through the reveal.</summary>
         public bool WatchNativeSlots => Phase is EndMatchPhase.Ready
             or EndMatchPhase.Holding
             or EndMatchPhase.Voting

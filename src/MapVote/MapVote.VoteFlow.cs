@@ -95,8 +95,9 @@ namespace MapVote
         }
 
         /// <summary>
-        /// Win panel (~3s after intermission). Does not query RCON and does not change the native vote
-        /// unless the 2s decision has not run yet.
+        /// Win panel (~3s after intermission). Does not query RCON.
+        /// If the 2s decision has not run yet, it runs first. The caller then empties the
+        /// native option list when the custom vote is the one in use.
         /// </summary>
         private void BeginEndMatchFromWinPanel()
         {
@@ -378,7 +379,6 @@ namespace MapVote
             _session = null;
             _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
             VoteHud.CloseAll();
-            EngineVotePrep.ForgetRules();
         }
 
         private void KillDecisionTimer()

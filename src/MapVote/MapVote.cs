@@ -152,12 +152,6 @@ namespace MapVote
 
         private void OnTick()
         {
-            if (!_flow.WatchNativeSlots)
-            {
-                return;
-            }
-
-            EngineVotePrep.BlankFilledNativeSlots();
             if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing)
             {
                 VoteHud.OnTick();
@@ -212,6 +206,11 @@ namespace MapVote
         {
             PluginLog.Debug("win panel");
             BeginEndMatchFromWinPanel();
+            if (_flow.WatchNativeSlots)
+            {
+                EngineVotePrep.ClearNativeVoteSlots();
+            }
+
             return HookResult.Continue;
         }
 

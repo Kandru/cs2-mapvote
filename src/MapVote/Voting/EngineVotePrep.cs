@@ -28,8 +28,6 @@ namespace MapVote.Voting
         public static void DisableMatchEndRestart() =>
             Server.ExecuteCommand("mp_match_end_restart 0");
 
-        private static CCSGameRulesProxy? _rulesProxy;
-
         /// <summary>
         /// Enables the Valve end-match vote and disables same-map restart.
         /// Does not write vote duration.
@@ -41,13 +39,13 @@ namespace MapVote.Voting
         }
 
         /// <summary>
-        /// Turns the Valve end-match vote off and blanks any slots the client would read as options.
+        /// Turns the Valve end-match vote cvar off. Does not touch the option list;
+        /// the win panel overwrites that when our vote is the one in use.
         /// </summary>
         public static void SuppressNativeVote()
         {
             Server.ExecuteCommand("mp_endmatch_votenextmap 0");
             DisableMatchEndRestart();
-            BlankFilledNativeSlots();
         }
 
         /// <summary>Points a leftover engine level-change at our winner. The plugin still runs <c>changelevel</c>.</summary>
@@ -61,68 +59,33 @@ namespace MapVote.Voting
             Server.ExecuteCommand($"nextlevel {map}");
         }
 
-        public static void ForgetRules() => _rulesProxy = null;
-
         /// <summary>
-        /// Writes <see cref="EmptyVoteSlot"/> only into slots that are not already empty.
-        /// Caches the game-rules proxy so a tick does not search entities while the pointer is live.
+        /// Writes <see cref="EmptyVoteSlot"/> into every native option slot so the Valve
+        /// end-match panel has an empty list and skips itself.
         /// </summary>
-        public static bool BlankFilledNativeSlots()
+        public static void ClearNativeVoteSlots()
         {
-            CCSGameRules? rules = Rules();
+            CCSGameRules? rules = null;
+            foreach (CCSGameRulesProxy proxy in Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules"))
+            {
+                if (proxy.IsValid)
+                {
+                    rules = proxy.GameRules;
+                    break;
+                }
+            }
+
             if (rules is null)
             {
-                return false;
+                return;
             }
 
-            bool changed = false;
-            if (SlotsNeedBlank(rules.EndMatchMapGroupVoteOptions))
-            {
-                BlankVoteSlots(rules.EndMatchMapGroupVoteOptions);
-                changed = true;
-            }
-
-            if (SlotsNeedBlank(rules.EndMatchMapGroupVoteTypes))
-            {
-                BlankVoteSlots(rules.EndMatchMapGroupVoteTypes);
-                changed = true;
-            }
-
-            return changed;
+            BlankVoteSlots(rules.EndMatchMapGroupVoteOptions);
+            BlankVoteSlots(rules.EndMatchMapGroupVoteTypes);
         }
 
         /// <summary>Sets every slot to <see cref="EmptyVoteSlot"/>.</summary>
         internal static void BlankVoteSlots(Span<int> slots) => slots.Fill(EmptyVoteSlot);
-
-        internal static bool SlotsNeedBlank(ReadOnlySpan<int> slots)
-        {
-            foreach (int slot in slots)
-            {
-                if (slot != EmptyVoteSlot)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static CCSGameRules? Rules()
-        {
-            if (_rulesProxy is { IsValid: true })
-            {
-                return _rulesProxy.GameRules;
-            }
-
-            _rulesProxy = null;
-            foreach (CCSGameRulesProxy proxy in Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules"))
-            {
-                _rulesProxy = proxy;
-                break;
-            }
-
-            return _rulesProxy is { IsValid: true } ? _rulesProxy.GameRules : null;
-        }
 
         public static string ChangelevelCommand(MapOrigin origin, string map) =>
             origin == MapOrigin.Workshop
