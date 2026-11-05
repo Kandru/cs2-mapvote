@@ -1,6 +1,10 @@
 PROJECT   := src/MapVote/MapVote.csproj
 TEST_PROJECT := src/MapVote.Tests/MapVote.Tests.csproj
 SDK_IMAGE := mcr.microsoft.com/dotnet/sdk:10.0
+SDK_MAJOR := 10
+# Command-line overrides (including empty) skip detection. Used to test the missing-toolchain error.
+HAS_DOTNET_10 ?= $(shell dotnet --list-sdks 2>/dev/null | awk '$$1 ~ /^$(SDK_MAJOR)\./ { found=1 } END { exit !found }' && echo yes)
+HAS_DOCKER ?= $(shell command -v docker >/dev/null 2>&1 && echo yes)
 UID       := $(shell id -u)
 GID       := $(shell id -g)
 DEBUG_OUTPUT := $(shell sed -n 's/.*<OutputPath>\(.*\)<\/OutputPath>.*/\1/p' $(PROJECT))
@@ -26,16 +30,46 @@ DOCKER_RUN = docker run --rm \
 	-w /src \
 	$(SDK_IMAGE)
 
+ifeq ($(HAS_DOTNET_10),yes)
+RUNNER := local
+RUNNER_LABEL := local .NET SDK $(SDK_MAJOR)
+DOTNET_CMD = dotnet
+else ifeq ($(HAS_DOCKER),yes)
+RUNNER := docker
+RUNNER_LABEL := Docker ($(SDK_IMAGE))
+DOTNET_CMD = $(DOCKER_RUN) dotnet
+else
+RUNNER := missing
+RUNNER_LABEL := missing — install the .NET $(SDK_MAJOR) SDK or Docker
+DOTNET_CMD = $(error .NET SDK $(SDK_MAJOR) was not found and docker is not installed. Install the .NET $(SDK_MAJOR) SDK or Docker, then re-run make)
+endif
+
 .DEFAULT_GOAL := help
 
-.PHONY: help debug release restore clean dirs panorama images images-check images-opt test
+.PHONY: help require-sdk debug release restore clean dirs panorama images images-check images-opt images-css test
 
-help: ## Show this help
-	@echo "CS2 MapVote"
+ifeq ($(RUNNER),missing)
+require-sdk:
+	$(error .NET SDK $(SDK_MAJOR) was not found and docker is not installed. Install the .NET $(SDK_MAJOR) SDK or Docker, then re-run make)
+else
+require-sdk: ;
+endif
+
+help: ## Help: Show targets and the selected .NET runner
+	@echo "CS2 MapVote — end-match map vote plugin"
+	@echo ""
+	@echo "Toolchain: .NET SDK $(SDK_MAJOR) when installed, otherwise Docker ($(SDK_IMAGE))."
+	@echo "Selected: $(RUNNER_LABEL)"
 	@echo ""
 	@echo "Usage: make <target>"
 	@echo ""
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_.-]+:.*?## / { \
+		split($$2, parts, ": "); \
+		group = parts[1]; \
+		sub("^[^:]+: ", "", $$2); \
+		if (group != last) { if (last != "") printf "\n"; printf "%s\n", group; last = group } \
+		printf "  %-14s %s\n", $$1, $$2 \
+	}' $(MAKEFILE_LIST)
 
 dirs:
 	@mkdir -p "$(HOME)/.nuget"
@@ -43,23 +77,26 @@ ifneq ($(DEBUG_OUTPUT),)
 	@mkdir -p "$(DEBUG_OUTPUT)"
 endif
 
-debug: dirs panorama ## Build Debug (development game server)
-	$(DOCKER_RUN) dotnet build $(PROJECT) -c Debug
+debug: require-sdk dirs panorama ## Build: Debug build for a development server
+	$(DOTNET_CMD) build $(PROJECT) -c Debug
 
-release: dirs panorama ## Publish Release (production game server)
-	$(DOCKER_RUN) dotnet publish $(PROJECT) -c Release
+release: require-sdk dirs panorama ## Build: Publish Release for a production server
+	$(DOTNET_CMD) publish $(PROJECT) -c Release
 
-restore: dirs ## Restore NuGet packages
-	$(DOCKER_RUN) dotnet restore $(PROJECT)
+restore: require-sdk dirs ## Build: Restore NuGet packages
+	$(DOTNET_CMD) restore $(PROJECT)
 
-clean: dirs ## Remove build artifacts
-	$(DOCKER_RUN) dotnet clean $(PROJECT)
-	$(DOCKER_RUN) dotnet clean $(TEST_PROJECT)
+clean: require-sdk dirs ## Build: Remove plugin and test build artifacts
+	$(DOTNET_CMD) clean $(PROJECT)
+	$(DOTNET_CMD) clean $(TEST_PROJECT)
 
-panorama: ## Validate HUD Panorama XML/CSS and sync browser preview
+test: require-sdk dirs panorama ## Test: Run unit tests
+	$(DOTNET_CMD) test $(TEST_PROJECT) -c Release --nologo
+
+panorama: ## Panorama: Validate HUD XML/CSS and sync the browser preview
 	python3 tools/validate_panorama.py
 
-images: ## Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csgo)
+images: ## Images: Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csgo)
 	@if [ -z "$(WORKSHOP_DIR)" ] && [ -z "$(GAME_DIR)" ]; then \
 		echo "Usage:"; \
 		echo "  make images WORKSHOP_DIR=/path/to/workshop/or/maps"; \
@@ -71,11 +108,11 @@ images: ## Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csgo)
 		$(if $(WORKSHOP_DIR),"$(WORKSHOP_DIR)",) \
 		$(if $(GAME_DIR),--game-dir "$(GAME_DIR)",)
 
-images-check: ## Rewrite map tiles that are not 350×197 PNG (center-crop, no stretch)
+images-check: ## Images: Rewrite map tiles that are not 350×197 PNG (center-crop, no stretch)
 	python3 tools/check_map_images.py
 
 # Lossless recompress (deflate + filters). Pixels stay identical; safe metadata is stripped.
-images-opt: ## Lossless-compress PNG files in place (needs oxipng)
+images-opt: ## Images: Lossless-compress PNG files in place (needs oxipng)
 	@command -v oxipng >/dev/null || { \
 		echo "oxipng is required (lossless). Install it, then re-run make images-opt."; \
 		echo "  Arch: sudo pacman -S oxipng"; \
@@ -89,9 +126,6 @@ images-opt: ## Lossless-compress PNG files in place (needs oxipng)
 		-type f -name '*.png' -print0 \
 	| xargs -0 -r oxipng -o 4 --strip safe --alpha
 
-images-css: ## Rebuild stock/palette VCSS (+ preview) from PNGs on disk only
+images-css: ## Images: Rebuild stock/palette VCSS and the preview from PNGs on disk
 	python3 tools/extract_workshop_images.py --css-only
 	python3 tools/sync_preview.py
-
-test: dirs panorama ## Run unit tests
-	$(DOCKER_RUN) dotnet test $(TEST_PROJECT) -c Release --nologo

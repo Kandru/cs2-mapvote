@@ -6,7 +6,7 @@
   "rtv.pending": "Rock the vote already passed. The map will change soon.",
   "rtv.closed": "A map vote is already running.",
   "rtv.expired": "Rock the vote timed out. Type !rtv to start again.",
-  "rtv.ended": "Rock the vote is closed until the next map.",
+  "rtv.ended": "Rock the vote is closed until the next match.",
   "hud.title": "Vote for the next map",
   "hud.winner": "Winning map",
   "hud.hint": "Cast the first vote",

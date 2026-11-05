@@ -88,4 +88,11 @@ public class VoteSessionTests
         session.Lock();
         Assert.Contains(session.Winner!, session.Maps);
     }
+
+    [Fact]
+    public void Constructor_DropsDuplicateNames()
+    {
+        VoteSession session = new(["a", "a", "b", ""]);
+        Assert.Equal(["a", "b"], session.Maps);
+    }
 }

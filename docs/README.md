@@ -12,12 +12,13 @@ Panorama binding rules (layouts, classes, transmit, overflows): [stuff/PANORAMA_
 
 ## Build
 
-Dockerized .NET via `mcr.microsoft.com/dotnet/sdk:10.0` (no project Dockerfile). Host user UID/GID; NuGet cache `~/.nuget`. Optional absolute `<OutputPath>` in the csproj is bind-mounted for direct plugin deploy.
+`make debug`, `make release`, `make restore`, `make clean`, and `make test` use a local .NET 10 SDK when `dotnet --list-sdks` shows one. Otherwise they run the same commands in `mcr.microsoft.com/dotnet/sdk:10.0` (host UID/GID, NuGet cache `~/.nuget`, optional absolute `<OutputPath>` bind-mounted). If neither the SDK nor Docker is installed, those targets stop with an error. `make help` still runs and says the toolchain is missing.
 
 `make debug`, `make release`, and `make test` run `make panorama` first.
 
 | Target | Effect |
 | --- | --- |
+| `make help` | Targets grouped by Build, Test, Panorama, Images, and which runner is selected |
 | `make debug` | `dotnet build` Debug |
 | `make release` | `dotnet publish` Release |
 | `make test` | unit tests (Release) |

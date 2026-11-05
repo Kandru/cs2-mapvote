@@ -101,7 +101,6 @@ namespace MapVote
             _rtvVoters.Clear();
             _rtvPassed = true;
             Server.PrintToChatAll(Chat(Localizer["rtv.success", have, need]));
-            ArmEngineVote();
             PluginLog.Info($"rtv succeeded: {reason} → {Config.Rtv.SuccessCommand}");
             if (deferCommand)
             {
@@ -178,14 +177,35 @@ namespace MapVote
         }
 
         /// <summary>
-        /// Clears an open RTV window and blocks further votes until the next map start.
+        /// Clears an open RTV window and blocks further votes until the next map
+        /// or the next warmup / match on this map.
         /// </summary>
         private void CloseRtvForMatchEnd()
         {
             _rtvVoters.Clear();
             StopRtvWindow();
             _rtvClosed = true;
-            PluginLog.Debug("rtv closed until next map (intermission)");
+            PluginLog.Debug("rtv closed until next match (intermission)");
+        }
+
+        /// <summary>Map start always clears RTV. Warmup and match start do too, once our vote is gone.</summary>
+        private void ResetRtv()
+        {
+            StopRtvWindow();
+            _rtvVoters.Clear();
+            _rtvPassed = false;
+            _rtvClosed = false;
+        }
+
+        private void OpenRtvForNewMatch(string reason)
+        {
+            if (!_rtvClosed || !_flow.TryFinishForNewMatch())
+            {
+                return;
+            }
+
+            ResetRtv();
+            PluginLog.Debug($"rtv open ({reason})");
         }
 
         private void ExecuteRtvSuccessCommand() =>

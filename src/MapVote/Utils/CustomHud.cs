@@ -248,6 +248,11 @@ namespace MapVote.Utils
                 return;
             }
 
+            if (VisibleBySlot.Count == 0 && ClosingRootsBySlot.Count == 0)
+            {
+                return;
+            }
+
             int index = (int)layout.Index;
             foreach ((CCheckTransmitInfo info, CCSPlayerController? viewer) in infoList)
             {

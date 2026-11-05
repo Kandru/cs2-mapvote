@@ -6,7 +6,7 @@
   "rtv.pending": "Rock the Vote ist schon durch. Die Karte wird gleich gewechselt.",
   "rtv.closed": "Die Karten-Abstimmung läuft schon.",
   "rtv.expired": "Rock the Vote ist abgelaufen. Tippe !rtv, um neu zu starten.",
-  "rtv.ended": "Rock the Vote ist bis zur nächsten Map geschlossen.",
+  "rtv.ended": "Rock the Vote ist bis zum nächsten Match geschlossen.",
   "hud.title": "Stimme für die nächste Map",
   "hud.winner": "Gewinnende Map",
   "hud.hint": "Gib die erste Stimme ab",

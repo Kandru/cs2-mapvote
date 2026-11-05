@@ -11,7 +11,7 @@
 
 ![Map vote](example.png)
 
-When the match ends, players should pick the next map the way Valve intended - big pictures, a clear winner row, and a list you can actually browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: portrait map cards, a top row of maps that already have votes, filters by type and “most played”, favorites, and `!rtv` so the lobby can force a vote early. It looks like the official CS2 screen, runs on your map list, and stays out of the way until the match is over.
+When the match ends, players should pick the next map the way Valve never intended - big pictures, a clear winner row, and a list you can browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: portrait map cards, a top row of maps that already have votes, filters by type and "most played", favorites, and `!rtv` so the lobby can force a vote early on your map list.
 
 ## Installation
 

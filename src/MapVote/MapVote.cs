@@ -26,27 +26,23 @@ namespace MapVote
         private VoteTiming _timing;
         private CssTimer? _openTimer;
         private CssTimer? _revealTimer;
-        private CssTimer? _catalogWaitTimer;
-        private CssTimer? _panelOpenTimer;
+        private CssTimer? _decisionTimer;
+        private CssTimer? _holdTimer;
         private CssTimer? _rtvExpireTimer;
         private CssTimer? _rtvAnnounceTimer;
         private DateTime _scheduleEpochUtc;
+        private DateTime _intermissionEpochUtc;
         private DateTime? _rtvDeadlineUtc;
         private int _voteSeconds = VoteClock.DefaultVoteSeconds;
         private int _catalogGeneration;
-        private bool _catalogPreparing;
-        private bool _customPathChosen;
         private List<MapEntry>? _pendingCandidates;
-        private bool _voteActive;
-        private bool _voteHudOpen;
-        private bool _revealActive;
         private string? _pendingWinner;
         private MapOrigin _pendingOrigin;
         private Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);
         private readonly HashSet<ulong> _rtvVoters = [];
         private bool _rtvPassed;
         private bool _rtvClosed;
-        private bool _nativeVoteArmed;
+        private bool _leaveMap;
         private bool _unloaded;
         private readonly Dictionary<int, ulong> _steamBySlot = [];
 
@@ -76,13 +72,11 @@ namespace MapVote
 
             RegisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
             RegisterEventHandler<EventCsIntermission>(OnCsIntermission);
+            RegisterEventHandler<EventRoundAnnounceWarmup>(OnRoundAnnounceWarmup);
+            RegisterEventHandler<EventRoundAnnounceMatchStart>(OnRoundAnnounceMatchStart);
+            RegisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
-
-            if (hotReload)
-            {
-                ArmEngineVote();
-            }
         }
 
         public override void Unload(bool hotReload)
@@ -99,13 +93,22 @@ namespace MapVote
             RemoveListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
             RemoveListener<Listeners.OnTick>(OnTick);
             RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
+            DeregisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
+            DeregisterEventHandler<EventCsIntermission>(OnCsIntermission);
+            DeregisterEventHandler<EventRoundAnnounceWarmup>(OnRoundAnnounceWarmup);
+            DeregisterEventHandler<EventRoundAnnounceMatchStart>(OnRoundAnnounceMatchStart);
+            DeregisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
+            DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+            DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
         }
 
         private void OnCatalogLoaded(IReadOnlyList<MapEntry> maps, int generation) =>
             // RCON worker thread → main thread for config I/O and Server APIs.
             Server.NextFrame(() =>
             {
-                if (!_unloaded && _catalogPreparing && generation == _catalogGeneration)
+                if (!_unloaded
+                    && generation == _catalogGeneration
+                    && _flow.Phase == EndMatchPhase.Preparing)
                 {
                     OnCatalogSettled(maps, generation);
                 }
@@ -149,12 +152,16 @@ namespace MapVote
 
         private void OnTick()
         {
-            if (!_voteActive && !_revealActive)
+            if (!_flow.WatchNativeSlots)
             {
                 return;
             }
 
-            VoteHud.OnTick();
+            EngineVotePrep.BlankFilledNativeSlots();
+            if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing)
+            {
+                VoteHud.OnTick();
+            }
         }
 
         private void LoadPersistence()
@@ -183,21 +190,18 @@ namespace MapVote
         private void OnMapStart(string mapName)
         {
             _catalog.Invalidate();
-            StopRtvWindow();
-            _rtvVoters.Clear();
-            _rtvPassed = false;
-            _rtvClosed = false;
-            _nativeVoteArmed = false;
+            _leaveMap = false;
             _steamBySlot.Clear();
             EndVoteUi();
+            ResetRtv();
             CustomHud.ResetRound();
             LoadPersistence();
-            ArmEngineVote();
-            PluginLog.Debug($"map start {mapName}");
+            PluginLog.Debug(() => $"map start {mapName}");
         }
 
         private void OnMapEnd()
         {
+            _leaveMap = true;
             _catalog.Invalidate();
             EndVoteUi();
             SavePersistence();
@@ -206,7 +210,7 @@ namespace MapVote
 
         private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
         {
-            PluginLog.Debug("WinPanel: preparing end-match vote");
+            PluginLog.Debug("win panel");
             BeginEndMatchFromWinPanel();
             return HookResult.Continue;
         }
@@ -214,6 +218,25 @@ namespace MapVote
         private HookResult OnCsIntermission(EventCsIntermission @event, GameEventInfo info)
         {
             CloseRtvForMatchEnd();
+            BeginFromIntermission();
+            return HookResult.Continue;
+        }
+
+        private HookResult OnRoundAnnounceWarmup(EventRoundAnnounceWarmup @event, GameEventInfo info)
+        {
+            OpenRtvForNewMatch("warmup");
+            return HookResult.Continue;
+        }
+
+        private HookResult OnRoundAnnounceMatchStart(EventRoundAnnounceMatchStart @event, GameEventInfo info)
+        {
+            OpenRtvForNewMatch("match start");
+            return HookResult.Continue;
+        }
+
+        private HookResult OnBeginNewMatch(EventBeginNewMatch @event, GameEventInfo info)
+        {
+            OpenRtvForNewMatch("new match");
             return HookResult.Continue;
         }
 
@@ -241,7 +264,7 @@ namespace MapVote
                 PluginLog.Debug($"connect: {Humans.Label(player, steam.SteamId64)} slot={player.Slot}");
             }
 
-            if (_voteHudOpen || _revealActive)
+            if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing)
             {
                 OpenVoteHudForJoiner(player);
             }

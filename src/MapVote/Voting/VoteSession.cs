@@ -16,7 +16,22 @@ namespace MapVote.Voting
                 throw new ArgumentException("Vote session requires at least one map.", nameof(maps));
             }
 
-            _maps = [.. maps];
+            List<string> unique = new(maps.Count);
+            HashSet<string> seen = new(StringComparer.Ordinal);
+            foreach (string map in maps)
+            {
+                if (!string.IsNullOrEmpty(map) && seen.Add(map))
+                {
+                    unique.Add(map);
+                }
+            }
+
+            if (unique.Count == 0)
+            {
+                throw new ArgumentException("Vote session requires at least one map.", nameof(maps));
+            }
+
+            _maps = [.. unique];
             _random = random ?? Random.Shared;
             foreach (string map in _maps)
             {
@@ -149,15 +164,25 @@ namespace MapVote.Voting
 
         private string ResolveWinner()
         {
-            int best = _counts.Values.DefaultIfEmpty(0).Max();
-            if (best <= 0)
+            int best = 0;
+            string? winner = null;
+            foreach (string map in _firstVoteOrder)
+            {
+                int count = _counts[map];
+                if (count > best)
+                {
+                    best = count;
+                    winner = map;
+                }
+            }
+
+            if (best <= 0 || winner is null)
             {
                 return _maps[_random.Next(_maps.Length)];
             }
 
-            // Prefer first-vote order among tied leaders (stable, not re-sorted strip order).
-            return _firstVoteOrder.FirstOrDefault(m => _counts[m] == best)
-                ?? _maps.First(m => _counts[m] == best);
+            // First-vote order: the earliest leader stays the winner when counts tie.
+            return winner;
         }
     }
 }

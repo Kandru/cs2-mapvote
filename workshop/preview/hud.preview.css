@@ -1588,6 +1588,11 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_pearl.png");
 }
 
+.mv-map-ws_de_pooldeck2_test_04
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_pooldeck2_test_04.png");
+}
+
 .mv-map-ws_de_poseidon
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_poseidon.png");
@@ -1601,6 +1606,11 @@ button {
 .mv-map-ws_de_rainfall
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_rainfall.png");
+}
+
+.mv-map-ws_de_rats_1337
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_rats_1337.png");
 }
 
 .mv-map-ws_de_rooftop
@@ -1798,6 +1808,11 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_jovel_beta.png");
 }
 
+.mv-map-ws_kier
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_kier.png");
+}
+
 .mv-map-ws_mansion
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_mansion.png");
@@ -1838,6 +1853,11 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_rio.png");
 }
 
+.mv-map-ws_sandfall
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_sandfall.png");
+}
+
 .mv-map-ws_scarab
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_scarab.png");
@@ -1861,6 +1881,11 @@ button {
 .mv-map-ws_shortdust_1
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_shortdust_1.png");
+}
+
+.mv-map-ws_sunray
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_sunray.png");
 }
 
 .mv-map-ws_texture_jungle

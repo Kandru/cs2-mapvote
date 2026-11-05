@@ -21,14 +21,9 @@ namespace MapVote.Voting
     {
         public const int EngineChangelevelSlackSeconds = 1;
         public const int MatchResultsSeconds = 5;
-        public const int NativeCommandLeadSeconds = 1;
+        public const int CatalogBudgetSeconds = 1;
+        public const int DecisionOffsetSeconds = 2;
         public const int DefaultVoteSeconds = 20;
-
-        /// <summary>
-        /// Seconds after the win-panel epoch when custom vs native is decided
-        /// (<see cref="MatchResultsSeconds"/> − <see cref="NativeCommandLeadSeconds"/>).
-        /// </summary>
-        public static int DecisionOffsetSeconds => MatchResultsSeconds - NativeCommandLeadSeconds;
 
         /// <summary>
         /// Custom-menu schedule from the win-panel epoch.
@@ -51,8 +46,8 @@ namespace MapVote.Voting
             return new VoteTiming(open, reveal, revealAt, changelevelAt);
         }
 
-        /// <summary>RCON catalog retry budget during the match-results hold.</summary>
-        public static int CatalogTimeoutSeconds() => DecisionOffsetSeconds;
+        /// <summary>RCON catalog retry budget, measured from intermission. The path decision follows at <see cref="DecisionOffsetSeconds"/>.</summary>
+        public static int CatalogTimeoutSeconds() => CatalogBudgetSeconds;
 
         /// <summary>
         /// Seconds left until <paramref name="epochUtc"/> + <paramref name="offsetSeconds"/>.

@@ -38,12 +38,12 @@ public class VoteClockTests
     }
 
     [Fact]
-    public void CatalogTimeout_IsDecisionOffset()
+    public void CatalogBudget_IsOneSecond_DecisionByTwo()
     {
-        Assert.Equal(4, VoteClock.DecisionOffsetSeconds);
-        Assert.Equal(4, VoteClock.CatalogTimeoutSeconds());
+        Assert.Equal(1, VoteClock.CatalogBudgetSeconds);
+        Assert.Equal(1, VoteClock.CatalogTimeoutSeconds());
+        Assert.Equal(2, VoteClock.DecisionOffsetSeconds);
         Assert.Equal(5, VoteClock.MatchResultsSeconds);
-        Assert.Equal(1, VoteClock.NativeCommandLeadSeconds);
     }
 
     [Fact]

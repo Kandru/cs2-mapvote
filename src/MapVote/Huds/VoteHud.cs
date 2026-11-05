@@ -33,6 +33,8 @@ namespace MapVote.Huds
         private static readonly int[,] LastCatalogCols = new int[MaxSlots, CatalogRowCount];
         private static readonly bool[] Minimized = new bool[MaxSlots];
         private static readonly bool[] Dirty = new bool[MaxSlots];
+        private static readonly HashSet<string>?[] FavoriteCache = new HashSet<string>?[MaxSlots];
+        private static int _dirtyCount;
         private static readonly int[] TypeSelection = new int[MaxSlots];
         private static readonly int[] SortSelection = new int[MaxSlots];
         private static readonly string?[,] VotedMaps = new string?[MaxSlots, SlotCount];
@@ -155,7 +157,7 @@ namespace MapVote.Huds
             {
                 if (player.Slot is >= 0 and < MaxSlots)
                 {
-                    Dirty[player.Slot] = true;
+                    SetDirty(player.Slot, true);
                 }
 
                 Paint(player);
@@ -173,7 +175,7 @@ namespace MapVote.Huds
             try
             {
                 PaintCore(player);
-                Dirty[player.Slot] = CustomHud.Writes >= PaintWriteBudget;
+                SetDirty(player.Slot, CustomHud.Writes >= PaintWriteBudget);
             }
             finally
             {
@@ -183,22 +185,7 @@ namespace MapVote.Huds
 
         public static void OnTick()
         {
-            if (_session is null)
-            {
-                return;
-            }
-
-            bool anyDirty = false;
-            for (int i = 0; i < MaxSlots; i++)
-            {
-                if (Dirty[i])
-                {
-                    anyDirty = true;
-                    break;
-                }
-            }
-
-            if (!anyDirty)
+            if (_session is null || _dirtyCount == 0)
             {
                 return;
             }
@@ -234,7 +221,7 @@ namespace MapVote.Huds
             HudMenu.DropCapture(player);
             if (player.Slot is >= 0 and < MaxSlots)
             {
-                Dirty[player.Slot] = true;
+                SetDirty(player.Slot, true);
             }
 
             Paint(player);
@@ -588,7 +575,7 @@ namespace MapVote.Huds
             }
 
             TypeSelection[player.Slot] = chipIndex;
-            Dirty[player.Slot] = true;
+            SetDirty(player.Slot, true);
             Paint(player);
         }
 
@@ -603,7 +590,7 @@ namespace MapVote.Huds
             }
 
             SortSelection[player.Slot] = SortSelection[player.Slot] == sortIndex ? -1 : sortIndex;
-            Dirty[player.Slot] = true;
+            SetDirty(player.Slot, true);
             Paint(player);
         }
 
@@ -632,24 +619,41 @@ namespace MapVote.Huds
             }
 
             state.Dirty = true;
-            Dirty[player.Slot] = true;
+            if (player.Slot is >= 0 and < MaxSlots)
+            {
+                FavoriteCache[player.Slot] = null;
+                SetDirty(player.Slot, true);
+            }
+
             Paint(player);
         }
 
         private static HashSet<string> FavoritesOf(CCSPlayerController player)
         {
+            if (player.Slot is >= 0 and < MaxSlots && FavoriteCache[player.Slot] is HashSet<string> cached)
+            {
+                return cached;
+            }
+
+            HashSet<string> built;
             if (_archive is null || player.AuthorizedSteamID is null)
             {
-                return [];
+                built = new HashSet<string>(StringComparer.Ordinal);
             }
-
-            PlayerState? state = _archive.TryGet(player.AuthorizedSteamID.SteamId64.ToString());
-            if (state is null || state.Favorites.Count == 0)
+            else
             {
-                return [];
+                PlayerState? state = _archive.TryGet(player.AuthorizedSteamID.SteamId64.ToString());
+                built = state is null || state.Favorites.Count == 0
+                    ? new HashSet<string>(StringComparer.Ordinal)
+                    : new HashSet<string>(state.Favorites, StringComparer.Ordinal);
             }
 
-            return new HashSet<string>(state.Favorites, StringComparer.Ordinal);
+            if (player.Slot is >= 0 and < MaxSlots)
+            {
+                FavoriteCache[player.Slot] = built;
+            }
+
+            return built;
         }
 
         private static void ToggleMinimized(CCSPlayerController player)
@@ -819,12 +823,24 @@ namespace MapVote.Huds
             }
         }
 
+        private static void SetDirty(int slot, bool dirty)
+        {
+            if (slot is < 0 or >= MaxSlots || Dirty[slot] == dirty)
+            {
+                return;
+            }
+
+            Dirty[slot] = dirty;
+            _dirtyCount += dirty ? 1 : -1;
+        }
+
         private static void ResetSlotState(int slot)
         {
             LastVotedWidth[slot] = -1;
             LastCatalogRows[slot] = -1;
             Minimized[slot] = false;
-            Dirty[slot] = false;
+            SetDirty(slot, false);
+            FavoriteCache[slot] = null;
             TypeSelection[slot] = 0;
             SortSelection[slot] = -1;
             for (int r = 0; r < CatalogRowCount; r++)
@@ -845,6 +861,8 @@ namespace MapVote.Huds
             Array.Fill(LastCatalogRows, -1);
             Array.Fill(Minimized, false);
             Array.Fill(Dirty, false);
+            Array.Fill(FavoriteCache, null);
+            _dirtyCount = 0;
             Array.Fill(TypeSelection, 0);
             Array.Fill(SortSelection, -1);
             for (int s = 0; s < MaxSlots; s++)
