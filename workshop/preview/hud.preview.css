@@ -1258,6 +1258,11 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_bistro.png");
 }
 
+.mv-map-ws_boat
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_boat.png");
+}
+
 .mv-map-ws_cache
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cache.png");
@@ -1283,6 +1288,11 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cs_alpine.png");
 }
 
+.mv-map-ws_cs_assault
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cs_assault.png");
+}
+
 .mv-map-ws_cs_basin
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cs_basin.png");
@@ -1291,6 +1301,11 @@ button {
 .mv-map-ws_cs_cliff
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cs_cliff.png");
+}
+
+.mv-map-ws_cs_climb_d
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cs_climb_d.png");
 }
 
 .mv-map-ws_cs_compound
@@ -1333,6 +1348,11 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cs_neighborhood2_tlr.png");
 }
 
+.mv-map-ws_cs_tagg
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_cs_tagg.png");
+}
+
 .mv-map-ws_de_all_in_one
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_all_in_one.png");
@@ -1366,6 +1386,11 @@ button {
 .mv-map-ws_de_basalt
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_basalt.png");
+}
+
+.mv-map-ws_de_beerhouse_d
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_beerhouse_d.png");
 }
 
 .mv-map-ws_de_bikinibottom
@@ -1418,6 +1443,11 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_dogtown.png");
 }
 
+.mv-map-ws_de_drachenschanze
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_drachenschanze.png");
+}
+
 .mv-map-ws_de_drawbridge_night
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_drawbridge_night.png");
@@ -1441,6 +1471,11 @@ button {
 .mv-map-ws_de_edin
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_edin.png");
+}
+
+.mv-map-ws_de_eldorado
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_eldorado.png");
 }
 
 .mv-map-ws_de_express
@@ -1488,6 +1523,16 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_grail.png");
 }
 
+.mv-map-ws_de_heidelberg
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_heidelberg.png");
+}
+
+.mv-map-ws_de_heizwerk
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_heizwerk.png");
+}
+
 .mv-map-ws_de_jura
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_jura.png");
@@ -1501,6 +1546,16 @@ button {
 .mv-map-ws_de_lake
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_lake.png");
+}
+
+.mv-map-ws_de_lake_1
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_lake_1.png");
+}
+
+.mv-map-ws_de_lionfort
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_lionfort.png");
 }
 
 .mv-map-ws_de_lublin
@@ -1586,6 +1641,16 @@ button {
 .mv-map-ws_de_pearl
 {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_pearl.png");
+}
+
+.mv-map-ws_de_phoenix
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_phoenix.png");
+}
+
+.mv-map-ws_de_pirate
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_pirate.png");
 }
 
 .mv-map-ws_de_pooldeck2_test_04
