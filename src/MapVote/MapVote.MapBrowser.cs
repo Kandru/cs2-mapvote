@@ -16,6 +16,7 @@ namespace MapVote
         private readonly HashSet<ulong> _mapsPendingOpen = [];
 
         [ConsoleCommand("css_maps", "Browse the server map list.")]
+        [ConsoleCommand("maps", "Browse the server map list.")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void OnMapsCommand(CCSPlayerController? player, CommandInfo info)
         {

@@ -27,7 +27,7 @@ The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limi
 
 ## Map browser
 
-`css_maps` (chat `!maps`) opens the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): filter bar, favorites, ratings badges, and up to 100 map cards. It has no vote target, no voted strip, and no current-map card; map tiles are not clickable. The top-right chip reads `X` and closes the overlay for that player.
+`css_maps` / `maps` (chat `!maps`) opens the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): filter bar, favorites, ratings badges, and up to 100 map cards. It has no vote target, no voted strip, and no current-map card; map tiles are not clickable. The top-right chip reads `X` and closes the overlay for that player.
 
 The command triggers a short catalog refresh when the list is still empty after plugin load, then opens for everyone who was waiting. Intermission (`EventCsIntermission`) and map end close the browser and reject `!maps` until `OnMapStart`, warmup, match start, or a new match. An active end-match vote also rejects it (`maps.busy`).
 
