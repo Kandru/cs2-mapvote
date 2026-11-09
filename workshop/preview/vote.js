@@ -488,7 +488,7 @@
     }
     if (hit.type !== undefined) {
       if (hit.type > 0 && !typeHasMaps(TYPES[hit.type])) return;
-      state.type = hit.type;
+      state.type = state.type === hit.type ? 0 : hit.type;
       paint();
       return;
     }

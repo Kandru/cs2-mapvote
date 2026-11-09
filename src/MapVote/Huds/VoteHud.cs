@@ -709,7 +709,8 @@ namespace MapVote.Huds
                 return;
             }
 
-            TypeSelection[player.Slot] = chipIndex;
+            // Clicking the active type again falls back to All (slot 0).
+            TypeSelection[player.Slot] = TypeSelection[player.Slot] == chipIndex ? 0 : chipIndex;
             SetDirty(player.Slot, true);
             Paint(player);
         }
