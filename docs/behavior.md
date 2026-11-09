@@ -25,6 +25,12 @@ The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limi
 
 `EventCsIntermission` closes RTV (clears voters, stops timers, rejects further `!rtv` with `rtv.ended`). It stays closed while our vote is on screen. It opens again on `OnMapStart`, or when the same map starts another match: `EventRoundAnnounceWarmup`, `EventRoundAnnounceMatchStart`, or `EventBeginNewMatch`. A finished native vote returns to idle at that point so the next intermission can decide again.
 
+## Map browser
+
+`css_maps` (chat `!maps`) opens the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): filter bar, favorites, ratings badges, and up to 100 map cards. It has no vote target, no voted strip, and no current-map card; map tiles are not clickable. The top-right chip reads `X` and closes the overlay for that player.
+
+The command triggers a short catalog refresh when the list is still empty after plugin load, then opens for everyone who was waiting. Intermission (`EventCsIntermission`) and map end close the browser and reject `!maps` until `OnMapStart`, warmup, match start, or a new match. An active end-match vote also rejects it (`maps.busy`).
+
 ## HUD
 
 - Layout path: `panorama/layout/custom_game/mapvote/vote_{PanoramaVersion}.vxml_c` (`PanoramaVersion` = `v1` in [`Version.cs`](../src/MapVote/Version.cs)).
@@ -46,6 +52,7 @@ Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.jso
 | `MapVote.cs` | Load/unload, catalog/archive, config, intermission, win panel, disconnect, HUD clicks |
 | `MapVote.VoteFlow.cs` | Intermission decision, win-panel HUD, reveal, changelevel |
 | `MapVote.Commands.cs` | RTV |
-| `Huds/VoteHud.cs` | Panorama paint |
+| `MapVote.MapBrowser.cs` | `!maps` browser state, deferred catalog open |
+| `Huds/VoteHud.cs` | Panorama paint (vote + browse) |
 | `Maps/MapCatalog.cs` | RCON list |
 | `Voting/VoteSession.cs` | Votes / winner |

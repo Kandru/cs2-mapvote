@@ -35,6 +35,7 @@ VOTE_IDS_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteIds.cs"
 MAP_CATALOG_CS = ROOT / "src" / "MapVote" / "Maps" / "MapCatalog.cs"
 VERSION_CS = ROOT / "src" / "MapVote" / "Version.cs"
 PREVIEW_HTML = ROOT / "workshop" / "preview" / "vote.html"
+PREVIEW_BROWSE_HTML = ROOT / "workshop" / "preview" / "maps.html"
 GENERATE_XML = ROOT / "tools" / "generate_vote_xml.py"
 CREDIT_TEXT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 
@@ -547,7 +548,8 @@ def main() -> int:
 
     print(
         f"Panorama validation OK ({VOTE_XML_NAME} + {HUD_VCSS_NAME} + {MAPS_VCSS_NAME}); "
-        f"preview synced → {PREVIEW_HTML.relative_to(ROOT)}"
+        f"preview synced → {PREVIEW_HTML.relative_to(ROOT)} + "
+        f"{PREVIEW_BROWSE_HTML.relative_to(ROOT)}"
     )
     return 0
 

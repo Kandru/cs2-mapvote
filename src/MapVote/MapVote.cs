@@ -112,12 +112,17 @@ namespace MapVote
             // RCON worker thread → main thread for config I/O and Server APIs.
             Server.NextFrame(() =>
             {
-                if (!_unloaded
-                    && generation == _catalogGeneration
-                    && _flow.Phase == EndMatchPhase.Preparing)
+                if (_unloaded)
+                {
+                    return;
+                }
+
+                if (generation == _catalogGeneration && _flow.Phase == EndMatchPhase.Preparing)
                 {
                     OnCatalogSettled(maps, generation);
                 }
+
+                OnMapsCatalogSettled(maps, generation);
             });
 
         private void SyncMapsVotable(IReadOnlyList<MapEntry> maps)
@@ -158,10 +163,8 @@ namespace MapVote
 
         private void OnTick()
         {
-            if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing)
-            {
-                VoteHud.OnTick();
-            }
+            // Vote mode is bound only during Voting/Revealing; browse mode can be open any time.
+            VoteHud.OnTick();
         }
 
         private void LoadPersistence()
@@ -194,6 +197,7 @@ namespace MapVote
             _steamBySlot.Clear();
             EndVoteUi();
             ResetRtv();
+            OpenMapsForNewMatch("map start", clearPending: true);
             CustomHud.ResetRound();
             LoadPersistence();
             ArmEngineHold();
@@ -205,6 +209,7 @@ namespace MapVote
             _leaveMap = true;
             _catalog.Invalidate();
             EndVoteUi();
+            CloseMapsForMatchEnd();
             SavePersistence();
             CustomHud.Shutdown();
         }
@@ -224,6 +229,7 @@ namespace MapVote
         private HookResult OnCsIntermission(EventCsIntermission @event, GameEventInfo info)
         {
             CloseRtvForMatchEnd();
+            CloseMapsForMatchEnd();
             BeginFromIntermission();
             return HookResult.Continue;
         }
@@ -231,18 +237,21 @@ namespace MapVote
         private HookResult OnRoundAnnounceWarmup(EventRoundAnnounceWarmup @event, GameEventInfo info)
         {
             OpenRtvForNewMatch("warmup");
+            OpenMapsForNewMatch("warmup");
             return HookResult.Continue;
         }
 
         private HookResult OnRoundAnnounceMatchStart(EventRoundAnnounceMatchStart @event, GameEventInfo info)
         {
             OpenRtvForNewMatch("match start");
+            OpenMapsForNewMatch("match start");
             return HookResult.Continue;
         }
 
         private HookResult OnBeginNewMatch(EventBeginNewMatch @event, GameEventInfo info)
         {
             OpenRtvForNewMatch("new match");
+            OpenMapsForNewMatch("new match");
             return HookResult.Continue;
         }
 

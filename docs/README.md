@@ -22,7 +22,7 @@ Panorama binding rules (layouts, classes, transmit, overflows): [stuff/PANORAMA_
 | `make debug` | `dotnet build` Debug |
 | `make release` | `dotnet publish` Release |
 | `make test` | unit tests (Release) |
-| `make panorama` | `tools/validate_panorama.py` (+ preview sync) |
+| `make panorama` | `tools/validate_panorama.py` (+ vote and map-browser preview sync) |
 | `make restore` | NuGet restore |
 | `make clean` | clean plugin + tests |
 | `make images` | extract map tiles (`WORKSHOP_DIR` and/or `GAME_DIR`) |

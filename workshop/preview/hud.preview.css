@@ -42,6 +42,11 @@ button {
   opacity: 1 !important;
 }
 
+/* Browse preview: the X button hides the overlay until "Open" is pressed. */
+.VoteRoot.pv-closed {
+  display: none !important;
+}
+
 /* Panorama flow-children: none → CSS grid stack: every direct child shares the cell.
  * VoteTopBar / FilterChip use flex centering instead - do not force grid-area there. */
 .VoteRoot > *,
@@ -255,6 +260,11 @@ button {
   color: #ffd27a;
 }
 .pv-bar .pv-note { opacity: 0.85; }
+.pv-bar a {
+  color: #8fb4ff;
+  text-decoration: none;
+}
+.pv-bar a:hover { text-decoration: underline; }
 .pv-bar .pv-sep {
   width: 1px;
   height: 18px;
@@ -294,6 +304,17 @@ button {
 }
 
 .VoteRoot.is-off
+{
+	display: none;
+}
+
+/* Browse (!maps): filter bar + catalog only. No current-map card and no voted strip. */
+.VoteRoot.is-browse .VoteHeadRow
+{
+	display: none;
+}
+
+.VoteRoot.is-browse .MapVotes
 {
 	display: none;
 }

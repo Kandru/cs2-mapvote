@@ -336,7 +336,13 @@ namespace MapVote
             return (name, MapOrigin.Local);
         }
 
-        private List<MapEntry> SelectCandidates()
+        private List<MapEntry> SelectCandidates() => SelectMaps(excludeCurrent: true);
+
+        /// <summary>
+        /// Shown catalog maps in catalog order, capped at the HUD slot count.
+        /// The browser keeps the current map; the vote path optionally excludes it.
+        /// </summary>
+        private List<MapEntry> SelectMaps(bool excludeCurrent)
         {
             IReadOnlyList<MapEntry> catalog = _catalog.Maps;
             if (catalog.Count == 0)
@@ -344,7 +350,7 @@ namespace MapVote
                 return [];
             }
 
-            string? exclude = Config.Endmatch.ExcludeCurrentMap
+            string? exclude = excludeCurrent && Config.Endmatch.ExcludeCurrentMap
                 ? Server.MapName.ToLowerInvariant()
                 : null;
             List<MapEntry> maps = MapVisibility.Shown(catalog, Config.MapsVotable, exclude);

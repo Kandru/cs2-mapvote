@@ -32,6 +32,7 @@ We publish [that addon](https://steamcommunity.com/sharedfiles/filedetails/?id=3
 
 - At the end of a match, the vote screen opens. Players click a map; the top row shows maps that already have votes.
 - In chat, type `!rtv` (or `css_rtv`). By default about 60% of humans must agree; then the match ends early so this vote can run.
+- Type `!maps` (or `css_maps`) to browse the server map list at any time before intermission. Filter, sort, and manage favorites; press `X` to close. The browser closes automatically when the match ends and reopens with the next match or map.
 - Config file: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`. Useful knobs: vote length, whether to hide the map just played, RTV on/off and ratio, and which maps appear (`maps_votable`). Full key list: [docs/config.md](docs/config.md).
 
 Changing the plugin code, building, or extracting images: see [docs/](docs/README.md).

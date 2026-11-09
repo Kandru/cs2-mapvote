@@ -23,6 +23,8 @@ PREVIEW = ROOT / "workshop" / "preview"
 OUT_HTML = PREVIEW / "vote.html"
 OUT_CSS = PREVIEW / "hud.preview.css"
 OUT_JS = PREVIEW / "vote.js"
+OUT_BROWSE_HTML = PREVIEW / "maps.html"
+OUT_BROWSE_JS = PREVIEW / "maps.js"
 
 TAGS = {"Panel": "div", "Label": "div", "Button": "button", "Image": "div"}
 
@@ -345,6 +347,11 @@ button {
   opacity: 1 !important;
 }
 
+/* Browse preview: the X button hides the overlay until "Open" is pressed. */
+.VoteRoot.pv-closed {
+  display: none !important;
+}
+
 /* Panorama flow-children: none → CSS grid stack: every direct child shares the cell.
  * VoteTopBar / FilterChip use flex centering instead - do not force grid-area there. */
 .VoteRoot > *,
@@ -558,6 +565,11 @@ button {
   color: #ffd27a;
 }
 .pv-bar .pv-note { opacity: 0.85; }
+.pv-bar a {
+  color: #8fb4ff;
+  text-decoration: none;
+}
+.pv-bar a:hover { text-decoration: underline; }
 .pv-bar .pv-sep {
   width: 1px;
   height: 18px;
@@ -566,7 +578,9 @@ button {
 }
 """
 
-VOTE_JS = r"""(() => {
+PREVIEW_JS = r"""(() => {
+  const BROWSE = __BROWSE__;
+
   const SLOT = (() => {
     let n = 0;
     document.querySelectorAll('[id^="mv-"]').forEach((el) => {
@@ -836,50 +850,8 @@ VOTE_JS = r"""(() => {
     document.getElementById("mv-current-dislike")?.classList.toggle("is-on", !!map && state.ratings[map] === "dislike");
   };
 
-  const paint = () => {
-    const voted = votedOrder();
-    const section = document.getElementById("mv-voted-section");
-    const hint = document.getElementById("mv-voted-hint");
-    if (section) section.classList.toggle("has-votes", voted.length > 0);
-    if (hint) hint.classList.toggle("is-off", voted.length > 0 || state.reveal);
-    setVar("mv_title", state.reveal ? "Winning map" : "Vote for the next map");
-    setVar("mv_hint", "Cast the first vote");
-    setVar("mv_chip", "Map Vote");
-    setVar("mv_empty", "No maps match this filter");
-    setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
-    paintCurrent();
-    paintFilters();
-
-    const grid = filteredMaps();
-    const empty = document.getElementById("mv-empty");
-    if (empty) empty.classList.toggle("is-off", grid.length > 0);
-
+  const paintGrid = (grid) => {
     for (let i = 0; i < SLOT; i++) {
-      if (i < voted.length) {
-        paintTile(
-          `mv-voted-slot-${i}`,
-          `mv-voted-${i}`,
-          `mv-voted-shot-${i}`,
-          `mv-voted-fav-${i}`,
-          `vv${i}`,
-          `vn${i}`,
-          `mv-voted-rate-${i}`,
-          `vr${i}`,
-          voted[i]
-        );
-      } else {
-        clearTile(
-          `mv-voted-slot-${i}`,
-          `mv-voted-${i}`,
-          `mv-voted-shot-${i}`,
-          `mv-voted-fav-${i}`,
-          `vv${i}`,
-          `vn${i}`,
-          `mv-voted-rate-${i}`,
-          `vr${i}`
-        );
-      }
-
       if (i < grid.length) {
         paintTile(
           `mv-slot-${i}`,
@@ -905,6 +877,64 @@ VOTE_JS = r"""(() => {
         );
       }
     }
+  };
+
+  const paintVoted = (voted) => {
+    for (let i = 0; i < SLOT; i++) {
+      if (i < voted.length) {
+        paintTile(
+          `mv-voted-slot-${i}`,
+          `mv-voted-${i}`,
+          `mv-voted-shot-${i}`,
+          `mv-voted-fav-${i}`,
+          `vv${i}`,
+          `vn${i}`,
+          `mv-voted-rate-${i}`,
+          `vr${i}`,
+          voted[i]
+        );
+      } else {
+        clearTile(
+          `mv-voted-slot-${i}`,
+          `mv-voted-${i}`,
+          `mv-voted-shot-${i}`,
+          `mv-voted-fav-${i}`,
+          `vv${i}`,
+          `vn${i}`,
+          `mv-voted-rate-${i}`,
+          `vr${i}`
+        );
+      }
+    }
+  };
+
+  const paint = () => {
+    const grid = filteredMaps();
+    const empty = document.getElementById("mv-empty");
+    if (empty) empty.classList.toggle("is-off", grid.length > 0);
+    paintFilters();
+
+    if (BROWSE) {
+      setVar("mv_title", "Maps");
+      setVar("mv_chip", "X");
+      setVar("mv_empty", "No maps match this filter");
+      paintGrid(grid);
+      return;
+    }
+
+    const voted = votedOrder();
+    const section = document.getElementById("mv-voted-section");
+    const hint = document.getElementById("mv-voted-hint");
+    if (section) section.classList.toggle("has-votes", voted.length > 0);
+    if (hint) hint.classList.toggle("is-off", voted.length > 0 || state.reveal);
+    setVar("mv_title", state.reveal ? "Winning map" : "Vote for the next map");
+    setVar("mv_hint", "Cast the first vote");
+    setVar("mv_chip", "Map Vote");
+    setVar("mv_empty", "No maps match this filter");
+    setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
+    paintCurrent();
+    paintVoted(voted);
+    paintGrid(grid);
   };
 
   const bump = (map, delta) => {
@@ -1018,7 +1048,8 @@ VOTE_JS = r"""(() => {
     const btn = ev.target.closest("button[id]");
     if (!btn) return;
     if (btn.id === "mv-minimize") {
-      toggleMinimized();
+      if (BROWSE) setBrowseOpen(false);
+      else toggleMinimized();
       return;
     }
     const hit = parseButton(btn.id);
@@ -1047,7 +1078,7 @@ VOTE_JS = r"""(() => {
       paint();
       return;
     }
-    if (hit.map) cast(hit.map, hit.fromVoted);
+    if (hit.map && !BROWSE) cast(hit.map, hit.fromVoted);
   });
 
   const clearVotes = () => {
@@ -1138,24 +1169,59 @@ VOTE_JS = r"""(() => {
     }
   };
 
+  const setBrowseOpen = (open) => {
+    document.getElementById("Vote")?.classList.toggle("pv-closed", !open);
+    bar.querySelector('[data-act="open"]')?.classList.toggle("is-active", open);
+    bar.querySelector('[data-act="close"]')?.classList.toggle("is-active", !open);
+  };
+
+  const seedFavorites = () => {
+    state.favorites = new Set(
+      ["de_dust2", "de_mirage", "cs_office"].filter((m) => state.maps.includes(m))
+    );
+    state.type = 0;
+    state.sort = -1;
+    paint();
+  };
+
+  const clearFavorites = () => {
+    state.favorites.clear();
+    paint();
+  };
+
   const bar = document.createElement("div");
   bar.className = "pv-bar";
-  bar.innerHTML = `
-    <button type="button" data-act="clear">Clear votes</button>
-    <button type="button" data-act="randomize">Randomize</button>
-    <button type="button" data-act="seed">Seed demo</button>
-    <button type="button" data-act="reveal">Reveal winner</button>
-    <span class="pv-sep" aria-hidden="true"></span>
-    <button type="button" data-mode="single">Single vote</button>
-    <button type="button" data-mode="multi">Multi select</button>
-    <span class="pv-note"></span>
-  `;
+  bar.innerHTML = BROWSE
+    ? `
+      <button type="button" data-act="open">Open</button>
+      <button type="button" data-act="close">Close</button>
+      <span class="pv-sep" aria-hidden="true"></span>
+      <button type="button" data-act="seed-fav">Seed favorites</button>
+      <button type="button" data-act="clear-fav">Clear favorites</button>
+      <span class="pv-note">Browse: filters and favorites only</span>
+      <a href="vote.html">Vote preview</a>
+    `
+    : `
+      <button type="button" data-act="clear">Clear votes</button>
+      <button type="button" data-act="randomize">Randomize</button>
+      <button type="button" data-act="seed">Seed demo</button>
+      <button type="button" data-act="reveal">Reveal winner</button>
+      <span class="pv-sep" aria-hidden="true"></span>
+      <button type="button" data-mode="single">Single vote</button>
+      <button type="button" data-mode="multi">Multi select</button>
+      <span class="pv-note"></span>
+      <a href="maps.html">Map browser preview</a>
+    `;
   document.body.appendChild(bar);
   bar.addEventListener("click", (ev) => {
     const t = ev.target;
     if (!(t instanceof HTMLElement)) return;
     const act = t.getAttribute("data-act");
     const mode = t.getAttribute("data-mode");
+    if (act === "open") setBrowseOpen(true);
+    if (act === "close") setBrowseOpen(false);
+    if (act === "seed-fav") seedFavorites();
+    if (act === "clear-fav") clearFavorites();
     if (act === "clear") clearVotes();
     if (act === "randomize") randomize();
     if (act === "seed") seedVotes();
@@ -1163,8 +1229,13 @@ VOTE_JS = r"""(() => {
     if (mode) setMode(mode);
   });
 
-  seedVotes();
-  syncModeButtons();
+  if (BROWSE) {
+    seedFavorites();
+    setBrowseOpen(true);
+  } else {
+    seedVotes();
+    syncModeButtons();
+  }
 })();
 """
 
@@ -1197,7 +1268,33 @@ def preview_maps() -> list[str]:
 def write_js() -> None:
     # Keep interactive demo logic generated so SlotCount stays derived from XML ids.
     maps_json = json.dumps(preview_maps(), separators=(",", ":"))
-    OUT_JS.write_text(VOTE_JS.replace("__MAPS__", maps_json), encoding="utf-8")
+    common = PREVIEW_JS.replace("__MAPS__", maps_json)
+    OUT_JS.write_text(common.replace("__BROWSE__", "false"), encoding="utf-8")
+    OUT_BROWSE_JS.write_text(common.replace("__BROWSE__", "true"), encoding="utf-8")
+
+
+def write_html(path: Path, body: str, js_name: str, title: str, browse: bool) -> None:
+    if browse:
+        body = body.replace(
+            'class="VoteRoot is-off"', 'class="VoteRoot is-off is-browse"', 1
+        )
+    path.write_text(
+        "<!DOCTYPE html>\n"
+        '<html lang="en">\n'
+        "<head>\n"
+        '<meta charset="utf-8" />\n'
+        f"<title>{title}</title>\n"
+        '<link rel="stylesheet" href="hud.preview.css" />\n'
+        "</head>\n"
+        "<body>\n"
+        '<div class="pv-plate">\n'
+        f"{body}\n"
+        "</div>\n"
+        f'<script src="{js_name}"></script>\n'
+        "</body>\n"
+        "</html>\n",
+        encoding="utf-8",
+    )
 
 
 def sync() -> list[str]:
@@ -1234,22 +1331,14 @@ def sync() -> list[str]:
         encoding="utf-8",
     )
 
-    OUT_HTML.write_text(
-        "<!DOCTYPE html>\n"
-        '<html lang="en">\n'
-        "<head>\n"
-        '<meta charset="utf-8" />\n'
-        "<title>MapVote preview</title>\n"
-        '<link rel="stylesheet" href="hud.preview.css" />\n'
-        "</head>\n"
-        "<body>\n"
-        '<div class="pv-plate">\n'
-        f"{''.join(body_parts)}\n"
-        "</div>\n"
-        '<script src="vote.js"></script>\n'
-        "</body>\n"
-        "</html>\n",
-        encoding="utf-8",
+    body = "".join(body_parts)
+    write_html(OUT_HTML, body, "vote.js", "MapVote preview", browse=False)
+    write_html(
+        OUT_BROWSE_HTML,
+        body,
+        "maps.js",
+        "MapVote map browser preview",
+        browse=True,
     )
     write_js()
     return errors
@@ -1262,7 +1351,10 @@ def main() -> int:
         for err in errors:
             print(f"  - {err}")
         return 1
-    print(f"Preview synced → {OUT_HTML.relative_to(ROOT)}")
+    print(
+        f"Preview synced → {OUT_HTML.relative_to(ROOT)} + "
+        f"{OUT_BROWSE_HTML.relative_to(ROOT)}"
+    )
     return 0
 
 
