@@ -23,10 +23,24 @@ public class MapImageClassesTests
         Assert.Equal("mv-map-ws_de_dust2", MapImageClasses.ClassFor("DE_Dust2", MapOrigin.Workshop));
     }
 
-    [Fact]
-    public void ClassFor_InvalidName_IsDefault()
+    [Theory]
+    [InlineData("default")]
+    [InlineData("Bad Name")]
+    [InlineData("de_foo_vanity")]
+    [InlineData("de_foo_skybox")]
+    [InlineData("workshop_preview_1")]
+    [InlineData("lobby_mapveto")]
+    [InlineData("maps/de_dust2")]
+    public void ClassFor_InvalidName_IsDefault(string mapName)
     {
-        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor("Bad Name", MapOrigin.Local));
+        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor(mapName, MapOrigin.Local));
+        Assert.Equal(MapImageClasses.Default, MapImageClasses.ClassFor(mapName, MapOrigin.Workshop));
+    }
+
+    [Fact]
+    public void ClassFor_ExtensionAndCase_IsNormalized()
+    {
+        Assert.Equal("mv-map-map_de_dust2", MapImageClasses.ClassFor("DE_Dust2.VPK", MapOrigin.Local));
     }
 
     [Fact]

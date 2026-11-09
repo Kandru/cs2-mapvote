@@ -21,11 +21,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from mapvote_layout import HUD_VCSS_NAME
+from map_names import (
+    DEFAULT_STEM,
+    STOCK_IMAGE_PREFIX,
+    WORKSHOP_IMAGE_PREFIX,
+    ignored_stock_map,
+    is_playable_image_stem,
+    is_playable_map_id,
+)
+from mapvote_layout import MAPS_VCSS_NAME
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGES = ROOT / "workshop" / "content" / "panorama" / "images" / "custom_game" / "mapvote" / "maps"
-HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
+MAPS_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / MAPS_VCSS_NAME
 CSS_BEGIN = "/* BEGIN mv-map-palette */"
 CSS_END = "/* END mv-map-palette */"
 STOCK_SHOT_RE = re.compile(
@@ -36,10 +44,8 @@ STOCK_SHOT_RE = re.compile(
 # and centers - see .MapShot background-size in hud.vcss (no stretch).
 TARGET_WIDTH = 350
 TARGET_HEIGHT = 197  # round(350 * 9 / 16)
-DEFAULT_STEM = "default"
-# Same keys as MapVisibility: map_{name} official, ws_{name} workshop.
-STOCK_IMAGE_PREFIX = "map_"
-WORKSHOP_IMAGE_PREFIX = "ws_"
+# Same keys as MapVisibility: map_{name} official, ws_{name} workshop
+# (prefixes live in tools/map_names.py).
 # Radar/overhead art is mostly black. Night screenshots still sit above this.
 MIN_MEAN_LUMA = 40.0  # 0–255
 # Reject strips that are much taller than they are wide (width/height).
@@ -55,8 +61,6 @@ DENIED_PATH_PARTS = (
     "skybox/",
 )
 DENIED_NAME_PARTS = ("_normal", "_rough", "_metal", "_mask", "_ao", "_height")
-
-MAP_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_]{0,48}$")
 
 
 class VpkEntry:
@@ -187,7 +191,7 @@ def map_names_from_entries(entries: list[VpkEntry]) -> set[str]:
         if Path(p).suffix not in (".vpk", ".vmap_c"):
             continue
         stem = Path(p).stem
-        if MAP_NAME_RE.match(stem):
+        if is_playable_map_id(stem):
             names.add(stem)
     return names
 
@@ -319,10 +323,39 @@ def write_vtex(stem: str) -> None:
     )
 
 
-def rewrite_css(stems: list[str]) -> None:
-    from generate_stock_map_css import write_map_block
+def merge_palette_css(stems: list[str]) -> int:
+    """Append workshop image classes; existing entries are kept."""
+    from generate_stock_map_css import merge_map_block
 
-    write_map_block(CSS_BEGIN, CSS_END, stems)
+    playable = [stem for stem in dict.fromkeys(stems) if is_playable_image_stem(stem)]
+    return merge_map_block(CSS_BEGIN, CSS_END, playable)
+
+
+def prune_palette_css() -> int:
+    """Remove workshop classes without an on-disk PNG. Run only after all images are uploaded."""
+    from generate_stock_map_css import prune_map_block
+
+    keep = {DEFAULT_STEM} | {
+        stem
+        for stem in existing_stems(prefix=WORKSHOP_IMAGE_PREFIX)
+        if is_playable_image_stem(stem)
+    }
+    if len(keep) == 1:
+        print("[css] no workshop PNGs on disk; skipping palette prune")
+        return 0
+    return prune_map_block(CSS_BEGIN, CSS_END, keep)
+
+
+def prune_maps_css() -> None:
+    """Delete CSS entries that are no longer backed by the stock list / workshop PNGs."""
+    from generate_stock_map_css import prune_maps_stock_css
+
+    removed_stock = prune_maps_stock_css()
+    removed_palette = prune_palette_css()
+    print(
+        f"[prune] removed {removed_stock} stock and {removed_palette} workshop "
+        f"classes → {MAPS_VCSS.relative_to(ROOT)}"
+    )
 
 
 def _pillow_image():
@@ -434,6 +467,8 @@ def stock_shots_by_map(entries: list[VpkEntry]) -> dict[str, dict[str, VpkEntry]
         if not match:
             continue
         res, stem = match.group(1), match.group(2)
+        if ignored_stock_map(stem) or not is_playable_map_id(stem):
+            continue
         by_map.setdefault(stem, {})[res] = entry
     return by_map
 
@@ -567,8 +602,7 @@ def process_stock_pak(cli: Path, pak: Path) -> list[str]:
     """Discover official screenshots and write map_{name} tiles plus stock CSS."""
     from generate_stock_map_css import (
         STOCK_LIST,
-        ignored_stock_map,
-        rewrite_hud_stock_css,
+        merge_maps_stock_css,
         write_stock_list,
     )
 
@@ -615,12 +649,12 @@ def process_stock_pak(cli: Path, pak: Path) -> list[str]:
     on_disk = {
         s[len(STOCK_IMAGE_PREFIX) :]
         for s in existing_stems(prefix=STOCK_IMAGE_PREFIX)
-        if s.startswith(STOCK_IMAGE_PREFIX)
+        if s.startswith(STOCK_IMAGE_PREFIX) and is_playable_image_stem(s)
     }
     all_stems = sorted(set(saved) | on_disk)
     write_stock_list(all_stems, STOCK_LIST)
-    count = rewrite_hud_stock_css(all_stems)
-    print(f"[stock] wrote {count} stock map classes → {HUD_VCSS.relative_to(ROOT)}")
+    added = merge_maps_stock_css(all_stems)
+    print(f"[stock] appended {added} stock map classes → {MAPS_VCSS.relative_to(ROOT)}")
     print(f"[stock] updated {STOCK_LIST.relative_to(ROOT)}")
     print(f"[stock] {len(saved)}/{len(stems_360)} maps this run; {len(all_stems)} stock tiles on disk → {IMAGES.relative_to(ROOT)}")
     return all_stems
@@ -677,8 +711,8 @@ def process_vpk(
 
 
 def rewrite_css_from_disk() -> None:
-    """Rebuild stock + palette CSS (and stock_maps.txt) from PNGs currently on disk."""
-    from generate_stock_map_css import rewrite_hud_stock_css, write_stock_list
+    """Append stock + palette CSS entries (and refresh stock_maps.txt) from PNGs on disk."""
+    from generate_stock_map_css import merge_maps_stock_css, write_stock_list
 
     if not IMAGES.is_dir():
         raise SystemExit(f"missing images folder: {IMAGES}")
@@ -686,21 +720,33 @@ def rewrite_css_from_disk() -> None:
     stock_names = sorted(
         s[len(STOCK_IMAGE_PREFIX) :]
         for s in existing_stems(prefix=STOCK_IMAGE_PREFIX)
-        if s.startswith(STOCK_IMAGE_PREFIX)
+        if s.startswith(STOCK_IMAGE_PREFIX) and is_playable_image_stem(s)
     )
-    write_stock_list(stock_names)
-    stock_count = rewrite_hud_stock_css(stock_names)
-
-    workshop = sorted(existing_stems(prefix=WORKSHOP_IMAGE_PREFIX))
-    ordered = [DEFAULT_STEM] + workshop
+    workshop = sorted(s for s in existing_stems(prefix=WORKSHOP_IMAGE_PREFIX) if is_playable_image_stem(s))
     if not tile_exists(DEFAULT_STEM):
         raise SystemExit(f"{DEFAULT_STEM}.png is required under {IMAGES}")
-    rewrite_css(ordered)
+
+    # Image tiles are not committed in this repository. Do not wipe a generated
+    # sheet/list just because --css-only runs in a checkout without extracted PNGs.
+    if stock_names:
+        write_stock_list(stock_names)
+        stock_added = merge_maps_stock_css(stock_names)
+    else:
+        stock_added = None
+        print("[css] no stock map PNGs on disk; keeping existing stock block/list")
+
+    if workshop:
+        palette_added = merge_palette_css([DEFAULT_STEM] + workshop)
+    else:
+        palette_added = None
+        print("[css] no workshop PNGs on disk; keeping existing palette block")
 
     orphans = remove_orphan_vtex()
+    stock_label = "kept" if stock_added is None else f"+{stock_added}"
+    palette_label = "kept" if palette_added is None else f"+{palette_added}"
     print(
-        f"[css] stock={stock_count} palette={len(ordered)} "
-        f"(default + {len(workshop)} workshop) → {HUD_VCSS.relative_to(ROOT)}"
+        f"[css] appended stock={stock_label} palette={palette_label} "
+        f"→ {MAPS_VCSS.relative_to(ROOT)}"
     )
     if orphans:
         print(f"[css] cleaned {orphans} orphan .vtex file(s) without a matching .png")
@@ -724,14 +770,16 @@ def process_workshop(cli: Path, root: Path) -> None:
             print(f"[images] ERROR {vpk}: {ex}", file=sys.stderr)
 
     # Palette covers every workshop tile on disk (add-only; never delete).
-    on_disk = sorted(existing_stems(prefix=WORKSHOP_IMAGE_PREFIX))
-    ordered = [DEFAULT_STEM] + on_disk
-    rewrite_css(ordered)
-    print(
-        f"[images] updated {len(ordered)} CSS classes "
-        f"({TARGET_WIDTH}x{TARGET_HEIGHT}) in {HUD_VCSS.relative_to(ROOT)} "
-        f"({len(written)} touched this run, {len(on_disk)} workshop tiles on disk)"
-    )
+    on_disk = sorted(s for s in existing_stems(prefix=WORKSHOP_IMAGE_PREFIX) if is_playable_image_stem(s))
+    if on_disk:
+        added = merge_palette_css([DEFAULT_STEM] + on_disk)
+        print(
+            f"[images] appended {added} CSS classes "
+            f"({TARGET_WIDTH}x{TARGET_HEIGHT}) in {MAPS_VCSS.relative_to(ROOT)} "
+            f"({len(written)} touched this run, {len(on_disk)} workshop tiles on disk)"
+        )
+    else:
+        print(f"[images] no workshop tiles on disk; keeping existing palette in {MAPS_VCSS.relative_to(ROOT)}")
 
 
 def main() -> int:
@@ -752,7 +800,12 @@ def main() -> int:
     parser.add_argument(
         "--css-only",
         action="store_true",
-        help="Rebuild hud VCSS map blocks + stock_maps.txt from PNGs on disk (no VPK extract)",
+        help="Append maps VCSS blocks + refresh stock_maps.txt from PNGs on disk (no VPK extract)",
+    )
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="Delete map CSS entries without a stock-list/on-disk image (run after uploading all images)",
     )
     parser.add_argument(
         "--cli",
@@ -760,6 +813,10 @@ def main() -> int:
         help="Path to Source2Viewer-CLI",
     )
     args = parser.parse_args()
+
+    if args.prune:
+        prune_maps_css()
+        return 0
 
     if args.css_only:
         rewrite_css_from_disk()
@@ -776,9 +833,11 @@ def main() -> int:
         print(
             "Usage: extract_workshop_images.py [WORKSHOP_DIR] [--game-dir GAME_DIR]\n"
             "       extract_workshop_images.py --css-only\n"
+            "       extract_workshop_images.py --prune\n"
             "  WORKSHOP_DIR  workshop packages / map VPKs → panorama maps/ws_{name}.png\n"
             "  GAME_DIR      game/csgo (pak01_dir.vpk) → panorama maps/map_{name}.png\n"
-            "  --css-only    rewrite stock/palette CSS from existing PNGs only",
+            "  --css-only    append maps stock/palette CSS from existing PNGs only\n"
+            "  --prune       delete CSS entries without a stock-list/on-disk image",
             file=sys.stderr,
         )
         return 1

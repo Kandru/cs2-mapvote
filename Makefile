@@ -46,7 +46,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help require-sdk debug release restore clean dirs panorama images images-check images-opt images-css test
+.PHONY: help require-sdk debug release restore clean dirs panorama images images-check images-opt images-css images-prune test
 
 ifeq ($(RUNNER),missing)
 require-sdk:
@@ -126,6 +126,10 @@ images-opt: ## Images: Lossless-compress PNG files in place (needs oxipng)
 		-type f -name '*.png' -print0 \
 	| xargs -0 -r oxipng -o 4 --strip safe --alpha
 
-images-css: ## Images: Rebuild stock/palette VCSS and the preview from PNGs on disk
+images-css: ## Images: Append maps stock/palette VCSS and rebuild the preview from PNGs on disk
 	python3 tools/extract_workshop_images.py --css-only
+	python3 tools/sync_preview.py
+
+images-prune: ## Images: Delete map CSS entries without a stock-list/on-disk image (after uploads)
+	python3 tools/extract_workshop_images.py --prune
 	python3 tools/sync_preview.py

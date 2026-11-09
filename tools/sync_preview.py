@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Generate workshop/preview from versioned vote XML + hud VCSS so the browser mock stays in sync."""
+"""Generate workshop/preview from versioned vote XML + hud/maps VCSS so the browser mock stays in sync."""
 from __future__ import annotations
 
 import html
+import json
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -10,12 +11,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from mapvote_layout import HUD_VCSS_NAME, VOTE_XML_NAME
+from map_names import DEFAULT_STEM, is_playable_map_id
+from mapvote_layout import HUD_VCSS_NAME, MAPS_VCSS_NAME, VOTE_XML_NAME
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "workshop" / "content" / "panorama"
 VOTE_XML = CONTENT / "layout" / "custom_game" / "mapvote" / VOTE_XML_NAME
 HUD_VCSS = CONTENT / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
+MAPS_VCSS = CONTENT / "styles" / "custom_game" / "mapvote" / MAPS_VCSS_NAME
 PREVIEW = ROOT / "workshop" / "preview"
 OUT_HTML = PREVIEW / "vote.html"
 OUT_CSS = PREVIEW / "hud.preview.css"
@@ -574,15 +577,7 @@ VOTE_JS = r"""(() => {
   })();
 
   // Prefer maps that have screenshots under preview/maps/*.webp
-  const MAPS = [
-    "de_dust2","de_mirage","de_inferno","de_nuke","de_overpass","de_ancient","de_anubis","de_vertigo",
-    "cs_office","cs_italy","ar_baggage","ar_shoots","de_cache","de_train","cs_agency","cs_assault",
-    "cs_militia","de_basalt","de_brewery","de_edin","de_palacio","de_whistle","de_dogtown",
-    "de_jura","de_golden","de_palais","de_thera","de_mills","de_assembly","de_boulder",
-    "de_canals","de_lake","de_safehouse","de_shortdust","de_tuscan","de_cbble","cs_alpine",
-    "cs_shelter","ar_pool_day","de_debris","de_eldorado","de_fachwerk","de_grail","de_memento",
-    "de_poseidon","de_rooftop","de_sanctum","de_stronghold","de_sugarcane","de_transit"
-  ].slice(0, SLOT);
+  const MAPS = __MAPS__.slice(0, SLOT);
 
   const stem = (map) => map.replace(/[^a-z0-9_]/gi, "_").toLowerCase();
 
@@ -1174,9 +1169,35 @@ VOTE_JS = r"""(() => {
 """
 
 
+PREVIEW_MAP_ORDER = [
+    "de_dust2", "de_mirage", "de_inferno", "de_nuke", "de_overpass", "de_ancient",
+    "de_anubis", "de_vertigo", "cs_office", "cs_italy", "ar_baggage", "ar_shoots",
+    "de_cache", "de_train", "cs_agency", "cs_assault", "cs_militia", "de_basalt",
+    "de_brewery", "de_edin", "de_palacio", "de_whistle", "de_dogtown", "de_jura",
+    "de_golden", "de_palais", "de_thera", "de_mills", "de_assembly", "de_boulder",
+    "de_canals", "de_lake", "de_safehouse", "de_shortdust", "de_tuscan", "de_cbble",
+    "cs_alpine", "cs_shelter", "ar_pool_day", "de_debris", "de_eldorado",
+    "de_fachwerk", "de_grail", "de_memento", "de_poseidon", "de_rooftop",
+    "de_sanctum", "de_stronghold", "de_sugarcane", "de_transit",
+]
+
+
+def preview_maps() -> list[str]:
+    """Preview maps with a bundled .webp, preferring the curated order."""
+    image_dir = PREVIEW / "maps"
+    on_disk = {
+        path.stem
+        for path in image_dir.glob("*.webp")
+        if path.is_file() and path.stem != DEFAULT_STEM and is_playable_map_id(path.stem)
+    }
+    ordered = [name for name in PREVIEW_MAP_ORDER if name in on_disk]
+    return ordered + sorted(on_disk - set(ordered))
+
+
 def write_js() -> None:
     # Keep interactive demo logic generated so SlotCount stays derived from XML ids.
-    OUT_JS.write_text(VOTE_JS, encoding="utf-8")
+    maps_json = json.dumps(preview_maps(), separators=(",", ":"))
+    OUT_JS.write_text(VOTE_JS.replace("__MAPS__", maps_json), encoding="utf-8")
 
 
 def sync() -> list[str]:
@@ -1185,6 +1206,8 @@ def sync() -> list[str]:
         return [f"missing {VOTE_XML.relative_to(ROOT)}"]
     if not HUD_VCSS.is_file():
         return [f"missing {HUD_VCSS.relative_to(ROOT)}"]
+    if not MAPS_VCSS.is_file():
+        return [f"missing {MAPS_VCSS.relative_to(ROOT)}"]
 
     PREVIEW.mkdir(parents=True, exist_ok=True)
 
@@ -1199,14 +1222,15 @@ def sync() -> list[str]:
         if child.tag != "styles":
             render_node(child, body_parts)
 
-    css = translate_css(HUD_VCSS.read_text(encoding="utf-8"))
-    css = "\n".join(line.rstrip() for line in css.splitlines())
+    css_parts: list[str] = []
+    for path in (HUD_VCSS, MAPS_VCSS):
+        translated = translate_css(path.read_text(encoding="utf-8"))
+        translated = "\n".join(line.rstrip() for line in translated.splitlines())
+        css_parts.append(f"\n/* ---- {path.name} (translated) ---- */\n{translated}\n")
     OUT_CSS.write_text(
-        f"/* AUTO-GENERATED from {HUD_VCSS_NAME} - do not edit. Run: make panorama */\n"
+        f"/* AUTO-GENERATED from {HUD_VCSS_NAME} + {MAPS_VCSS_NAME} - do not edit. Run: make panorama */\n"
         + SHELL_CSS
-        + f"\n/* ---- {HUD_VCSS_NAME} (translated) ---- */\n"
-        + css
-        + "\n",
+        + "".join(css_parts),
         encoding="utf-8",
     )
 

@@ -27,7 +27,8 @@ Panorama binding rules (layouts, classes, transmit, overflows): [stuff/PANORAMA_
 | `make clean` | clean plugin + tests |
 | `make images` | extract map tiles (`WORKSHOP_DIR` and/or `GAME_DIR`) |
 | `make images-check` | rewrite tiles that are not 350×197 PNG |
-| `make images-css` | rebuild stock/palette VCSS from PNGs on disk |
+| `make images-css` | append missing `maps_v1.vcss` stock/palette entries from PNGs on disk |
+| `make images-prune` | remove `maps_v1.vcss` entries without a stock-list/on-disk image |
 | `make images-opt` | lossless-compress PNG files in place (needs oxipng) |
 
 See [images.md](images.md) for extractor setup (`SOURCE2VIEWER_CLI`, Pillow).

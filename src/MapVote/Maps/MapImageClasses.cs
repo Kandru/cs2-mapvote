@@ -13,13 +13,8 @@ namespace MapVote.Maps
 
         public static string ClassFor(string? mapName, MapOrigin origin)
         {
-            if (string.IsNullOrWhiteSpace(mapName))
-            {
-                return Default;
-            }
-
-            string stem = MapNameFilter.SanitizeCssStem(mapName);
-            if (stem == "default")
+            if (!MapNameFilter.TryNormalizePlayableMapId(mapName, out string stem)
+                || stem == "default")
             {
                 return Default;
             }

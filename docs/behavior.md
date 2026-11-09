@@ -2,7 +2,7 @@
 
 ## Catalog
 
-[`MapCatalog`](../src/MapVote/Maps/MapCatalog.cs) loads maps over localhost RCON (`127.0.0.1`, server port + `rcon_password`). Empty password → no load (logged once). Commands: `maps *` (local) and `print_mapgroup_sv` (workshop); merge capped at `MaxMaps` (100). Keys in config use `map_` / `ws_` from [`MapOrigin`](../src/MapVote/Maps/MapEntry.cs).
+[`MapCatalog`](../src/MapVote/Maps/MapCatalog.cs) loads maps over localhost RCON (`127.0.0.1`, server port + `rcon_password`). Empty password → no load (logged once). Commands: `maps *` (local) and `print_mapgroup_sv` (workshop); merge capped at `MaxMaps` (100). Keys in config use `map_` / `ws_` from [`MapOrigin`](../src/MapVote/Maps/MapEntry.cs). Both replies use one playability filter ([`MapNameFilter`](../src/MapVote/Maps/MapNameFilter.cs)): paths, `workshop_preview_*`, `*_vanity`, `*_skybox`, `error`, `graphics_settings`, `lobby` and `lobby_mapveto` are skipped.
 
 Refresh runs on intermission (not on plugin load, map start, or the win panel). The worker retries until both replies look ready ([`MapListReadiness`](../src/MapVote/Maps/MapListReadiness.cs)) or the 1s budget elapses. The path is chosen when that refresh settles, or at 2s if it has not. A later settle does not flip the path. A blank or banner-only body is not published over a previous good list. Worker thread → `Server.NextFrame` for `maps_votable` sync. A generation counter invalidates late callbacks across map changes.
 
@@ -28,7 +28,7 @@ The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limi
 ## HUD
 
 - Layout path: `panorama/layout/custom_game/mapvote/vote_{PanoramaVersion}.vxml_c` (`PanoramaVersion` = `v1` in [`Version.cs`](../src/MapVote/Version.cs)).
-- Styles: `hud_v1` under workshop content; sources in `workshop/content/`.
+- Styles: `hud_v1` (UI) + `maps_v1` (generated map images) under workshop content; sources in `workshop/content/`.
 - Paint / clicks: [`VoteHud`](../src/MapVote/Huds/VoteHud.cs) + [`CustomHud`](../src/MapVote/Utils/CustomHud.cs) (`CheckTransmit`, dialog vars, classes, input capture). Fixed slot pools - see [PANORAMA_RULESET](../stuff/PANORAMA_RULESET.md).
 - Current map sits top-left of the vote strip: its header sits above the shot, the net rating is centered large on the image, the favorite button is top-right, and the like/dislike icon buttons stack to the right. Likes and dislikes are per player and aggregated server-wide.
 - The catalog is one `flow-children: right-wrap` scroll panel of fixed 110×213 cards, so the column count follows the viewport width. `right-wrap` is the documented Panorama deviation and must be verified in game.

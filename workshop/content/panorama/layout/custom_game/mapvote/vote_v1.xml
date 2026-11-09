@@ -4,6 +4,7 @@
 	<styles>
 		<include src="s2r://panorama/styles/csgostyles.vcss" />
 		<include src="s2r://panorama/styles/custom_game/mapvote/hud_v1.vcss" />
+		<include src="s2r://panorama/styles/custom_game/mapvote/maps_v1.vcss" />
 	</styles>
 
 	<!-- MapVote:mapvote v1 slots=100 filter_types=8 filter_sorts=4 -->

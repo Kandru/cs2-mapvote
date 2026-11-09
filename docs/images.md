@@ -2,7 +2,9 @@
 
 Shipped Workshop addon (HUD + tiles): [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946). Mount via MultiAddonManager. Map pictures cannot live in the plugin folder - only in a mounted Workshop addon. Missing tile → `default.png` / class `mv-map-default`.
 
-Custom addons must ship the same Panorama image classes the HUD expects (`mv-map-map_{name}`, `mv-map-ws_{name}`). Layout/style sources: `workshop/content/` (`vote_v1.xml`, `hud_v1.vcss` ↔ `PanoramaVersion` in `Version.cs`). Copy into `csgo_addons/<addon>/`; publish compiles to `.vxml_c` / `.vcss_c`.
+Custom addons must ship the same Panorama image classes the HUD expects (`mv-map-map_{name}`, `mv-map-ws_{name}`). Layout/style sources: `workshop/content/` (`vote_v1.xml`, `hud_v1.vcss` ↔ `PanoramaVersion` in `Version.cs`). Map images live in a separate generated sheet, `maps_v1.vcss`, so an image pack can replace it without copying the UI stylesheet. Copy both into `csgo_addons/<addon>/`; publish compiles to `.vxml_c` / `.vcss_c`.
+
+The C# side maps a map slug to `mv-map-map_{slug}` or `mv-map-ws_{slug}` dynamically. A runtime `background-image` URL cannot be sent from the plugin: `custom_hud_layout` only supports text variables and classes, and Panorama forbids `var()`/`calc()`. The generated map sheet is therefore the static lookup table of shipped images.
 
 ## Extract
 
@@ -13,8 +15,11 @@ make images WORKSHOP_DIR=/path/to/workshop/content/730
 make images GAME_DIR=/path/to/Steam/steamapps/common/Counter-Strike\ Global\ Offensive/game/csgo
 make images WORKSHOP_DIR=… GAME_DIR=…/game/csgo
 make images-check   # rewrite tiles that are not 350×197 PNG
-make images-css     # rebuild VCSS (+ preview) from PNGs on disk
+make images-css     # append missing maps_v1.vcss entries (+ preview) from PNGs on disk
+make images-prune   # optional: delete map CSS entries with no stock-list/on-disk image
 ```
+
+`maps_v1.vcss` is append-only during normal extraction: entries stay even when a map disappears from `stock_maps.txt` or a PNG is temporarily missing, and only new classes are added. Run `make images-prune` only after all map images are uploaded when you intentionally want to remove unknown/stale classes. Palette pruning is skipped when no workshop PNGs are present, so a checkout without extracted tiles cannot wipe the sheet.
 
 Republish the workshop addon after extracting images.
 

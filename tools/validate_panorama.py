@@ -10,9 +10,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from map_names import is_playable_map_id
 from mapvote_layout import (
     HUD_CSS_NAME,
     HUD_VCSS_NAME,
+    MAPS_CSS_NAME,
+    MAPS_VCSS_NAME,
     PANORAMA_VERSION,
     VOTE_XML_NAME,
 )
@@ -24,6 +27,8 @@ STYLES = CONTENT / "styles" / "custom_game" / "mapvote"
 IMAGES = CONTENT / "images" / "custom_game" / "mapvote" / "maps"
 HUD_VCSS = STYLES / HUD_VCSS_NAME
 HUD_CSS = STYLES / HUD_CSS_NAME
+MAPS_VCSS = STYLES / MAPS_VCSS_NAME
+MAPS_CSS = STYLES / MAPS_CSS_NAME
 VOTE_XML = LAYOUTS / VOTE_XML_NAME
 VOTE_HUD_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteHud.cs"
 VOTE_IDS_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteIds.cs"
@@ -297,30 +302,38 @@ def collect_errors() -> list[str]:
             msg = (check.stderr or check.stdout or f"{VOTE_XML_NAME} out of date").strip()
             errors.append(msg)
 
-    if not HUD_VCSS.is_file():
-        errors.append(f"missing {HUD_VCSS.relative_to(ROOT)}")
-    else:
-        css_raw = HUD_VCSS.read_text(encoding="utf-8")
-        css = re.sub(r"/\*.*?\*/", "", css_raw, flags=re.S)
+    hud_raw = HUD_VCSS.read_text(encoding="utf-8") if HUD_VCSS.is_file() else ""
+    maps_raw = MAPS_VCSS.read_text(encoding="utf-8") if MAPS_VCSS.is_file() else ""
+
+    for path, name, raw in (
+        (HUD_VCSS, HUD_VCSS_NAME, hud_raw),
+        (MAPS_VCSS, MAPS_VCSS_NAME, maps_raw),
+    ):
+        if not path.is_file():
+            errors.append(f"missing {path.relative_to(ROOT)}")
+            continue
+
+        css = re.sub(r"/\*.*?\*/", "", raw, flags=re.S)
         if HIDDEN_CLASS.search(css):
-            errors.append(f"{HUD_VCSS_NAME} uses forbidden class name hidden/Hidden")
+            errors.append(f"{name} uses forbidden class name hidden/Hidden")
         if BAD_CSS.search(css):
             for m in BAD_CSS.finditer(css):
                 line = css.count("\n", 0, m.start()) + 1
-                errors.append(f"{HUD_VCSS_NAME}:~{line}: forbidden CSS near {m.group(0)!r}")
+                errors.append(f"{name}:~{line}: forbidden CSS near {m.group(0)!r}")
         if css.count("{") != css.count("}"):
-            errors.append(f"{HUD_VCSS_NAME}: unbalanced braces")
+            errors.append(f"{name}: unbalanced braces")
         for prop in PROPERTY_RE.findall(css):
             if prop not in KNOWN_PROPS:
-                errors.append(f"{HUD_VCSS_NAME}: unknown/unsupported property {prop!r}")
+                errors.append(f"{name}: unknown/unsupported property {prop!r}")
         for m in KEYFRAMES_RE.finditer(css):
-            name = m.group(1)
-            if not (name.startswith("'") and name.endswith("'")) and not (
-                name.startswith('"') and name.endswith('"')
+            keyframe = m.group(1)
+            if not (keyframe.startswith("'") and keyframe.endswith("'")) and not (
+                keyframe.startswith('"') and keyframe.endswith('"')
             ):
                 line = css.count("\n", 0, m.start()) + 1
-                errors.append(f"{HUD_VCSS_NAME}:~{line}: @keyframes name must be quoted ({name!r})")
+                errors.append(f"{name}:~{line}: @keyframes name must be quoted ({keyframe!r})")
 
+    if HUD_VCSS.is_file():
         for req in (
             ".is-off",
             ".is-fading",
@@ -358,30 +371,46 @@ def collect_errors() -> list[str]:
             ".MapCatalog",
             ".is-self",
             ".is-done",
-            ".mv-map-default",
             ".vw-0",
         ):
-            if req not in css_raw:
+            if req not in hud_raw:
                 errors.append(f"{HUD_VCSS_NAME}: missing required selector/class {req}")
 
-        if "flow-children: right-wrap;" not in css_raw:
+        if "flow-children: right-wrap;" not in hud_raw:
             errors.append(f"{HUD_VCSS_NAME}: .MapCatalog must use flow-children: right-wrap")
 
-        if not HUD_CSS.is_file():
-            errors.append(f"{HUD_CSS_NAME} missing (must be symlink to {HUD_VCSS_NAME})")
-        elif not HUD_CSS.is_symlink() or HUD_CSS.resolve() != HUD_VCSS.resolve():
-            errors.append(f"{HUD_CSS_NAME} must be a symlink to {HUD_VCSS_NAME}")
+        hud_clean = re.sub(r"/\*.*?\*/", "", hud_raw, flags=re.S)
+        if re.search(r"\.mv-map-[a-z0-9_]+", hud_clean):
+            errors.append(
+                f"{HUD_VCSS_NAME}: map image classes belong in {MAPS_VCSS_NAME}, not the UI sheet"
+            )
+        if STOCK_BLOCK_RE.search(hud_raw) or PALETTE_BLOCK_RE.search(hud_raw):
+            errors.append(f"{HUD_VCSS_NAME}: map image blocks belong in {MAPS_VCSS_NAME}")
 
-        stock_block = STOCK_BLOCK_RE.search(css_raw)
-        palette_block = PALETTE_BLOCK_RE.search(css_raw)
+    for css_path, css_name, target_path, target_name in (
+        (HUD_CSS, HUD_CSS_NAME, HUD_VCSS, HUD_VCSS_NAME),
+        (MAPS_CSS, MAPS_CSS_NAME, MAPS_VCSS, MAPS_VCSS_NAME),
+    ):
+        if not css_path.is_file():
+            errors.append(f"{css_name} missing (must be symlink to {target_name})")
+        elif not css_path.is_symlink() or css_path.resolve() != target_path.resolve():
+            errors.append(f"{css_name} must be a symlink to {target_name}")
+
+    if MAPS_VCSS.is_file():
+        stock_block = STOCK_BLOCK_RE.search(maps_raw)
+        palette_block = PALETTE_BLOCK_RE.search(maps_raw)
         if stock_block is None:
-            errors.append(f"{HUD_VCSS_NAME}: missing /* BEGIN mv-map-stock */ … /* END mv-map-stock */ block")
+            errors.append(f"{MAPS_VCSS_NAME}: missing /* BEGIN mv-map-stock */ … /* END mv-map-stock */ block")
         if palette_block is None:
-            errors.append(f"{HUD_VCSS_NAME}: missing /* BEGIN mv-map-palette */ … /* END mv-map-palette */ block")
+            errors.append(f"{MAPS_VCSS_NAME}: missing /* BEGIN mv-map-palette */ … /* END mv-map-palette */ block")
+        if ".mv-map-default" not in maps_raw:
+            errors.append(f"{MAPS_VCSS_NAME}: missing required selector/class .mv-map-default")
 
         for stem, body in MV_MAP_STOCK_CLASS_RE.findall(stock_block.group(1) if stock_block else ""):
             if stem == "random" or stem.startswith("lobby_"):
                 errors.append(f".mv-map-map_{stem}: random and lobby_* are not shipped")
+            if not is_playable_map_id(stem):
+                errors.append(f".mv-map-map_{stem}: not a playable map id")
             check_local_map_image(errors, f"mv-map-map_{stem}", f"map_{stem}", body)
 
         for stem, body in MV_MAP_CLASS_RE.findall(palette_block.group(1) if palette_block else ""):
@@ -390,6 +419,10 @@ def collect_errors() -> list[str]:
                 continue
             if stem != "default" and not stem.startswith("ws_"):
                 errors.append(f".mv-map-{stem}: workshop images must use a ws_ stem")
+                continue
+            map_id = stem if stem == "default" else stem[len("ws_") :]
+            if not is_playable_map_id(map_id):
+                errors.append(f".mv-map-{stem}: not a playable map id")
             check_local_map_image(errors, f"mv-map-{stem}", stem, body)
 
     if not VOTE_XML.is_file():
@@ -470,6 +503,8 @@ def collect_errors() -> list[str]:
 
     if HUD_VCSS_NAME not in includes:
         errors.append(f"{VOTE_XML_NAME}: must include mapvote/{HUD_VCSS_NAME}")
+    if MAPS_VCSS_NAME not in includes:
+        errors.append(f"{VOTE_XML_NAME}: must include mapvote/{MAPS_VCSS_NAME}")
 
     missing_ids = expected_ids - found_ids
     extra_ids = found_ids - expected_ids
@@ -511,7 +546,7 @@ def main() -> int:
         return 1
 
     print(
-        f"Panorama validation OK ({VOTE_XML_NAME} + {HUD_VCSS_NAME} + map images); "
+        f"Panorama validation OK ({VOTE_XML_NAME} + {HUD_VCSS_NAME} + {MAPS_VCSS_NAME}); "
         f"preview synced → {PREVIEW_HTML.relative_to(ROOT)}"
     )
     return 0

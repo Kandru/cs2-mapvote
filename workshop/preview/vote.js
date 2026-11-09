@@ -9,15 +9,7 @@
   })();
 
   // Prefer maps that have screenshots under preview/maps/*.webp
-  const MAPS = [
-    "de_dust2","de_mirage","de_inferno","de_nuke","de_overpass","de_ancient","de_anubis","de_vertigo",
-    "cs_office","cs_italy","ar_baggage","ar_shoots","de_cache","de_train","cs_agency","cs_assault",
-    "cs_militia","de_basalt","de_brewery","de_edin","de_palacio","de_whistle","de_dogtown",
-    "de_jura","de_golden","de_palais","de_thera","de_mills","de_assembly","de_boulder",
-    "de_canals","de_lake","de_safehouse","de_shortdust","de_tuscan","de_cbble","cs_alpine",
-    "cs_shelter","ar_pool_day","de_debris","de_eldorado","de_fachwerk","de_grail","de_memento",
-    "de_poseidon","de_rooftop","de_sanctum","de_stronghold","de_sugarcane","de_transit"
-  ].slice(0, SLOT);
+  const MAPS = ["de_dust2","de_mirage","de_inferno","de_nuke","de_overpass","de_ancient","de_anubis","de_vertigo","cs_office","cs_italy","ar_baggage","ar_shoots","de_cache","de_train","cs_agency","cs_assault","cs_militia","de_basalt","de_brewery","de_edin","de_palacio","de_whistle","de_dogtown","de_jura","de_golden","de_palais","de_thera","de_mills","de_assembly","de_boulder","de_canals","de_lake","de_safehouse","de_shortdust","de_tuscan","de_cbble","cs_alpine","cs_shelter","ar_pool_day","de_debris","de_eldorado","de_fachwerk","de_grail","de_memento","de_poseidon","de_rooftop","de_sanctum","de_stronghold","de_sugarcane","de_transit","ar_shoots_night","de_ancient_night","de_cbble_csgo","de_warden","rush_001"].slice(0, SLOT);
 
   const stem = (map) => map.replace(/[^a-z0-9_]/gi, "_").toLowerCase();
 
