@@ -87,7 +87,8 @@ namespace MapVote
                     _plays,
                     (viewer, key) => Localization.ForPlayerSafe(Localizer, viewer, key),
                     origins,
-                    names);
+                    names,
+                    Config.CleanMapNames);
             }
 
             VoteHud.OpenFor(player);

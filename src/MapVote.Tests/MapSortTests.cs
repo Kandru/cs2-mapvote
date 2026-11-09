@@ -64,6 +64,21 @@ public class MapSortTests
     }
 
     [Fact]
+    public void Apply_Name_UsesCleanedDisplayKeyWhenProvided()
+    {
+        List<string> result = MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "alpha", By = "name", Order = "asc" },
+            _ => 0,
+            _ => 0,
+            favorites: new HashSet<string>(StringComparer.Ordinal),
+            nameKey: MapNameDisplay.Format);
+
+        Assert.Equal(["de_dust2", "de_inferno", "de_mirage", "cs_office"], result);
+    }
+
+    [Fact]
     public void Apply_Favorite_OrdersFavoritesFirst()
     {
         HashSet<string> favorites = new(StringComparer.Ordinal) { "de_inferno", "cs_office" };

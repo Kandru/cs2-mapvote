@@ -8,6 +8,13 @@ namespace MapVote.Config
         [JsonPropertyName("debug")]
         public bool Debug { get; set; }
 
+        /// <summary>
+        /// Hide map-type prefixes such as <c>de_</c> / <c>cs_</c> in the HUD,
+        /// capitalize the first letter and list maps by that cleaned name.
+        /// </summary>
+        [JsonPropertyName("clean_map_names")]
+        public bool CleanMapNames { get; set; } = true;
+
         [JsonPropertyName("endmatch")]
         public EndmatchConfig Endmatch { get; set; } = new();
 

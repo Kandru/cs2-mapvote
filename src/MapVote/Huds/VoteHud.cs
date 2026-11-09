@@ -31,6 +31,7 @@ namespace MapVote.Huds
         private static MapPlayCounts? _plays;
         private static Func<CCSPlayerController, string, string>? _text;
         private static Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);
+        private static Func<string, string> _formatMapName = static name => name;
         private static string? _currentMap;
         private static MapOrigin _currentOrigin = MapOrigin.Local;
         private static bool _revealing;
@@ -54,7 +55,8 @@ namespace MapVote.Huds
             Func<CCSPlayerController, string, string> text,
             IReadOnlyDictionary<string, MapOrigin> origins,
             string? currentMap,
-            MapOrigin currentOrigin)
+            MapOrigin currentOrigin,
+            bool cleanMapNames)
         {
             _mode = Mode.Vote;
             _session = session;
@@ -64,6 +66,7 @@ namespace MapVote.Huds
             _plays = plays;
             _text = text;
             _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
+            _formatMapName = cleanMapNames ? MapNameDisplay.Format : static name => name;
             _currentMap = string.IsNullOrWhiteSpace(currentMap) ? null : currentMap;
             _currentOrigin = currentOrigin;
             ResetAllSlots();
@@ -81,7 +84,8 @@ namespace MapVote.Huds
             MapPlayCounts plays,
             Func<CCSPlayerController, string, string> text,
             IReadOnlyDictionary<string, MapOrigin> origins,
-            IReadOnlyList<string> maps)
+            IReadOnlyList<string> maps,
+            bool cleanMapNames)
         {
             _mode = Mode.Browse;
             _session = null;
@@ -91,6 +95,7 @@ namespace MapVote.Huds
             _plays = plays;
             _text = text;
             _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
+            _formatMapName = cleanMapNames ? MapNameDisplay.Format : static name => name;
             _currentMap = null;
             _currentOrigin = MapOrigin.Local;
             ResetAllSlots();
@@ -114,6 +119,7 @@ namespace MapVote.Huds
             _plays = null;
             _text = null;
             _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
+            _formatMapName = static name => name;
             _currentMap = null;
             _currentOrigin = MapOrigin.Local;
             _revealing = false;
@@ -463,7 +469,7 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, VoteIds.CurrentImage, "is-fav", isFav);
             CustomHud.SetHasClass(player, VoteIds.CurrentRating, "is-positive", score > 0);
             CustomHud.SetHasClass(player, VoteIds.CurrentRating, "is-negative", score < 0);
-            CustomHud.SetText(player, Panel, VoteIds.CurrentNameVar, current);
+            CustomHud.SetText(player, Panel, VoteIds.CurrentNameVar, _formatMapName(current));
             CustomHud.SetText(player, Panel, VoteIds.CurrentRatingVar, FormatRating(score));
             CustomHud.SetMapImage(player, VoteIds.CurrentShot, current, _currentOrigin);
 
@@ -678,7 +684,8 @@ namespace MapVote.Huds
                     _filters.Sorts[activeSort],
                     m => _plays?.CountOf(m) ?? 0,
                     m => _archive?.RatingScore(m) ?? 0,
-                    favorites);
+                    favorites,
+                    _formatMapName);
             }
 
             return maps;
@@ -919,7 +926,7 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, tileId, "is-lost", isLost);
             CustomHud.SetHasClass(player, favId, "is-on", isFav);
             CustomHud.SetText(player, Panel, VoteVar(pool, index), votes.ToString());
-            CustomHud.SetText(player, Panel, NameVar(pool, index), map);
+            CustomHud.SetText(player, Panel, NameVar(pool, index), _formatMapName(map));
             PaintRating(player, pool, index, map);
             _origins.TryGetValue(map, out MapOrigin origin);
             CustomHud.SetMapImage(player, ShotId(pool, index), map, origin);

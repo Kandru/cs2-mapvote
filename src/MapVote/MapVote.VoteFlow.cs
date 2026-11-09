@@ -252,7 +252,8 @@ namespace MapVote
                 (player, key) => Localization.ForPlayerSafe(Localizer, player, key),
                 _origins,
                 currentMap,
-                currentOrigin);
+                currentOrigin,
+                Config.CleanMapNames);
             _pendingWinner = null;
 
             PluginLog.Info($"map voting started ({unique.Count} maps)");
@@ -354,6 +355,11 @@ namespace MapVote
                 ? Server.MapName.ToLowerInvariant()
                 : null;
             List<MapEntry> maps = MapVisibility.Shown(catalog, Config.MapsVotable, exclude);
+            if (Config.CleanMapNames)
+            {
+                maps = MapNameDisplay.OrderByDisplayName(maps);
+            }
+
             if (maps.Count <= MapCatalog.MaxMaps)
             {
                 return maps;
