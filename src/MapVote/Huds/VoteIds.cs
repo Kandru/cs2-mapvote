@@ -8,28 +8,39 @@ namespace MapVote.Huds
         public const string VotedSection = "mv-voted-section";
         public const string VotedHint = "mv-voted-hint";
         public const string VotedStrip = "mv-voted-strip";
+        public const string Current = "mv-current";
+        public const string CurrentImage = "mv-current-image";
+        public const string CurrentShot = "mv-current-shot";
+        public const string CurrentRating = "mv-current-rating";
+        public const string CurrentFav = "mv-current-fav";
+        public const string CurrentLike = "mv-current-like";
+        public const string CurrentDislike = "mv-current-dislike";
+        public const string CurrentRatingVar = "mv_cur_rating";
+        public const string CurrentNameVar = "mv_cur_name";
+        public const string CurrentTagVar = "mv_current";
         public const string Filters = "mv-filters";
         public const string Empty = "mv-empty";
         public const string Catalog = "mv-catalog";
+        public const string TitleVar = "mv_title";
+        public const string HintVar = "mv_hint";
+        public const string ChipVar = "mv_chip";
+        public const string EmptyVar = "mv_empty";
         /// <summary>Favorites sort chip (next to All). Not an <c>mv-fav-*</c> tile star.</summary>
         public const string FavoritesSort = "mv-sort-fav";
         public const string FavoritesSortVar = "sfav";
 
         public const int SlotCount = 100;
-        public const int CatalogCols = 10;
-        public const int CatalogRowCount = 10;
-        /// <summary>cols-n width ladder saturates here (n × 18% reaches 100%).</summary>
-        public const int CatalogColsWidthMax = 6;
         public const int FilterTypeSlots = 8;
         public const int FilterSortSlots = 4;
 
-        public static readonly string[] CrowIds = BuildIndexed("mv-crow-", CatalogRowCount);
         public static readonly string[] GridSlotIds = BuildIndexed("mv-slot-", SlotCount);
         public static readonly string[] GridTileIds = BuildIndexed("mv-", SlotCount);
         public static readonly string[] GridShotIds = BuildIndexed("mv-shot-", SlotCount);
         public static readonly string[] GridFavIds = BuildIndexed("mv-fav-", SlotCount);
         public static readonly string[] GridVoteVars = BuildIndexed("v", SlotCount);
         public static readonly string[] GridNameVars = BuildIndexed("n", SlotCount);
+        public static readonly string[] GridRatingIds = BuildIndexed("mv-rate-", SlotCount);
+        public static readonly string[] GridRatingVars = BuildIndexed("r", SlotCount);
 
         public static readonly string[] VotedSlotIds = BuildIndexed("mv-voted-slot-", SlotCount);
         public static readonly string[] VotedTileIds = BuildIndexed("mv-voted-", SlotCount);
@@ -37,6 +48,8 @@ namespace MapVote.Huds
         public static readonly string[] VotedFavIds = BuildIndexed("mv-voted-fav-", SlotCount);
         public static readonly string[] VotedVoteVars = BuildIndexed("vv", SlotCount);
         public static readonly string[] VotedNameVars = BuildIndexed("vn", SlotCount);
+        public static readonly string[] VotedRatingIds = BuildIndexed("mv-voted-rate-", SlotCount);
+        public static readonly string[] VotedRatingVars = BuildIndexed("vr", SlotCount);
 
         public static readonly string[] TypeChipIds = BuildIndexed("mv-ft-", FilterTypeSlots);
         public static readonly string[] TypeVars = BuildIndexed("ft", FilterTypeSlots);
@@ -44,8 +57,6 @@ namespace MapVote.Huds
         public static readonly string[] SortVars = BuildIndexed("fs", FilterSortSlots);
 
         public static readonly string[] VwClasses = BuildLadder("vw-", SlotCount);
-        public static readonly string[] RowsClasses = BuildLadder("rows-", CatalogRowCount);
-        public static readonly string[] ColsClasses = BuildLadder("cols-", CatalogColsWidthMax);
 
         private static string[] BuildIndexed(string prefix, int count)
         {

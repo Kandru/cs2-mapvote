@@ -2,16 +2,20 @@ using MapVote.Config;
 
 namespace MapVote.Players
 {
-    /// <summary>Steam-id keyed player favorites. Memory during the map; disk at map boundaries.</summary>
+    /// <summary>Steam-id keyed player favorites and ratings. Memory during the map; disk at map boundaries.</summary>
     public sealed class PlayerArchive
     {
         private readonly Dictionary<string, PlayerState> _bySteam = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _blockedWrites = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, int> _likes = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> _dislikes = new(StringComparer.Ordinal);
 
         public void Load(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
         {
             _bySteam.Clear();
             _blockedWrites.Clear();
+            _likes.Clear();
+            _dislikes.Clear();
 
             string dir = PlayerFiles.DirectoryPath(config);
             if (!Directory.Exists(dir))
@@ -74,9 +78,9 @@ namespace MapVote.Players
                     continue;
                 }
 
-                // Prefer the file with more favorites; equal → newer write time.
-                int existingWeight = existing.Favorites.Count;
-                int incomingWeight = state.Favorites.Count;
+                // Prefer the file with more persisted state; equal → newer write time.
+                int existingWeight = existing.Favorites.Count + existing.Likes.Count + existing.Dislikes.Count;
+                int incomingWeight = state.Favorites.Count + state.Likes.Count + state.Dislikes.Count;
                 if (incomingWeight > existingWeight
                     || (incomingWeight == existingWeight && writeTime > writeTimes.GetValueOrDefault(steamId)))
                 {
@@ -89,6 +93,8 @@ namespace MapVote.Players
                     debug?.Invoke($"duplicate player file for {steamId}; ignoring {Path.GetFileName(path)}");
                 }
             }
+
+            RebuildRatingCounts(debug);
 
             debug?.Invoke(
                 bad > 0
@@ -111,6 +117,149 @@ namespace MapVote.Players
             state = new PlayerState { SteamId = steamId, Username = steamId };
             _bySteam[steamId] = state;
             return state;
+        }
+
+        public PlayerRating RatingOf(string? steamId, string map) =>
+            TryGet(steamId) is { } state ? RatingOf(state, map) : PlayerRating.None;
+
+        public static PlayerRating RatingOf(PlayerState state, string map)
+        {
+            if (state.Likes.Contains(map, StringComparer.Ordinal))
+            {
+                return PlayerRating.Like;
+            }
+
+            return state.Dislikes.Contains(map, StringComparer.Ordinal)
+                ? PlayerRating.Dislike
+                : PlayerRating.None;
+        }
+
+        /// <summary>
+        /// Set a player's rating for one map. Like/dislike are mutually exclusive.
+        /// Returns false when the state did not change.
+        /// </summary>
+        public bool SetRating(string steamId, string map, PlayerRating rating)
+        {
+            PlayerState state = GetOrCreate(steamId);
+            PlayerRating previous = RatingOf(state, map);
+            if (previous == rating)
+            {
+                return false;
+            }
+
+            RemoveFromList(state.Likes, map, _likes);
+            RemoveFromList(state.Dislikes, map, _dislikes);
+
+            switch (rating)
+            {
+                case PlayerRating.Like:
+                    state.Likes.Add(map);
+                    Increment(_likes, map);
+                    break;
+                case PlayerRating.Dislike:
+                    state.Dislikes.Add(map);
+                    Increment(_dislikes, map);
+                    break;
+            }
+
+            state.Dirty = true;
+            return true;
+        }
+
+        public int LikeCount(string map) => _likes.GetValueOrDefault(map);
+
+        public int DislikeCount(string map) => _dislikes.GetValueOrDefault(map);
+
+        public int RatingTotal(string map) => LikeCount(map) + DislikeCount(map);
+
+        /// <summary>Net people score used by the most-liked / least-liked sorts.</summary>
+        public int RatingScore(string map) => LikeCount(map) - DislikeCount(map);
+
+        private static void RemoveFromList(
+            List<string> maps,
+            string map,
+            Dictionary<string, int> counts)
+        {
+            int index = maps.FindIndex(m => string.Equals(m, map, StringComparison.Ordinal));
+            if (index < 0)
+            {
+                return;
+            }
+
+            maps.RemoveAt(index);
+            Decrement(counts, map);
+        }
+
+        private static void Increment(Dictionary<string, int> counts, string map) =>
+            counts[map] = counts.GetValueOrDefault(map) + 1;
+
+        private static void Decrement(Dictionary<string, int> counts, string map)
+        {
+            int next = counts.GetValueOrDefault(map) - 1;
+            if (next > 0)
+            {
+                counts[map] = next;
+            }
+            else
+            {
+                counts.Remove(map);
+            }
+        }
+
+        /// <summary>Rebuild aggregate counts from player files and repair malformed lists.</summary>
+        private void RebuildRatingCounts(Action<string>? debug)
+        {
+            _likes.Clear();
+            _dislikes.Clear();
+            int repaired = 0;
+
+            foreach (PlayerState state in _bySteam.Values)
+            {
+                repaired += Normalize(state.Likes);
+                repaired += Normalize(state.Dislikes);
+
+                // A map may never be both liked and disliked. Likes win on legacy/corrupt files.
+                for (int i = state.Dislikes.Count - 1; i >= 0; i--)
+                {
+                    if (state.Likes.Contains(state.Dislikes[i], StringComparer.Ordinal))
+                    {
+                        state.Dislikes.RemoveAt(i);
+                        repaired++;
+                    }
+                }
+
+                foreach (string map in state.Likes)
+                {
+                    Increment(_likes, map);
+                }
+
+                foreach (string map in state.Dislikes)
+                {
+                    Increment(_dislikes, map);
+                }
+            }
+
+            if (repaired > 0)
+            {
+                debug?.Invoke($"player archive: repaired {repaired} rating entries");
+            }
+        }
+
+        private static int Normalize(List<string> maps)
+        {
+            HashSet<string> seen = new(StringComparer.Ordinal);
+            int removed = 0;
+            for (int i = maps.Count - 1; i >= 0; i--)
+            {
+                string map = maps[i];
+                if (string.IsNullOrWhiteSpace(map) || !seen.Add(map))
+                {
+                    maps.RemoveAt(i);
+                    removed++;
+                }
+            }
+
+            return removed;
         }
 
         public int SaveDirty(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
@@ -152,7 +301,9 @@ namespace MapVote.Players
             {
                 PlayerFiles.Write(PlayerFiles.FilePath(directory, steamId), state);
                 state.Dirty = false;
-                debug?.Invoke($"saved {state.Username} ({steamId}) favorites={state.Favorites.Count}");
+                debug?.Invoke(
+                    $"saved {state.Username} ({steamId}) favorites={state.Favorites.Count} "
+                    + $"likes={state.Likes.Count} dislikes={state.Dislikes.Count}");
                 return true;
             }
             catch (Exception ex)

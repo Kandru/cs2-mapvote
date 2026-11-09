@@ -4,16 +4,13 @@
 PANORAMA_VERSION = "v1"
 
 SLOT_COUNT = 100
-COLS = 10
-ROW_COUNT = (SLOT_COUNT + COLS - 1) // COLS  # 10
 FILTER_TYPE_SLOTS = 8
 FILTER_SORT_SLOTS = 4
-VOTED_SLOT_PITCH_PX = 126  # 110 tile + 8 + 8 margin
-CATALOG_ROW_HEIGHT_PX = 213
-# Cap one catalog tile at ~18% of the row (≈330px @ 16:9). Short rows stay centered.
-# Ladder stops at the first n where width hits 100% (cols-6).
-COL_WIDTH_PERCENT = 18
-COLS_WIDTH_MAX = (100 + COL_WIDTH_PERCENT - 1) // COL_WIDTH_PERCENT
+
+# Catalog and voted strip share one card metric. The catalog wraps by viewport width.
+SLOT_WIDTH_PX = 110
+SLOT_MARGIN_PX = 8
+SLOT_PITCH_PX = SLOT_WIDTH_PX + SLOT_MARGIN_PX * 2  # 126
 
 VOTE_XML_NAME = f"vote_{PANORAMA_VERSION}.xml"
 HUD_VCSS_NAME = f"hud_{PANORAMA_VERSION}.vcss"

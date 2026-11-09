@@ -36,7 +36,8 @@
 {
 	width: 100%;
 	height: 100%;
-	background-color: #0000000d;
+	background-color: #05090fb8;
+	world-blur: gaussian( 3 );
 	opacity: 1.0;
 	transition-property: opacity;
 	transition-duration: 0.5s;
@@ -48,8 +49,8 @@
 {
 	width: 100%;
 	height: 100%;
-	/* Top two stops at 70% of prior alpha so the victory splash stays readable. */
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #0000009d ), color-stop( 0.22, #00000061 ), color-stop( 0.5, #00000070 ), color-stop( 0.78, #00000078 ), to( #000000a0 ) );
+	/* Top two stops stay readable over the victory splash; the body is darker than before. */
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000b8 ), color-stop( 0.22, #00000078 ), color-stop( 0.5, #0000008c ), color-stop( 0.78, #00000094 ), to( #000000c8 ) );
 	opacity: 1.0;
 	transition-property: opacity;
 	transition-duration: 0.5s;
@@ -146,6 +147,7 @@
 }
 
 .VoteRoot.is-minimized .VoteBody,
+.VoteRoot.is-minimized .VoteHeadRow,
 .VoteRoot.is-minimized .MapGridHost
 {
 	height: 0px;
@@ -156,6 +158,9 @@
 
 .VoteRoot.is-minimized .MapTile,
 .VoteRoot.is-minimized .FavBtn,
+.VoteRoot.is-minimized .CurrentAction,
+.VoteRoot.is-minimized .CurrentFavBtn,
+.VoteRoot.is-minimized .CurrentRating,
 .VoteRoot.is-minimized .FilterChip
 {
 	visibility: collapse;
@@ -184,19 +189,29 @@
 	transition-timing-function: ease-out;
 }
 
-.VotedSection
+.VoteHeadRow
 {
 	width: 100%;
+	height: 213px;
+	flow-children: right;
+	padding-left: 8px;
+	padding-right: 8px;
+	margin-bottom: 8px;
+}
+
+.VotedSection
+{
+	width: fill-parent-flow( 1.0 );
+	height: 213px;
 	flow-children: down;
-	padding-top: 8px;
-	padding-bottom: 12px;
-	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000b3 ), to( #00000066 ) );
-	border-bottom: 1px solid #ffffff14;
+	background-color: gradient( linear, 0% 0%, 0% 100%, from( #000000a8 ), to( #00000070 ) );
+	border: 1px solid #ffffff12;
+	border-radius: 4px;
 }
 
 .VotedSection.has-votes
 {
-	border-bottom: 2px solid #ff9a1a;
+	border: 1px solid #3ddc8455;
 }
 
 .VotedRow
@@ -212,10 +227,10 @@
 {
 	width: 100%;
 	horizontal-align: center;
-	vertical-align: bottom;
+	vertical-align: middle;
 	text-align: center;
 	font-family: Stratum2 Bold Condensed;
-	font-size: 42;
+	font-size: 32;
 	color: #a3acb6;
 	letter-spacing: 1px;
 	text-transform: uppercase;
@@ -342,6 +357,206 @@
 .VotedStrip.vw-99 { width: 12474px; }
 .VotedStrip.vw-100 { width: 12600px; }
 /* END vw-ladder */
+
+.CurrentMap
+{
+	width: 150px;
+	height: 213px;
+	margin-right: 8px;
+	flow-children: none;
+	background-color: #00000001;
+}
+
+.CurrentMap.is-off
+{
+	visibility: collapse;
+}
+
+.CurrentTag
+{
+	width: 110px;
+	height: 16px;
+	horizontal-align: left;
+	vertical-align: top;
+	margin-top: 2px;
+	text-align: center;
+	font-family: Stratum2 Bold Condensed;
+	font-size: 10;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #b8ffd6;
+	background-color: #07120bc8;
+	border: 1px solid #3ddc8466;
+	border-radius: 2px;
+	z-index: 4;
+}
+
+/* 110×193 shot, bottom-left; the header sits above it and actions to its right. */
+.CurrentImage
+{
+	width: 110px;
+	height: 193px;
+	horizontal-align: left;
+	vertical-align: bottom;
+	flow-children: none;
+	overflow: clip;
+	background-color: #00000001;
+	border: 1px solid #05070acc;
+	border-radius: 3px;
+}
+
+.CurrentImage.is-fav
+{
+	border: 1px solid #3ddc84;
+	box-shadow: #3ddc8444 0px 0px 5px 0px;
+}
+
+.CurrentRating
+{
+	width: 72px;
+	height: 72px;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-family: Stratum2 Bold;
+	font-size: 38;
+	letter-spacing: 0px;
+	color: #eafff2;
+	background-color: #05090fb8;
+	border: 1px solid #3ddc8488;
+	border-radius: 6px;
+	z-index: 3;
+}
+
+.CurrentRating.is-positive
+{
+	color: #b8ffd6;
+	border: 1px solid #3ddc84;
+}
+
+.CurrentRating.is-negative
+{
+	color: #ffb8b8;
+	border: 1px solid #ff6b6b;
+}
+
+.CurrentFavBtn
+{
+	width: 24px;
+	height: 24px;
+	horizontal-align: right;
+	vertical-align: top;
+	margin-top: 4px;
+	margin-right: 4px;
+	z-index: 4;
+	flow-children: none;
+	wash-color: none;
+	background-color: #000000aa;
+	border: 1px solid #ffffff1f;
+	border-radius: 3px;
+	transition-property: background-color, brightness, border;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.CurrentFavBtn:hover
+{
+	background-color: #000000cc;
+	brightness: 1.1;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.CurrentFavBtn:active
+{
+	brightness: 0.85;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.CurrentFavBtn.is-on
+{
+	border: 1px solid #3ddc84;
+	background-color: #123a24cc;
+}
+
+/* Vertical action column to the right of the shot: like above dislike. */
+.CurrentActions
+{
+	width: 36px;
+	height: 193px;
+	horizontal-align: right;
+	vertical-align: bottom;
+	flow-children: down;
+	padding-top: 58px;
+}
+
+.CurrentAction
+{
+	width: 34px;
+	height: 34px;
+	horizontal-align: center;
+	margin-bottom: 8px;
+	flow-children: none;
+	background-color: #000000b8;
+	border: 1px solid #ffffff1f;
+	border-radius: 3px;
+	transition-property: background-color, brightness, border;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.CurrentActionIcon
+{
+	width: 20px;
+	height: 20px;
+	horizontal-align: center;
+	vertical-align: middle;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	background-size: 20px 20px;
+	wash-color: #ffffffcc;
+	transition-property: wash-color;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.LikeBtn .CurrentActionIcon
+{
+	background-image: url( "s2r://panorama/images/icons/ui/check.svg" );
+}
+
+.DislikeBtn .CurrentActionIcon
+{
+	background-image: url( "s2r://panorama/images/icons/ui/cancel.svg" );
+}
+
+.CurrentAction:hover
+{
+	background-color: #ffffff1a;
+	brightness: 1.1;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.CurrentAction:active
+{
+	brightness: 0.85;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.CurrentAction.is-on
+{
+	border: 1px solid #3ddc84;
+	background-color: #123a24d8;
+}
+
+.CurrentAction.is-on .CurrentActionIcon
+{
+	wash-color: #59ffa0;
+}
+
+.DislikeBtn
+{
+	margin-bottom: 0px;
+}
 
 .FilterBar
 {
@@ -474,7 +689,7 @@
 {
 	width: 100%;
 	height: 100%;
-	overflow: squish scroll;
+	overflow: clip;
 	flow-children: down;
 }
 
@@ -497,52 +712,20 @@
 	visibility: collapse;
 }
 
+/* The catalog is the vertical scroller. Cards keep the voted-strip size and wrap by viewport width. */
 .MapCatalog
 {
 	width: 100%;
-	flow-children: down;
-	overflow: noclip noclip;
+	height: fill-parent-flow( 1.0 );
+	flow-children: right-wrap;
+	overflow: squish scroll;
 	horizontal-align: center;
-	padding-left: 12px;
-	padding-right: 12px;
-}
-
-/* BEGIN rows-ladder */
-.MapCatalog.rows-0 { height: 0px; }
-.MapCatalog.rows-1 { height: 213px; }
-.MapCatalog.rows-2 { height: 426px; }
-.MapCatalog.rows-3 { height: 639px; }
-.MapCatalog.rows-4 { height: 852px; }
-.MapCatalog.rows-5 { height: 1065px; }
-.MapCatalog.rows-6 { height: 1278px; }
-.MapCatalog.rows-7 { height: 1491px; }
-.MapCatalog.rows-8 { height: 1704px; }
-.MapCatalog.rows-9 { height: 1917px; }
-.MapCatalog.rows-10 { height: 2130px; }
-/* END rows-ladder */
-
-.CatalogRow
-{
-	height: 213px;
-	flow-children: right;
-	horizontal-align: center;
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 4px;
+	padding-bottom: 12px;
 	/* Near-invisible fill so wheel hits gutters between tiles. */
 	background-color: #00000001;
-}
-
-/* BEGIN cols-ladder */
-.CatalogRow.cols-0 { width: 0%; }
-.CatalogRow.cols-1 { width: 18%; }
-.CatalogRow.cols-2 { width: 36%; }
-.CatalogRow.cols-3 { width: 54%; }
-.CatalogRow.cols-4 { width: 72%; }
-.CatalogRow.cols-5 { width: 90%; }
-.CatalogRow.cols-6 { width: 100%; }
-/* END cols-ladder */
-
-.CatalogRow.is-off
-{
-	visibility: collapse;
 }
 
 .MapSlot
@@ -551,14 +734,9 @@
 	height: 213px;
 	horizontal-align: center;
 	flow-children: none;
-	margin: 0px 8px 0px 8px;
+	margin: 4px 8px 4px 8px;
 	/* Near-invisible fill so wheel hits gutters between tiles. */
 	background-color: #00000001;
-}
-
-.CatalogRow .MapSlot
-{
-	width: fill-parent-flow( 1.0 );
 }
 
 .MapSlot.is-off
@@ -571,29 +749,45 @@
 	width: 100%;
 	height: 193px;
 	vertical-align: middle;
-	border: 0px solid #00000000;
+	border: 1px solid #05070acc;
 	box-shadow: none;
 	wash-color: none;
 	overflow: clip;
 	flow-children: none;
-	transition-property: brightness;
+	transition-property: brightness, border, box-shadow, wash-color;
 	transition-duration: 0.25s;
 	transition-timing-function: ease-out;
 }
 
+/* Any map carrying a vote (not only the local player's) gets the green frame. */
+.MapTile.is-voted
+{
+	border: 1px solid #3ddc84;
+	box-shadow: #3ddc8455 0px 0px 5px 0px;
+}
+
+/* Favorited maps also read green, with a quieter glow than voted/self. */
+.MapTile.is-fav
+{
+	border: 1px solid #3ddc84;
+	box-shadow: #3ddc8444 0px 0px 5px 0px;
+}
+
 .MapTile.is-self
 {
-	border: 2px solid #ffffff;
-	box-shadow: #ffffff 0px 0px 6px 0px;
+	border: 2px solid #59ffa0;
+	box-shadow: #59ffa0cc 0px 0px 12px 2px;
+	brightness: 1.12;
 }
 
 .MapTile.is-lost
 {
-	wash-color: #000000;
-	brightness: 0.55;
-	border: 0px solid #00000000;
+	/* Greyed out, never blacked out. */
+	wash-color: #8b95a3;
+	brightness: 0.62;
+	border: 1px solid #1a1f26;
 	box-shadow: none;
-	transition-property: wash-color, brightness;
+	transition-property: wash-color, brightness, border, box-shadow;
 	transition-duration: 0.5s;
 	transition-timing-function: ease-out;
 }
@@ -676,6 +870,46 @@
 	white-space: nowrap;
 }
 
+/* Aggregate net rating (likes − dislikes) in the tile's top-left corner. */
+.MapRating
+{
+	width: 28px;
+	height: 28px;
+	horizontal-align: left;
+	vertical-align: top;
+	margin-top: 4px;
+	margin-left: 4px;
+	text-align: center;
+	font-family: Stratum2 Bold;
+	font-size: 15;
+	font-weight: bold;
+	letter-spacing: 0px;
+	color: #c6d0da;
+	background-color: #05090fc8;
+	border: 1px solid #ffffff1f;
+	border-radius: 3px;
+	z-index: 3;
+}
+
+.MapRating.is-off
+{
+	visibility: collapse;
+}
+
+.MapRating.is-positive
+{
+	color: #b8ffd6;
+	background-color: #07160dcc;
+	border: 1px solid #3ddc8499;
+}
+
+.MapRating.is-negative
+{
+	color: #ffb8b8;
+	background-color: #190909cc;
+	border: 1px solid #ff6b6b99;
+}
+
 .FavBtn
 {
 	width: 28px;
@@ -724,23 +958,30 @@
 .FavBtn.is-on .FavIcon
 {
 	background-image: url( "s2r://panorama/images/icons/ui/favorite_yes.vsvg" );
+	wash-color: #59ffa0;
 }
 
-@keyframes 'mv-winner-pulse'
+@keyframes 'mv-winner-glow'
 {
 	0%
 	{
-		border: 2px solid #ffffff00;
+		border-color: #2bff74;
+		box-shadow: #2bff7488 0px 0px 8px 0px;
+		brightness: 1.0;
 	}
 
 	50%
 	{
-		border: 5px solid #ffff00;
+		border-color: #d9ffe9;
+		box-shadow: #2bff74cc 0px 0px 20px 4px;
+		brightness: 1.18;
 	}
 
 	100%
 	{
-		border: 2px solid #ffffff;
+		border-color: #2bff74;
+		box-shadow: #2bff7488 0px 0px 8px 0px;
+		brightness: 1.0;
 	}
 }
 
@@ -748,12 +989,12 @@
 {
 	wash-color: none;
 	brightness: 1.0;
-	border: 2px solid #ffffff;
-	box-shadow: #ffffff 0px 0px 6px 0px;
-	animation-name: 'mv-winner-pulse';
-	animation-duration: 0.5s;
-	animation-timing-function: ease-out;
-	animation-iteration-count: 1;
+	border: 3px solid #2bff74;
+	box-shadow: #2bff7499 0px 0px 12px 1px;
+	animation-name: 'mv-winner-glow';
+	animation-duration: 1.2s;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
 }
 
 .MapTile.is-done .MapShot

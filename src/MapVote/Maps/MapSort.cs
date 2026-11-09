@@ -13,6 +13,7 @@ namespace MapVote.Maps
             IReadOnlyList<string> catalogOrder,
             SortConfig sort,
             Func<string, int> playCount,
+            Func<string, int> ratingScore,
             IReadOnlySet<string> favorites)
         {
             IEnumerable<string> query = sort.Only ? maps.Where(favorites.Contains) : maps;
@@ -23,6 +24,9 @@ namespace MapVote.Maps
             return by switch
             {
                 "plays" => OrderBy(query, playCount, descending)
+                    .ThenBy(m => CatalogIndex(catalogOrder, m))
+                    .ToList(),
+                "rating" => OrderBy(query, ratingScore, descending)
                     .ThenBy(m => CatalogIndex(catalogOrder, m))
                     .ToList(),
                 "favorite" => OrderBy(query, m => favorites.Contains(m) ? 1 : 0, descending)

@@ -30,6 +30,9 @@ The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limi
 - Layout path: `panorama/layout/custom_game/mapvote/vote_{PanoramaVersion}.vxml_c` (`PanoramaVersion` = `v1` in [`Version.cs`](../src/MapVote/Version.cs)).
 - Styles: `hud_v1` under workshop content; sources in `workshop/content/`.
 - Paint / clicks: [`VoteHud`](../src/MapVote/Huds/VoteHud.cs) + [`CustomHud`](../src/MapVote/Utils/CustomHud.cs) (`CheckTransmit`, dialog vars, classes, input capture). Fixed slot pools - see [PANORAMA_RULESET](../stuff/PANORAMA_RULESET.md).
+- Current map sits top-left of the vote strip: its header sits above the shot, the net rating is centered large on the image, the favorite button is top-right, and the like/dislike icon buttons stack to the right. Likes and dislikes are per player and aggregated server-wide.
+- The catalog is one `flow-children: right-wrap` scroll panel of fixed 110×213 cards, so the column count follows the viewport width. `right-wrap` is the documented Panorama deviation and must be verified in game.
+- Tile frames: near-black default, green for voted (`is-voted`) and favorited (`is-fav`) maps, stronger green plus glow for the local vote (`is-self`), and a green pulse for the winner (`is-done`). Each tile shows its net rating (likes − dislikes) top-left, green when positive and red when negative; scores of 100 or more render as `99+`. Revealed non-winners are greyed out (`is-lost`), not blacked out.
 - Map tile classes: `mv-map-map_{name}` / `mv-map-ws_{name}` / `mv-map-default` ([images.md](images.md)).
 
 ## Localization

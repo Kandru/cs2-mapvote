@@ -86,6 +86,20 @@ S2R_ICON_STANDINS = {
         "%3Cpath fill='%232bff00' d='M9.2 17.2 4.8 12.8l1.4-1.4 3 3 8-8 1.4 1.4z'/%3E"
         "%3C/svg%3E"
     ),
+    "panorama/images/icons/ui/check.svg": (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
+        "%3Cpath fill='none' stroke='%23ffffff' stroke-width='3' "
+        "d='M4 12.5 9.5 18 20 6'/%3E"
+        "%3C/svg%3E"
+    ),
+    "panorama/images/icons/ui/cancel.svg": (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
+        "%3Cpath fill='none' stroke='%23ffffff' stroke-width='3' "
+        "d='M6 6l12 12M18 6 6 18'/%3E"
+        "%3C/svg%3E"
+    ),
 }
 
 
@@ -332,6 +346,9 @@ button {
  * VoteTopBar / FilterChip use flex centering instead - do not force grid-area there. */
 .VoteRoot > *,
 .VotedRow > *,
+.CurrentMap > *,
+.CurrentImage > *,
+.CurrentAction > *,
 .MapSlot > *,
 .MapTile > *,
 .MapGridHost > *,
@@ -436,6 +453,9 @@ button {
 /* Labels / tile chrome never capture clicks (Panorama: hittest=false). */
 .MapName,
 .MapVotes,
+.CurrentTag,
+.CurrentRating,
+.MapRating,
 .VotedHint,
 .FilterChipLabel,
 .MinimizeLabel,
@@ -445,6 +465,7 @@ button {
 .MapWinnerCheck,
 .MapFade,
 .MapShot,
+.CurrentActionIcon,
 .FavIcon {
   pointer-events: none;
 }
@@ -494,6 +515,18 @@ button {
 }
 
 .pv-var { min-width: 0.5ch; display: inline-block; }
+
+/* Panorama centers Label text vertically in a fixed-height label; browsers do not. */
+.MapRating,
+.CurrentRating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.CurrentActions {
+  align-items: center;
+}
 .pv-bar {
   position: fixed;
   left: 12px;
@@ -579,6 +612,8 @@ VOTE_JS = r"""(() => {
   const SORTS = [
     { id: "most_played", label: "Most played" },
     { id: "least_played", label: "Least played" },
+    { id: "most_liked", label: "Most liked" },
+    { id: "least_liked", label: "Least liked" },
     { id: "favorites", label: "Favorites" },
   ];
 
@@ -586,7 +621,12 @@ VOTE_JS = r"""(() => {
     maps: MAPS.slice(),
     votes: Object.fromEntries(MAPS.map((m) => [m, 0])),
     plays: Object.fromEntries(MAPS.map((m, i) => [m, (MAPS.length - i) % 17])),
+    // Server-wide aggregate counters plus this browser's personal rating.
+    likes: Object.fromEntries(MAPS.map((m, i) => [m, (MAPS.length - i + 3) % 9])),
+    dislikes: Object.fromEntries(MAPS.map((m, i) => [m, (i + 1) % 5])),
+    ratings: {},
     favorites: new Set(),
+    current: MAPS[13] || MAPS[0],
     firstVote: [],
     mine: null,
     mineSet: new Set(),
@@ -606,42 +646,56 @@ VOTE_JS = r"""(() => {
     });
   };
 
-  const COLS = 10;
-  const COLS_WIDTH_MAX = 6;
-  const ROW_COUNT = Math.ceil(SLOT / COLS);
+  const ratingScore = (map) => (state.likes[map] || 0) - (state.dislikes[map] || 0);
+  // 100+ saturates so the 28px catalog badge never clips.
+  const ratingText = (score) =>
+    score >= 100 ? "99+" : score <= -100 ? "-99" : score > 0 ? `+${score}` : String(score);
 
-  const clearTile = (slotId, tileId, shotId, favId, voteVar, nameVar) => {
+  const clearTile = (slotId, tileId, shotId, favId, voteVar, nameVar, ratingId, ratingVar) => {
     const slot = document.getElementById(slotId);
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     const fav = document.getElementById(favId);
     if (!slot || !tile || !shot) return;
     slot.classList.add("is-off");
-    tile.classList.remove("is-self", "is-done", "is-lost");
+    tile.classList.remove("is-self", "is-done", "is-lost", "is-voted", "is-fav");
     fav?.classList.remove("is-on");
+    document.getElementById(ratingId)?.classList.add("is-off");
     shot.className = "MapShot";
     shot.style.backgroundImage = "";
     setVar(voteVar, "");
     setVar(nameVar, "");
+    setVar(ratingVar, "");
   };
 
-  const paintTile = (slotId, tileId, shotId, favId, voteVar, nameVar, map) => {
+  const paintTile = (slotId, tileId, shotId, favId, voteVar, nameVar, ratingId, ratingVar, map) => {
     const slot = document.getElementById(slotId);
     const tile = document.getElementById(tileId);
     const shot = document.getElementById(shotId);
     const fav = document.getElementById(favId);
     if (!slot || !tile || !shot) return;
     const count = state.votes[map] || 0;
+    const score = ratingScore(map);
+    const rated = (state.likes[map] || 0) + (state.dislikes[map] || 0) > 0;
     const isWinner = state.winner === map;
     const isLost = state.reveal && state.winner && !isWinner;
     slot.classList.remove("is-off");
+    tile.classList.toggle("is-voted", count > 0);
+    tile.classList.toggle("is-fav", state.favorites.has(map));
     tile.classList.toggle("is-self", !state.reveal && isMine(map));
     tile.classList.toggle("is-done", isWinner);
     tile.classList.toggle("is-lost", !!isLost);
     fav?.classList.toggle("is-on", state.favorites.has(map));
+    const rating = document.getElementById(ratingId);
+    if (rating) {
+      rating.classList.toggle("is-off", !rated);
+      rating.classList.toggle("is-positive", rated && score > 0);
+      rating.classList.toggle("is-negative", rated && score < 0);
+    }
     applyShot(shot, map);
     setVar(voteVar, String(count));
     setVar(nameVar, map);
+    setVar(ratingVar, rated ? ratingText(score) : "");
   };
 
   const matchesType = (map, type) => {
@@ -657,15 +711,24 @@ VOTE_JS = r"""(() => {
   const filteredMaps = () => {
     const type = TYPES[state.type] || TYPES[0];
     let maps = state.maps.filter((m) => matchesType(m, type));
-    if (state.sort === 0) {
+    const sort = SORTS[state.sort];
+    if (sort?.id === "most_played") {
       maps = maps
         .slice()
         .sort((a, b) => (state.plays[b] || 0) - (state.plays[a] || 0) || state.maps.indexOf(a) - state.maps.indexOf(b));
-    } else if (state.sort === 1) {
+    } else if (sort?.id === "least_played") {
       maps = maps
         .slice()
         .sort((a, b) => (state.plays[a] || 0) - (state.plays[b] || 0) || state.maps.indexOf(a) - state.maps.indexOf(b));
-    } else if (state.sort === 2) {
+    } else if (sort?.id === "most_liked") {
+      maps = maps
+        .slice()
+        .sort((a, b) => ratingScore(b) - ratingScore(a) || state.maps.indexOf(a) - state.maps.indexOf(b));
+    } else if (sort?.id === "least_liked") {
+      maps = maps
+        .slice()
+        .sort((a, b) => ratingScore(a) - ratingScore(b) || state.maps.indexOf(a) - state.maps.indexOf(b));
+    } else if (sort?.id === "favorites") {
       maps = maps.filter((m) => state.favorites.has(m));
     }
     return maps;
@@ -751,6 +814,33 @@ VOTE_JS = r"""(() => {
       .map((x) => x.m);
   };
 
+  const paintCurrent = () => {
+    const map = state.current;
+    document.getElementById("mv-current")?.classList.toggle("is-off", !map);
+    setVar("mv_current", "Current map");
+    setVar("mv_cur_name", map || "");
+    const score = map ? ratingScore(map) : 0;
+    setVar("mv_cur_rating", ratingText(score));
+    const rating = document.getElementById("mv-current-rating");
+    if (rating) {
+      rating.classList.toggle("is-positive", score > 0);
+      rating.classList.toggle("is-negative", score < 0);
+    }
+    const shot = document.getElementById("mv-current-shot");
+    if (shot) {
+      if (map) applyShot(shot, map);
+      else {
+        shot.className = "MapShot mv-map-default";
+        shot.style.backgroundImage = "";
+      }
+    }
+    const isFav = !!map && state.favorites.has(map);
+    document.getElementById("mv-current-fav")?.classList.toggle("is-on", isFav);
+    document.getElementById("mv-current-image")?.classList.toggle("is-fav", isFav);
+    document.getElementById("mv-current-like")?.classList.toggle("is-on", !!map && state.ratings[map] === "like");
+    document.getElementById("mv-current-dislike")?.classList.toggle("is-on", !!map && state.ratings[map] === "dislike");
+  };
+
   const paint = () => {
     const voted = votedOrder();
     const section = document.getElementById("mv-voted-section");
@@ -762,20 +852,12 @@ VOTE_JS = r"""(() => {
     setVar("mv_chip", "Map Vote");
     setVar("mv_empty", "No maps match this filter");
     setLadder(document.getElementById("mv-voted-strip"), "vw", SLOT, voted.length);
+    paintCurrent();
     paintFilters();
 
     const grid = filteredMaps();
     const empty = document.getElementById("mv-empty");
     if (empty) empty.classList.toggle("is-off", grid.length > 0);
-    const rowCount = grid.length === 0 ? 0 : Math.ceil(grid.length / COLS);
-    setLadder(document.getElementById("mv-catalog"), "rows", ROW_COUNT, rowCount);
-    for (let r = 0; r < ROW_COUNT; r++) {
-      const crow = document.getElementById(`mv-crow-${r}`);
-      if (!crow) continue;
-      const visible = r < rowCount ? Math.min(COLS, grid.length - r * COLS) : 0;
-      crow.classList.toggle("is-off", visible <= 0);
-      setLadder(crow, "cols", COLS_WIDTH_MAX, Math.min(visible, COLS_WIDTH_MAX));
-    }
 
     for (let i = 0; i < SLOT; i++) {
       if (i < voted.length) {
@@ -786,6 +868,8 @@ VOTE_JS = r"""(() => {
           `mv-voted-fav-${i}`,
           `vv${i}`,
           `vn${i}`,
+          `mv-voted-rate-${i}`,
+          `vr${i}`,
           voted[i]
         );
       } else {
@@ -795,14 +879,35 @@ VOTE_JS = r"""(() => {
           `mv-voted-shot-${i}`,
           `mv-voted-fav-${i}`,
           `vv${i}`,
-          `vn${i}`
+          `vn${i}`,
+          `mv-voted-rate-${i}`,
+          `vr${i}`
         );
       }
 
       if (i < grid.length) {
-        paintTile(`mv-slot-${i}`, `mv-${i}`, `mv-shot-${i}`, `mv-fav-${i}`, `v${i}`, `n${i}`, grid[i]);
+        paintTile(
+          `mv-slot-${i}`,
+          `mv-${i}`,
+          `mv-shot-${i}`,
+          `mv-fav-${i}`,
+          `v${i}`,
+          `n${i}`,
+          `mv-rate-${i}`,
+          `r${i}`,
+          grid[i]
+        );
       } else {
-        clearTile(`mv-slot-${i}`, `mv-${i}`, `mv-shot-${i}`, `mv-fav-${i}`, `v${i}`, `n${i}`);
+        clearTile(
+          `mv-slot-${i}`,
+          `mv-${i}`,
+          `mv-shot-${i}`,
+          `mv-fav-${i}`,
+          `v${i}`,
+          `n${i}`,
+          `mv-rate-${i}`,
+          `r${i}`
+        );
       }
     }
   };
@@ -843,6 +948,9 @@ VOTE_JS = r"""(() => {
 
   const parseButton = (id) => {
     if (!id) return null;
+    if (id === "mv-current-fav") return { currentFav: true };
+    if (id === "mv-current-like") return { rate: "like" };
+    if (id === "mv-current-dislike") return { rate: "dislike" };
     if (id.startsWith("mv-voted-fav-")) {
       const i = Number(id.slice("mv-voted-fav-".length));
       const order = votedOrder();
@@ -898,6 +1006,19 @@ VOTE_JS = r"""(() => {
     paint();
   };
 
+  const toggleRating = (map, rating) => {
+    if (!map) return;
+    const previous = state.ratings[map];
+    if (previous === "like") state.likes[map] = Math.max(0, (state.likes[map] || 0) - 1);
+    if (previous === "dislike") state.dislikes[map] = Math.max(0, (state.dislikes[map] || 0) - 1);
+    const next = previous === rating ? null : rating;
+    if (next === "like") state.likes[map] = (state.likes[map] || 0) + 1;
+    if (next === "dislike") state.dislikes[map] = (state.dislikes[map] || 0) + 1;
+    if (next) state.ratings[map] = next;
+    else delete state.ratings[map];
+    paint();
+  };
+
   document.getElementById("Vote")?.addEventListener("click", (ev) => {
     const btn = ev.target.closest("button[id]");
     if (!btn) return;
@@ -907,6 +1028,14 @@ VOTE_JS = r"""(() => {
     }
     const hit = parseButton(btn.id);
     if (!hit) return;
+    if (hit.currentFav) {
+      toggleFavorite(state.current);
+      return;
+    }
+    if (hit.rate) {
+      toggleRating(state.current, hit.rate);
+      return;
+    }
     if (hit.fav) {
       toggleFavorite(hit.fav);
       return;
@@ -974,6 +1103,10 @@ VOTE_JS = r"""(() => {
   const reveal = () => {
     state.reveal = true;
     state.winner = topMap();
+    // Mirror VoteHud.ApplyRevealPaint: reveal the whole catalog, unfiltered and open.
+    state.type = 0;
+    state.sort = -1;
+    document.getElementById("Vote")?.classList.remove("is-minimized");
     paint();
   };
 
@@ -1067,6 +1200,7 @@ def sync() -> list[str]:
             render_node(child, body_parts)
 
     css = translate_css(HUD_VCSS.read_text(encoding="utf-8"))
+    css = "\n".join(line.rstrip() for line in css.splitlines())
     OUT_CSS.write_text(
         f"/* AUTO-GENERATED from {HUD_VCSS_NAME} - do not edit. Run: make panorama */\n"
         + SHELL_CSS

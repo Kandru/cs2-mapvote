@@ -10,17 +10,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from mapvote_layout import (
-    CATALOG_ROW_HEIGHT_PX,
-    COLS,
-    COLS_WIDTH_MAX,
-    COL_WIDTH_PERCENT,
     FILTER_SORT_SLOTS,
     FILTER_TYPE_SLOTS,
     HUD_VCSS_NAME,
     PANORAMA_VERSION,
-    ROW_COUNT,
     SLOT_COUNT,
-    VOTED_SLOT_PITCH_PX,
+    SLOT_PITCH_PX,
     VOTE_XML_NAME,
 )
 
@@ -29,22 +24,31 @@ OUT = ROOT / "workshop" / "content" / "panorama" / "layout" / "custom_game" / "m
 HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
 CREDIT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 LAYOUT_TAG = (
-    f"{PANORAMA_VERSION} slots={SLOT_COUNT} cols={COLS} rows={ROW_COUNT} "
+    f"{PANORAMA_VERSION} slots={SLOT_COUNT} "
     f"filter_types={FILTER_TYPE_SLOTS} filter_sorts={FILTER_SORT_SLOTS}"
 )
 
 
-def tile(pool: str, index: int, vote_var: str, name_var: str, indent: str) -> str:
+def tile(
+    pool: str,
+    index: int,
+    vote_var: str,
+    name_var: str,
+    rating_var: str,
+    indent: str,
+) -> str:
     if pool == "voted":
         slot_id = f"mv-voted-slot-{index}"
         tile_id = f"mv-voted-{index}"
         shot_id = f"mv-voted-shot-{index}"
         fav_id = f"mv-voted-fav-{index}"
+        rate_id = f"mv-voted-rate-{index}"
     else:
         slot_id = f"mv-slot-{index}"
         tile_id = f"mv-{index}"
         shot_id = f"mv-shot-{index}"
         fav_id = f"mv-fav-{index}"
+        rate_id = f"mv-rate-{index}"
     # Default shot behind the id'd overlay (missing map class → default shows).
     return "\n".join(
         [
@@ -55,11 +59,40 @@ def tile(pool: str, index: int, vote_var: str, name_var: str, indent: str) -> st
             f'{indent}\t\t<Panel class="MapFade" hittest="false" />',
             f'{indent}\t\t<Label class="MapName stratum-bold-condensed" text="{{s:{name_var}}}" hittest="false" />',
             f'{indent}\t\t<Label class="MapVotes stratum-bold" text="{{s:{vote_var}}}" hittest="false" />',
+            f'{indent}\t\t<Label id="{rate_id}" class="MapRating stratum-bold is-off" text="{{s:{rating_var}}}" hittest="false" />',
             f'{indent}\t\t<Panel class="MapWinnerCheck" hittest="false" />',
             f"{indent}\t</Button>",
             f'{indent}\t<Button id="{fav_id}" class="FavBtn">',
             f'{indent}\t\t<Panel class="FavIcon" hittest="false" />',
             f"{indent}\t</Button>",
+            f"{indent}</Panel>",
+        ]
+    )
+
+
+def current_card(indent: str) -> str:
+    """Current map: header above the shot, big net rating centered, icon vote buttons right."""
+    return "\n".join(
+        [
+            f'{indent}<Panel id="mv-current" class="CurrentMap" hittest="false">',
+            f'{indent}\t<Label class="CurrentTag stratum-bold-condensed" text="{{s:mv_current}}" hittest="false" />',
+            f'{indent}\t<Panel id="mv-current-image" class="CurrentImage" hittest="false">',
+            f'{indent}\t\t<Panel id="mv-current-shot" class="MapShot mv-map-default" hittest="false" />',
+            f'{indent}\t\t<Panel class="MapFade" hittest="false" />',
+            f'{indent}\t\t<Label class="MapName stratum-bold-condensed" text="{{s:mv_cur_name}}" hittest="false" />',
+            f'{indent}\t\t<Label id="mv-current-rating" class="CurrentRating stratum-bold" text="{{s:mv_cur_rating}}" hittest="false" />',
+            f'{indent}\t\t<Button id="mv-current-fav" class="CurrentFavBtn">',
+            f'{indent}\t\t\t<Panel class="FavIcon" hittest="false" />',
+            f'{indent}\t\t</Button>',
+            f"{indent}\t</Panel>",
+            f'{indent}\t<Panel class="CurrentActions" hittest="false">',
+            f'{indent}\t\t<Button id="mv-current-like" class="CurrentAction LikeBtn">',
+            f'{indent}\t\t\t<Panel class="CurrentActionIcon LikeIcon" hittest="false" />',
+            f"{indent}\t\t</Button>",
+            f'{indent}\t\t<Button id="mv-current-dislike" class="CurrentAction DislikeBtn">',
+            f'{indent}\t\t\t<Panel class="CurrentActionIcon DislikeIcon" hittest="false" />',
+            f"{indent}\t\t</Button>",
+            f"{indent}\t</Panel>",
             f"{indent}</Panel>",
         ]
     )
@@ -86,30 +119,17 @@ def _replace_marked_block(text: str, begin: str, end: str, lines: list[str]) -> 
 
 
 def rewrite_hud_ladders() -> None:
-    """Keep vw-* / rows-* / cols-* ladders in the versioned hud VCSS aligned with pool sizes."""
+    """Keep the voted-strip width ladder in the versioned hud VCSS aligned with pool sizes."""
     if not HUD_VCSS.is_file():
         return
     text = HUD_VCSS.read_text(encoding="utf-8")
 
     vw_lines = ["/* BEGIN vw-ladder */"]
     for i in range(SLOT_COUNT + 1):
-        vw_lines.append(f".VotedStrip.vw-{i} {{ width: {i * VOTED_SLOT_PITCH_PX}px; }}")
+        vw_lines.append(f".VotedStrip.vw-{i} {{ width: {i * SLOT_PITCH_PX}px; }}")
     vw_lines.append("/* END vw-ladder */")
 
-    rows_lines = ["/* BEGIN rows-ladder */"]
-    for i in range(ROW_COUNT + 1):
-        rows_lines.append(f".MapCatalog.rows-{i} {{ height: {i * CATALOG_ROW_HEIGHT_PX}px; }}")
-    rows_lines.append("/* END rows-ladder */")
-
-    cols_lines = ["/* BEGIN cols-ladder */"]
-    for i in range(COLS_WIDTH_MAX + 1):
-        width = min(100, i * COL_WIDTH_PERCENT)
-        cols_lines.append(f".CatalogRow.cols-{i} {{ width: {width}%; }}")
-    cols_lines.append("/* END cols-ladder */")
-
     text = _replace_marked_block(text, "/* BEGIN vw-ladder */", "/* END vw-ladder */", vw_lines)
-    text = _replace_marked_block(text, "/* BEGIN rows-ladder */", "/* END rows-ladder */", rows_lines)
-    text = _replace_marked_block(text, "/* BEGIN cols-ladder */", "/* END cols-ladder */", cols_lines)
     HUD_VCSS.write_text(text, encoding="utf-8")
 
 
@@ -126,8 +146,8 @@ def build() -> str:
         f"\t<!-- MapVote:mapvote {LAYOUT_TAG} -->",
         '\t<Panel class="HudScreen" hittest="false">',
         '\t\t<Panel id="Vote" class="VoteRoot is-off" hittest="false">',
-		'\t\t\t<Panel class="mv-glass" hittest="false" />',
-		'\t\t\t<Panel class="mv-scrim" hittest="false" />',
+        '\t\t\t<Panel class="mv-glass" hittest="false" />',
+        '\t\t\t<Panel class="mv-scrim" hittest="false" />',
         '\t\t\t<Panel class="VoteColumn" hittest="false">',
         '\t\t\t\t<Panel class="VoteTopBar" hittest="false">',
         '\t\t\t\t\t<Label class="VoteTitle stratum-bold-condensed" text="{s:mv_title}" hittest="false" />',
@@ -136,17 +156,26 @@ def build() -> str:
         "\t\t\t\t\t</Button>",
         "\t\t\t\t</Panel>",
         '\t\t\t\t<Panel class="VoteBody" hittest="false">',
-        '\t\t\t\t\t<Panel id="mv-voted-section" class="VotedSection" hittest="false">',
-        '\t\t\t\t\t\t<Panel class="VotedRow">',
-        '\t\t\t\t\t\t\t<Label id="mv-voted-hint" class="VotedHint stratum-bold-condensed" text="{s:mv_hint}" hittest="false" />',
-        '\t\t\t\t\t\t\t<Panel id="mv-voted-strip" class="VotedStrip vw-0">',
+        '\t\t\t\t\t<Panel class="VoteHeadRow" hittest="false">',
     ]
 
-    for i in range(SLOT_COUNT):
-        lines.append(tile("voted", i, f"vv{i}", f"vn{i}", "\t\t\t\t\t\t\t\t"))
+    lines.append(current_card("\t\t\t\t\t\t"))
 
     lines.extend(
         [
+            '\t\t\t\t\t\t<Panel id="mv-voted-section" class="VotedSection" hittest="false">',
+            '\t\t\t\t\t\t\t<Panel class="VotedRow">',
+            '\t\t\t\t\t\t\t\t<Label id="mv-voted-hint" class="VotedHint stratum-bold-condensed" text="{s:mv_hint}" hittest="false" />',
+            '\t\t\t\t\t\t\t\t<Panel id="mv-voted-strip" class="VotedStrip vw-0">',
+        ]
+    )
+
+    for i in range(SLOT_COUNT):
+        lines.append(tile("voted", i, f"vv{i}", f"vn{i}", f"vr{i}", "\t\t\t\t\t\t\t\t\t"))
+
+    lines.extend(
+        [
+            "\t\t\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t\t</Panel>",
             "\t\t\t\t\t</Panel>",
@@ -180,19 +209,12 @@ def build() -> str:
             '\t\t\t\t\t<Panel class="MapGridHost" hittest="false">',
             '\t\t\t\t\t\t<Panel class="MapGrid">',
             '\t\t\t\t\t\t\t<Label id="mv-empty" class="MapEmpty stratum-bold-condensed is-off" text="{s:mv_empty}" hittest="false" />',
-            '\t\t\t\t\t\t\t<Panel id="mv-catalog" class="MapCatalog rows-0">',
+            '\t\t\t\t\t\t\t<Panel id="mv-catalog" class="MapCatalog">',
         ]
     )
 
-    for row in range(ROW_COUNT):
-        lines.append(
-            f'\t\t\t\t\t\t\t\t<Panel id="mv-crow-{row}" class="CatalogRow cols-0 is-off">'
-        )
-        start = row * COLS
-        end = min(start + COLS, SLOT_COUNT)
-        for i in range(start, end):
-            lines.append(tile("grid", i, f"v{i}", f"n{i}", "\t\t\t\t\t\t\t\t\t"))
-        lines.append("\t\t\t\t\t\t\t\t</Panel>")
+    for i in range(SLOT_COUNT):
+        lines.append(tile("grid", i, f"v{i}", f"n{i}", f"r{i}", "\t\t\t\t\t\t\t\t"))
 
     lines.extend(
         [

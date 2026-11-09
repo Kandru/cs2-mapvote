@@ -46,6 +46,9 @@ button {
  * VoteTopBar / FilterChip use flex centering instead - do not force grid-area there. */
 .VoteRoot > *,
 .VotedRow > *,
+.CurrentMap > *,
+.CurrentImage > *,
+.CurrentAction > *,
 .MapSlot > *,
 .MapTile > *,
 .MapGridHost > *,
@@ -150,6 +153,9 @@ button {
 /* Labels / tile chrome never capture clicks (Panorama: hittest=false). */
 .MapName,
 .MapVotes,
+.CurrentTag,
+.CurrentRating,
+.MapRating,
 .VotedHint,
 .FilterChipLabel,
 .MinimizeLabel,
@@ -159,6 +165,7 @@ button {
 .MapWinnerCheck,
 .MapFade,
 .MapShot,
+.CurrentActionIcon,
 .FavIcon {
   pointer-events: none;
 }
@@ -208,6 +215,18 @@ button {
 }
 
 .pv-var { min-width: 0.5ch; display: inline-block; }
+
+/* Panorama centers Label text vertically in a fixed-height label; browsers do not. */
+.MapRating,
+.CurrentRating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.CurrentActions {
+  align-items: center;
+}
 .pv-bar {
   position: fixed;
   left: 12px;
@@ -282,7 +301,8 @@ button {
 {
 	width: 100%;
 	height: 100%;
-	background-color: #0000000d;
+	background-color: #05090fb8;
+	backdrop-filter: blur(10px);
 	opacity: 1.0;
 	transition-property: opacity;
 	transition-duration: 0.5s;
@@ -294,8 +314,8 @@ button {
 {
 	width: 100%;
 	height: 100%;
-	/* Top two stops at 70% of prior alpha so the victory splash stays readable. */
-	background-image: linear-gradient(to bottom, #0000009d, #00000061 22%, #00000070 50%, #00000078 78%, #000000a0);
+	/* Top two stops stay readable over the victory splash; the body is darker than before. */
+	background-image: linear-gradient(to bottom, #000000b8, #00000078 22%, #0000008c 50%, #00000094 78%, #000000c8);
 	opacity: 1.0;
 	transition-property: opacity;
 	transition-duration: 0.5s;
@@ -348,7 +368,7 @@ button {
 	border: 1px solid #ffffff33;
 	border-radius: 3px;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-	
+
 	transition-property: background-color, brightness;
 	transition-duration: 0.15s;
 	transition-timing-function: ease-out;
@@ -358,13 +378,13 @@ button {
 {
 	background-color: #ffffff22;
 	filter: brightness(1.1); /* brightness */
-	
+
 }
 
 .MinimizeBtn:active
 {
 	filter: brightness(0.85); /* brightness */
-	
+
 }
 
 .MinimizeLabel
@@ -392,6 +412,7 @@ button {
 }
 
 .VoteRoot.is-minimized .VoteBody,
+.VoteRoot.is-minimized .VoteHeadRow,
 .VoteRoot.is-minimized .MapGridHost
 {
 	height: 0px;
@@ -402,6 +423,9 @@ button {
 
 .VoteRoot.is-minimized .MapTile,
 .VoteRoot.is-minimized .FavBtn,
+.VoteRoot.is-minimized .CurrentAction,
+.VoteRoot.is-minimized .CurrentFavBtn,
+.VoteRoot.is-minimized .CurrentRating,
 .VoteRoot.is-minimized .FilterChip
 {
 	display: none;
@@ -430,19 +454,29 @@ button {
 	transition-timing-function: ease-out;
 }
 
-.VotedSection
+.VoteHeadRow
 {
 	width: 100%;
+	height: 213px;
+	display: flex; flex-direction: row; flex-wrap: nowrap;
+	padding-left: 8px;
+	padding-right: 8px;
+	margin-bottom: 8px;
+}
+
+.VotedSection
+{
+	flex: 1 1 0; min-width: 0;
+	height: 213px;
 	display: flex; flex-direction: column;
-	padding-top: 8px;
-	padding-bottom: 12px;
-	background-image: linear-gradient(to bottom, #000000b3, #00000066);
-	border-bottom: 1px solid #ffffff14;
+	background-image: linear-gradient(to bottom, #000000a8, #00000070);
+	border: 1px solid #ffffff12;
+	border-radius: 4px;
 }
 
 .VotedSection.has-votes
 {
-	border-bottom: 2px solid #ff9a1a;
+	border: 1px solid #3ddc8455;
 }
 
 .VotedRow
@@ -458,10 +492,10 @@ button {
 {
 	width: 100%;
 	justify-self: center; margin-left: auto; margin-right: auto;
-	align-self: end;
+	align-self: center;
 	text-align: center;
 	font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
-	font-size: 42px;
+	font-size: 32px;
 	color: #a3acb6;
 	letter-spacing: 1px;
 	text-transform: uppercase;
@@ -589,6 +623,206 @@ button {
 .VotedStrip.vw-100 { width: 12600px; }
 /* END vw-ladder */
 
+.CurrentMap
+{
+	width: 150px;
+	height: 213px;
+	margin-right: 8px;
+	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	background-color: #00000001;
+}
+
+.CurrentMap.is-off
+{
+	display: none;
+}
+
+.CurrentTag
+{
+	width: 110px;
+	height: 16px;
+	justify-self: start; margin-right: auto;
+	align-self: start;
+	margin-top: 2px;
+	text-align: center;
+	font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
+	font-size: 10px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #b8ffd6;
+	background-color: #07120bc8;
+	border: 1px solid #3ddc8466;
+	border-radius: 2px;
+	z-index: 4;
+}
+
+/* 110×193 shot, bottom-left; the header sits above it and actions to its right. */
+.CurrentImage
+{
+	width: 110px;
+	height: 193px;
+	justify-self: start; margin-right: auto;
+	align-self: end;
+	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	overflow: hidden;
+	background-color: #00000001;
+	border: 1px solid #05070acc;
+	border-radius: 3px;
+}
+
+.CurrentImage.is-fav
+{
+	border: 1px solid #3ddc84;
+	box-shadow: 0px 0px 5px 0px #3ddc8444;
+}
+
+.CurrentRating
+{
+	width: 72px;
+	height: 72px;
+	justify-self: center; margin-left: auto; margin-right: auto;
+	align-self: center;
+	text-align: center;
+	font-family: "Stratum2 Bold", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
+	font-size: 38px;
+	letter-spacing: 0px;
+	color: #eafff2;
+	background-color: #05090fb8;
+	border: 1px solid #3ddc8488;
+	border-radius: 6px;
+	z-index: 3;
+}
+
+.CurrentRating.is-positive
+{
+	color: #b8ffd6;
+	border: 1px solid #3ddc84;
+}
+
+.CurrentRating.is-negative
+{
+	color: #ffb8b8;
+	border: 1px solid #ff6b6b;
+}
+
+.CurrentFavBtn
+{
+	width: 24px;
+	height: 24px;
+	justify-self: end; margin-left: auto;
+	align-self: start;
+	margin-top: 4px;
+	margin-right: 4px;
+	z-index: 4;
+	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+
+	background-color: #000000aa;
+	border: 1px solid #ffffff1f;
+	border-radius: 3px;
+	transition-property: background-color, brightness, border;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.CurrentFavBtn:hover
+{
+	background-color: #000000cc;
+	filter: brightness(1.1); /* brightness */
+
+}
+
+.CurrentFavBtn:active
+{
+	filter: brightness(0.85); /* brightness */
+
+}
+
+.CurrentFavBtn.is-on
+{
+	border: 1px solid #3ddc84;
+	background-color: #123a24cc;
+}
+
+/* Vertical action column to the right of the shot: like above dislike. */
+.CurrentActions
+{
+	width: 36px;
+	height: 193px;
+	justify-self: end; margin-left: auto;
+	align-self: end;
+	display: flex; flex-direction: column;
+	padding-top: 58px;
+}
+
+.CurrentAction
+{
+	width: 34px;
+	height: 34px;
+	justify-self: center; margin-left: auto; margin-right: auto;
+	margin-bottom: 8px;
+	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	background-color: #000000b8;
+	border: 1px solid #ffffff1f;
+	border-radius: 3px;
+	transition-property: background-color, brightness, border;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.CurrentActionIcon
+{
+	width: 20px;
+	height: 20px;
+	justify-self: center; margin-left: auto; margin-right: auto;
+	align-self: center;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	background-size: 20px 20px;
+
+	transition-property: wash-color;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.LikeBtn .CurrentActionIcon
+{
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='3' d='M4 12.5 9.5 18 20 6'/%3E%3C/svg%3E");
+}
+
+.DislikeBtn .CurrentActionIcon
+{
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='3' d='M6 6l12 12M18 6 6 18'/%3E%3C/svg%3E");
+}
+
+.CurrentAction:hover
+{
+	background-color: #ffffff1a;
+	filter: brightness(1.1); /* brightness */
+
+}
+
+.CurrentAction:active
+{
+	filter: brightness(0.85); /* brightness */
+
+}
+
+.CurrentAction.is-on
+{
+	border: 1px solid #3ddc84;
+	background-color: #123a24d8;
+}
+
+.CurrentAction.is-on .CurrentActionIcon
+{
+
+}
+
+.DislikeBtn
+{
+	margin-bottom: 0px;
+}
+
 .FilterBar
 {
 	/* Hit-enabled (no hittest=false) + above MapGridHost so scrolled tiles cannot steal chip clicks. */
@@ -638,7 +872,7 @@ button {
 	transition-property: background-color, brightness;
 	transition-duration: 0.15s;
 	transition-timing-function: ease-out;
-	
+
 }
 
 .FilterChip.is-off
@@ -655,14 +889,14 @@ button {
 .FilterChip:not(.is-disabled):hover
 {
 	background-color: #ffffff1c;
-	
+
 }
 
 .FilterChip:not(.is-disabled):active
 {
 	background-color: #ffffff2e;
 	filter: brightness(0.9); /* brightness */
-	
+
 }
 
 .FilterChip.is-disabled:hover,
@@ -670,7 +904,7 @@ button {
 {
 	background-color: #ffffff0d;
 	filter: brightness(1.0); /* brightness */
-	
+
 }
 
 .FilterChip.is-active
@@ -720,7 +954,7 @@ button {
 {
 	width: 100%;
 	height: 100%;
-	overflow-x: hidden; overflow-y: auto;
+	overflow: hidden;
 	display: flex; flex-direction: column;
 }
 
@@ -743,52 +977,20 @@ button {
 	display: none;
 }
 
+/* The catalog is the vertical scroller. Cards keep the voted-strip size and wrap by viewport width. */
 .MapCatalog
 {
 	width: 100%;
-	display: flex; flex-direction: column;
-	overflow-x: visible; overflow-y: visible;
+	flex: 1 1 auto; min-height: 0;
+	display: flex; flex-direction: row; flex-wrap: wrap;
+	overflow-x: hidden; overflow-y: auto;
 	justify-self: center; margin-left: auto; margin-right: auto;
-	padding-left: 12px;
-	padding-right: 12px;
-}
-
-/* BEGIN rows-ladder */
-.MapCatalog.rows-0 { height: 0px; }
-.MapCatalog.rows-1 { height: 213px; }
-.MapCatalog.rows-2 { height: 426px; }
-.MapCatalog.rows-3 { height: 639px; }
-.MapCatalog.rows-4 { height: 852px; }
-.MapCatalog.rows-5 { height: 1065px; }
-.MapCatalog.rows-6 { height: 1278px; }
-.MapCatalog.rows-7 { height: 1491px; }
-.MapCatalog.rows-8 { height: 1704px; }
-.MapCatalog.rows-9 { height: 1917px; }
-.MapCatalog.rows-10 { height: 2130px; }
-/* END rows-ladder */
-
-.CatalogRow
-{
-	height: 213px;
-	display: flex; flex-direction: row; flex-wrap: nowrap;
-	justify-self: center; margin-left: auto; margin-right: auto;
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 4px;
+	padding-bottom: 12px;
 	/* Near-invisible fill so wheel hits gutters between tiles. */
 	background-color: #00000001;
-}
-
-/* BEGIN cols-ladder */
-.CatalogRow.cols-0 { width: 0%; }
-.CatalogRow.cols-1 { width: 18%; }
-.CatalogRow.cols-2 { width: 36%; }
-.CatalogRow.cols-3 { width: 54%; }
-.CatalogRow.cols-4 { width: 72%; }
-.CatalogRow.cols-5 { width: 90%; }
-.CatalogRow.cols-6 { width: 100%; }
-/* END cols-ladder */
-
-.CatalogRow.is-off
-{
-	display: none;
 }
 
 .MapSlot
@@ -797,14 +999,9 @@ button {
 	height: 213px;
 	justify-self: center; margin-left: auto; margin-right: auto;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-	margin: 0px 8px 0px 8px;
+	margin: 4px 8px 4px 8px;
 	/* Near-invisible fill so wheel hits gutters between tiles. */
 	background-color: #00000001;
-}
-
-.CatalogRow .MapSlot
-{
-	flex: 1 1 0; min-width: 0;
 }
 
 .MapSlot.is-off
@@ -817,41 +1014,57 @@ button {
 	width: 100%;
 	height: 193px;
 	align-self: center;
-	border: 0px solid #00000000;
+	border: 1px solid #05070acc;
 	box-shadow: none;
-	
+
 	overflow: hidden;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-	transition-property: brightness;
+	transition-property: brightness, border, box-shadow, wash-color;
 	transition-duration: 0.25s;
 	transition-timing-function: ease-out;
 }
 
+/* Any map carrying a vote (not only the local player's) gets the green frame. */
+.MapTile.is-voted
+{
+	border: 1px solid #3ddc84;
+	box-shadow: 0px 0px 5px 0px #3ddc8455;
+}
+
+/* Favorited maps also read green, with a quieter glow than voted/self. */
+.MapTile.is-fav
+{
+	border: 1px solid #3ddc84;
+	box-shadow: 0px 0px 5px 0px #3ddc8444;
+}
+
 .MapTile.is-self
 {
-	border: 2px solid #ffffff;
-	box-shadow: 0px 0px 6px 0px #ffffff;
+	border: 2px solid #59ffa0;
+	box-shadow: 0px 0px 12px 2px #59ffa0cc;
+	filter: brightness(1.12); /* brightness */
 }
 
 .MapTile.is-lost
 {
-	
-	filter: brightness(0.55); /* brightness */
-	border: 0px solid #00000000;
+	/* Greyed out, never blacked out. */
+
+	filter: brightness(0.62); /* brightness */
+	border: 1px solid #1a1f26;
 	box-shadow: none;
-	transition-property: wash-color, brightness;
+	transition-property: wash-color, brightness, border, box-shadow;
 	transition-duration: 0.5s;
 	transition-timing-function: ease-out;
 }
 
 .MapTile:hover
 {
-	
+
 }
 
 .MapTile:active
 {
-	
+
 }
 
 .MapTile.is-lost:hover .MapShot
@@ -922,6 +1135,46 @@ button {
 	white-space: nowrap;
 }
 
+/* Aggregate net rating (likes − dislikes) in the tile's top-left corner. */
+.MapRating
+{
+	width: 28px;
+	height: 28px;
+	justify-self: start; margin-right: auto;
+	align-self: start;
+	margin-top: 4px;
+	margin-left: 4px;
+	text-align: center;
+	font-family: "Stratum2 Bold", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
+	font-size: 15px;
+	font-weight: bold;
+	letter-spacing: 0px;
+	color: #c6d0da;
+	background-color: #05090fc8;
+	border: 1px solid #ffffff1f;
+	border-radius: 3px;
+	z-index: 3;
+}
+
+.MapRating.is-off
+{
+	display: none;
+}
+
+.MapRating.is-positive
+{
+	color: #b8ffd6;
+	background-color: #07160dcc;
+	border: 1px solid #3ddc8499;
+}
+
+.MapRating.is-negative
+{
+	color: #ffb8b8;
+	background-color: #190909cc;
+	border: 1px solid #ff6b6b99;
+}
+
 .FavBtn
 {
 	width: 28px;
@@ -934,7 +1187,7 @@ button {
 	/* Above MapTile / MapFade (z 0–3). */
 	z-index: 4;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
-	
+
 	background-color: #00000066;
 	border-radius: 3px;
 	transition-property: background-color, brightness;
@@ -946,13 +1199,13 @@ button {
 {
 	background-color: #00000099;
 	filter: brightness(1.1); /* brightness */
-	
+
 }
 
 .FavBtn:active
 {
 	filter: brightness(0.85); /* brightness */
-	
+
 }
 
 .FavIcon
@@ -970,36 +1223,43 @@ button {
 .FavBtn.is-on .FavIcon
 {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff9a1a' d='M12 17.3 5.8 21l1.6-7.1L2 9.2l7.2-.6L12 2l2.8 6.6 7.2.6-5.4 4.7L18.2 21z'/%3E%3C/svg%3E");
+
 }
 
-@keyframes 'mv-winner-pulse'
+@keyframes 'mv-winner-glow'
 {
 	0%
 	{
-		border: 2px solid #ffffff00;
+		border-color: #2bff74;
+		box-shadow: 0px 0px 8px 0px #2bff7488;
+		filter: brightness(1.0); /* brightness */
 	}
 
 	50%
 	{
-		border: 5px solid #ffff00;
+		border-color: #d9ffe9;
+		box-shadow: 0px 0px 20px 4px #2bff74cc;
+		filter: brightness(1.18); /* brightness */
 	}
 
 	100%
 	{
-		border: 2px solid #ffffff;
+		border-color: #2bff74;
+		box-shadow: 0px 0px 8px 0px #2bff7488;
+		filter: brightness(1.0); /* brightness */
 	}
 }
 
 .MapTile.is-done
 {
-	
+
 	filter: brightness(1.0); /* brightness */
-	border: 2px solid #ffffff;
-	box-shadow: 0px 0px 6px 0px #ffffff;
-	animation-name: 'mv-winner-pulse';
-	animation-duration: 0.5s;
-	animation-timing-function: ease-out;
-	animation-iteration-count: 1;
+	border: 3px solid #2bff74;
+	box-shadow: 0px 0px 12px 1px #2bff7499;
+	animation-name: 'mv-winner-glow';
+	animation-duration: 1.2s;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
 }
 
 .MapTile.is-done .MapShot
@@ -1018,7 +1278,7 @@ button {
 	background-size: 50px 50px;
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
-	
+
 	opacity: 0.0;
 	transform: scale(2.0, 2.0);
 	transition-property: transform, opacity;
@@ -1979,4 +2239,3 @@ button {
 }
 
 /* END mv-map-palette */
-

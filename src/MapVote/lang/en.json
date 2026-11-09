@@ -12,6 +12,7 @@
   "hud.hint": "Cast the first vote",
   "hud.chip": "Map Vote",
   "hud.empty": "No maps match this filter",
+  "hud.current": "Current map",
   "filter.all": "All",
   "filter.bomb": "Bomb",
   "filter.hostage": "Hostage",
@@ -20,5 +21,7 @@
   "filter.other": "Other",
   "sort.most_played": "Most played",
   "sort.least_played": "Least played",
+  "sort.most_liked": "Most liked",
+  "sort.least_liked": "Least liked",
   "sort.favorites": "Favorites"
 }

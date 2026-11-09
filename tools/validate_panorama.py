@@ -11,8 +11,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from mapvote_layout import (
-    COLS_WIDTH_MAX,
-    COL_WIDTH_PERCENT,
     HUD_CSS_NAME,
     HUD_VCSS_NAME,
     PANORAMA_VERSION,
@@ -68,7 +66,6 @@ BAD_CSS = re.compile(
     r"|(?:[{;]|^)\s*background-blur\s*:"
     r"|(?:[{;]|^)\s*vertical-align\s*:\s*center\b"
     r"|(?:[{;]|^)\s*font-size\s*:\s*[0-9.]+[a-z%]+\b"
-    r"|flow-children\s*:\s*right-wrap\b"
     r"|height\s*:\s*width-percentage\b"
     r"|pre-transform-scale2d\s*:"
     r")",
@@ -85,7 +82,6 @@ WHEEL_HIT_PANEL_CLASSES = frozenset(
         "VotedStrip",
         "MapGrid",
         "MapCatalog",
-        "CatalogRow",
         "MapSlot",
         "FilterBar",
     }
@@ -220,9 +216,6 @@ def collect_errors() -> list[str]:
             errors.append(str(ex))
 
     slot_count = csharp_const_int(VOTE_IDS_CS, "SlotCount")
-    catalog_cols = csharp_const_int(VOTE_IDS_CS, "CatalogCols")
-    catalog_rows = csharp_const_int(VOTE_IDS_CS, "CatalogRowCount")
-    catalog_cols_width_max = csharp_const_int(VOTE_IDS_CS, "CatalogColsWidthMax")
     filter_types = csharp_const_int(VOTE_IDS_CS, "FilterTypeSlots")
     filter_sorts = csharp_const_int(VOTE_IDS_CS, "FilterSortSlots")
     root_panel = csharp_const_string(VOTE_IDS_CS, "Root")
@@ -234,22 +227,16 @@ def collect_errors() -> list[str]:
                 f"MapCatalog.MaxMaps ({max_maps}) must equal VoteIds.SlotCount ({slot_count})"
             )
 
-    expected_rows = (slot_count + catalog_cols - 1) // catalog_cols
-    if catalog_rows != expected_rows:
-        errors.append(
-            f"VoteIds.CatalogRowCount ({catalog_rows}) must equal "
-            f"ceil(SlotCount/CatalogCols) ({expected_rows})"
-        )
-
-    if catalog_cols_width_max != COLS_WIDTH_MAX:
-        errors.append(
-            f"VoteIds.CatalogColsWidthMax ({catalog_cols_width_max}) must equal "
-            f"mapvote_layout.COLS_WIDTH_MAX ({COLS_WIDTH_MAX})"
-        )
-
     expected_ids = {
         root_panel,
         "mv-minimize",
+        "mv-current",
+        "mv-current-image",
+        "mv-current-shot",
+        "mv-current-rating",
+        "mv-current-fav",
+        "mv-current-like",
+        "mv-current-dislike",
         "mv-voted-section",
         "mv-voted-hint",
         "mv-voted-strip",
@@ -258,8 +245,6 @@ def collect_errors() -> list[str]:
         "mv-empty",
         "mv-catalog",
     }
-    for r in range(catalog_rows):
-        expected_ids.add(f"mv-crow-{r}")
     for i in range(filter_types):
         expected_ids.add(f"mv-ft-{i}")
     for i in range(filter_sorts):
@@ -271,21 +256,34 @@ def collect_errors() -> list[str]:
                 f"mv-{i}",
                 f"mv-shot-{i}",
                 f"mv-fav-{i}",
+                f"mv-rate-{i}",
                 f"mv-voted-slot-{i}",
                 f"mv-voted-{i}",
                 f"mv-voted-shot-{i}",
                 f"mv-voted-fav-{i}",
+                f"mv-voted-rate-{i}",
             }
         )
 
     expected_vars = (
         {f"v{i}" for i in range(slot_count)}
         | {f"n{i}" for i in range(slot_count)}
+        | {f"r{i}" for i in range(slot_count)}
         | {f"vv{i}" for i in range(slot_count)}
         | {f"vn{i}" for i in range(slot_count)}
+        | {f"vr{i}" for i in range(slot_count)}
         | {f"ft{i}" for i in range(filter_types)}
         | {f"fs{i}" for i in range(filter_sorts)}
-        | {"mv_title", "mv_hint", "mv_chip", "mv_empty", "sfav"}
+        | {
+            "mv_title",
+            "mv_hint",
+            "mv_chip",
+            "mv_empty",
+            "mv_current",
+            "mv_cur_name",
+            "mv_cur_rating",
+            "sfav",
+        }
     )
 
     if GENERATE_XML.is_file():
@@ -328,14 +326,28 @@ def collect_errors() -> list[str]:
             ".is-fading",
             ".mv-glass",
             ".mv-scrim",
+            ".CurrentMap",
+            ".CurrentImage",
+            ".CurrentRating",
+            ".CurrentAction",
+            ".CurrentActionIcon",
+            ".LikeBtn",
+            ".DislikeBtn",
             ".MapSlot",
             ".MapTile",
+            ".MapTile.is-voted",
+            ".MapTile.is-fav",
+            ".MapTile.is-lost",
+            ".MapRating",
+            ".MapRating.is-positive",
+            ".MapRating.is-negative",
             ".MapShot",
             ".MapFade",
             ".MapGrid",
             ".VotedSection",
             ".VotedRow",
             ".VotedStrip",
+            ".VoteHeadRow",
             ".FilterBar",
             ".FilterChip",
             ".FavBtn",
@@ -344,24 +356,16 @@ def collect_errors() -> list[str]:
             ".CreditLabel",
             ".MapGridHost",
             ".MapCatalog",
-            ".CatalogRow",
             ".is-self",
             ".is-done",
             ".mv-map-default",
             ".vw-0",
-            ".rows-0",
-            ".cols-0",
-            f".CatalogRow.cols-3 {{ width: {3 * COL_WIDTH_PERCENT}%; }}",
-            f".CatalogRow.cols-{COLS_WIDTH_MAX} {{ width: 100%; }}",
         ):
             if req not in css_raw:
                 errors.append(f"{HUD_VCSS_NAME}: missing required selector/class {req}")
 
-        if f".CatalogRow.cols-{COLS_WIDTH_MAX + 1}" in css_raw:
-            errors.append(
-                f"{HUD_VCSS_NAME}: cols ladder must stop at cols-{COLS_WIDTH_MAX} "
-                f"(100% saturation)"
-            )
+        if "flow-children: right-wrap;" not in css_raw:
+            errors.append(f"{HUD_VCSS_NAME}: .MapCatalog must use flow-children: right-wrap")
 
         if not HUD_CSS.is_file():
             errors.append(f"{HUD_CSS_NAME} missing (must be symlink to {HUD_VCSS_NAME})")

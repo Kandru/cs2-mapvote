@@ -243,13 +243,16 @@ namespace MapVote
                 _origins[map.Name] = map.Origin;
             }
 
+            var (currentMap, currentOrigin) = CurrentMap();
             VoteHud.Bind(
                 _session,
                 Config.Filters,
                 _archive,
                 _plays,
                 (player, key) => Localization.ForPlayerSafe(Localizer, player, key),
-                _origins);
+                _origins,
+                currentMap,
+                currentOrigin);
             _pendingWinner = null;
 
             PluginLog.Info($"map voting started ({unique.Count} maps)");
@@ -311,6 +314,26 @@ namespace MapVote
             _pendingWinner = winner;
             _pendingOrigin = _origins.GetValueOrDefault(winner, MapOrigin.Local);
             EngineVotePrep.SetNextLevel(winner);
+        }
+
+        /// <summary>Current map shown in the HUD. Resolved before current-map exclusion so it stays visible.</summary>
+        private (string? Name, MapOrigin Origin) CurrentMap()
+        {
+            string name = Server.MapName?.Trim().ToLowerInvariant() ?? string.Empty;
+            if (name.Length == 0)
+            {
+                return (null, MapOrigin.Local);
+            }
+
+            foreach (MapEntry map in _catalog.Maps)
+            {
+                if (string.Equals(map.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return (map.Name, map.Origin);
+                }
+            }
+
+            return (name, MapOrigin.Local);
         }
 
         private List<MapEntry> SelectCandidates()

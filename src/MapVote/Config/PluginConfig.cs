@@ -82,6 +82,8 @@ namespace MapVote.Config
         [
             new() { Id = "most_played", By = "plays", Order = "desc" },
             new() { Id = "least_played", By = "plays", Order = "asc" },
+            new() { Id = "most_liked", By = "rating", Order = "desc" },
+            new() { Id = "least_liked", By = "rating", Order = "asc" },
             new() { Id = "favorites", By = "favorite", Order = "desc", Only = true },
         ];
     }

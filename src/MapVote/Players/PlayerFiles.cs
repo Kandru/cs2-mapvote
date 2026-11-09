@@ -52,6 +52,8 @@ namespace MapVote.Players
             state.Username ??= string.Empty;
             state.SteamId ??= string.Empty;
             state.Favorites ??= [];
+            state.Likes ??= [];
+            state.Dislikes ??= [];
             return state;
         }
 

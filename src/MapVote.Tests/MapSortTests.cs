@@ -23,6 +23,7 @@ public class MapSortTests
             Catalog,
             new SortConfig { Id = "most_played", By = "plays", Order = "desc" },
             m => plays.GetValueOrDefault(m),
+            _ => 0,
             favorites: new HashSet<string>(StringComparer.Ordinal));
 
         Assert.Equal(["de_mirage", "de_dust2", "de_inferno", "cs_office"], result);
@@ -42,6 +43,7 @@ public class MapSortTests
             Catalog,
             new SortConfig { Id = "least_played", By = "plays", Order = "asc" },
             m => plays.GetValueOrDefault(m),
+            _ => 0,
             favorites: new HashSet<string>(StringComparer.Ordinal));
 
         Assert.Equal(["cs_office", "de_inferno", "de_dust2", "de_mirage"], result);
@@ -54,6 +56,7 @@ public class MapSortTests
             Catalog,
             Catalog,
             new SortConfig { Id = "alpha", By = "name", Order = "asc" },
+            _ => 0,
             _ => 0,
             favorites: new HashSet<string>(StringComparer.Ordinal));
 
@@ -70,6 +73,7 @@ public class MapSortTests
             Catalog,
             new SortConfig { Id = "fav_sort", By = "favorite", Order = "desc" },
             _ => 0,
+            _ => 0,
             favorites);
 
         Assert.Equal(["cs_office", "de_inferno", "de_dust2", "de_mirage"], result);
@@ -85,10 +89,46 @@ public class MapSortTests
             Catalog,
             new SortConfig { Id = "favorites", By = "favorite", Order = "desc", Only = true },
             _ => 0,
+            _ => 0,
             favorites);
 
         Assert.Equal(["de_mirage"], result);
     }
+
+    [Fact]
+    public void Apply_MostLiked_OrdersByRatingScoreDesc()
+    {
+        Assert.Equal(
+            ["cs_office", "de_mirage", "de_dust2", "de_inferno"],
+            ApplyRatingSort("desc", new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                ["cs_office"] = 4,
+                ["de_mirage"] = 1,
+                ["de_inferno"] = -2,
+            }));
+    }
+
+    [Fact]
+    public void Apply_LeastLiked_OrdersByRatingScoreAsc()
+    {
+        Assert.Equal(
+            ["de_inferno", "de_dust2", "de_mirage", "cs_office"],
+            ApplyRatingSort("asc", new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                ["cs_office"] = 4,
+                ["de_mirage"] = 1,
+                ["de_inferno"] = -2,
+            }));
+    }
+
+    private static List<string> ApplyRatingSort(string order, Dictionary<string, int> scores) =>
+        MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "rating", By = "rating", Order = order },
+            _ => 0,
+            m => scores.GetValueOrDefault(m),
+            favorites: new HashSet<string>(StringComparer.Ordinal));
 
     [Fact]
     public void ChipEnabled_OnlyRequiresFavorites()
