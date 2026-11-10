@@ -17,12 +17,19 @@ namespace MapVote.Huds
         private const int MaxSlots = 65;
         private const int PaintWriteBudget = 128;
         /// <summary>
-        /// Grid cards painted per paint; the rest of the shuffled catalog is skipped.
-        /// Budget: 20 × 64 players × ~150 B ≈ 188 KiB of the ~256 KiB entity payload.
+        /// Total painted grid cards across all players. 20 × 64 was the
+        /// conservative 64-player budget; the join reserve below is part of
+        /// the divisor so late arrivals only receive the smaller limit.
         /// </summary>
-        public const int MaxDisplayMaps = 20;
+        public const int MapCardBudget = 1280; // 20 cards × 64 players
+        /// <summary>Players to plan for beyond the current count (map-end joins).</summary>
+        public const int JoinReserve = 24;
         /// <summary>Voted strip shows only the best-voted maps (already sorted by count). Shared/global.</summary>
         public const int MaxVotedMaps = 10;
+
+        /// <summary>Number of grid cards to paint for the current player count.</summary>
+        public static int DisplayLimit(int players) =>
+            Math.Clamp(MapCardBudget / Math.Max(1, players + JoinReserve), 1, SlotCount);
 
         private enum Mode
         {
@@ -440,6 +447,7 @@ namespace MapVote.Huds
         private static void PaintCore(CCSPlayerController player)
         {
             HashSet<string> favorites = FavoritesOf(player);
+            int limit = DisplayLimit(Humans.GetHumans().Count());
 
             string titleKey = _mode == Mode.Browse
                 ? "hud.maps_title"
@@ -451,7 +459,7 @@ namespace MapVote.Huds
                 PaintFilterBar(player, favorites);
                 IReadOnlyList<string> browseGrid = FilteredGrid(player, favorites);
                 CustomHud.SetHasClass(player, VoteIds.Empty, "is-off", browseGrid.Count > 0);
-                PaintPool(player, Pool.Grid, browseGrid, mine: null, favorites);
+                PaintPool(player, Pool.Grid, browseGrid, mine: null, favorites, limit);
                 return;
             }
 
@@ -465,13 +473,13 @@ namespace MapVote.Huds
             CustomHud.SetHasClassGlobal(VoteIds.VotedSection, "has-votes", voted.Count > 0);
             CustomHud.SetHasClassGlobal(VoteIds.VotedHint, "is-off", voted.Count > 0 || _revealing);
             SetVotedWidth(Math.Min(voted.Count, MaxVotedMaps));
-            PaintPool(player, Pool.Voted, voted, mine, favorites);
+            PaintPool(player, Pool.Voted, voted, mine, favorites, MaxVotedMaps);
 
             PaintFilterBar(player, favorites);
 
             IReadOnlyList<string> grid = FilteredGrid(player, favorites);
             CustomHud.SetHasClass(player, VoteIds.Empty, "is-off", grid.Count > 0);
-            PaintPool(player, Pool.Grid, grid, mine, favorites);
+            PaintPool(player, Pool.Grid, grid, mine, favorites, limit);
         }
 
         private static void PaintCurrent(CCSPlayerController player, HashSet<string> favorites)
@@ -881,9 +889,9 @@ namespace MapVote.Huds
             Pool pool,
             IReadOnlyList<string> order,
             string? mine,
-            HashSet<string> favorites)
+            HashSet<string> favorites,
+            int limit)
         {
-            int limit = pool == Pool.Voted ? MaxVotedMaps : MaxDisplayMaps;
             int painted = Math.Min(order.Count, limit);
             for (int i = 0; i < SlotCount; i++)
             {

@@ -30,11 +30,10 @@ namespace MapVote.Huds
         public const string FavoritesSortVar = "sfav";
 
         /// <summary>
-        /// Panel pool, not catalog size. One shared layout entity carries every
-        /// player's state, so this is multiplied by the player count on the wire.
-        /// 20 maps keeps a full 64-player server inside the entity payload budget.
+        /// Panel pool, not catalog size. The actual displayed count is
+        /// <see cref="VoteHud.DisplayLimit"/>; this only bounds the XML pool.
         /// </summary>
-        public const int SlotCount = 20;
+        public const int SlotCount = 50;
         public const int FilterTypeSlots = 8;
         public const int FilterSortSlots = 4;
 

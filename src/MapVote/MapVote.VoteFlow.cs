@@ -256,7 +256,10 @@ namespace MapVote
                 Config.CleanMapNames);
             _pendingWinner = null;
 
-            PluginLog.Info($"map voting started ({unique.Count} maps)");
+            int humans = Humans.GetHumans().Count();
+            int shown = VoteHud.DisplayLimit(humans);
+            PluginLog.Info(
+                $"map voting started ({unique.Count} maps total -> {humans} players + {VoteHud.JoinReserve} reserve -> up to {shown} shown)");
             PluginLog.Debug(() =>
                 $"vote armed: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
 

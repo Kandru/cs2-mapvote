@@ -44,8 +44,8 @@ CREDIT_TEXT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 # segfaults the server. Keep the pool well below it (see SLOT_COUNT).
 PANEL_ID_ENGINE_CAP = 1024
 DIALOG_VAR_ENGINE_CAP = 1244
-# Proven full-server size for this shared two-pool layout (see SLOT_COUNT).
-MAX_SAFE_SLOTS = 20
+# XML pool cap; the runtime display limit is lower (VoteHud.DisplayLimit).
+MAX_SAFE_SLOTS = 50
 
 INCLUDE_RE = re.compile(r"s2r://panorama/styles/custom_game/mapvote/([A-Za-z0-9_]+\.vcss)")
 VAR_RE = re.compile(r"\{s:([A-Za-z0-9_]+)\}")
@@ -247,6 +247,20 @@ def collect_errors() -> list[str]:
             errors.append(
                 f"MapCatalog.MaxMaps ({max_maps}) must be at least "
                 f"VoteIds.SlotCount ({slot_count})"
+            )
+
+    if VOTE_HUD_CS.is_file():
+        card_budget = csharp_const_int(VOTE_HUD_CS, "MapCardBudget")
+        join_reserve = csharp_const_int(VOTE_HUD_CS, "JoinReserve")
+        if card_budget > 1280:
+            errors.append(
+                f"VoteHud.MapCardBudget ({card_budget}) exceeds the "
+                f"64-player planning budget 1280"
+            )
+        if join_reserve < 16:
+            errors.append(
+                f"VoteHud.JoinReserve ({join_reserve}) is too small for "
+                f"map-end joins (minimum 16)"
             )
 
     expected_ids = {
