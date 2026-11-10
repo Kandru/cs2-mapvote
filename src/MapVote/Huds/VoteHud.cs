@@ -11,25 +11,14 @@ namespace MapVote.Huds
     {
         public const string Panel = VoteIds.Root;
         public const int SlotCount = VoteIds.SlotCount;
+        public const int VotedSlotCount = VoteIds.VotedSlotCount;
         public const int FilterTypeSlots = VoteIds.FilterTypeSlots;
         public const int FilterSortSlots = VoteIds.FilterSortSlots;
 
         private const int MaxSlots = 65;
         private const int PaintWriteBudget = 128;
-        /// <summary>
-        /// Total painted grid cards across all players. 20 × 64 was the
-        /// conservative 64-player budget; the join reserve below is part of
-        /// the divisor so late arrivals only receive the smaller limit.
-        /// </summary>
-        public const int MapCardBudget = 1280; // 20 cards × 64 players
-        /// <summary>Players to plan for beyond the current count (map-end joins).</summary>
-        public const int JoinReserve = 24;
         /// <summary>Voted strip shows only the best-voted maps (already sorted by count). Shared/global.</summary>
-        public const int MaxVotedMaps = 10;
-
-        /// <summary>Number of grid cards to paint for the current player count.</summary>
-        public static int DisplayLimit(int players) =>
-            Math.Clamp(MapCardBudget / Math.Max(1, players + JoinReserve), 1, SlotCount);
+        public const int MaxVotedMaps = VotedSlotCount;
 
         private enum Mode
         {
@@ -57,10 +46,11 @@ namespace MapVote.Huds
         private static readonly bool[] Dirty = new bool[MaxSlots];
         private static readonly HashSet<string>?[] FavoriteCache = new HashSet<string>?[MaxSlots];
         private static int _dirtyCount;
-        private static readonly int[] TypeSelection = new int[MaxSlots];
-        private static readonly int[] SortSelection = new int[MaxSlots];
-        private static readonly string?[,] VotedMaps = new string?[MaxSlots, SlotCount];
+        private static int _typeSelection;
+        private static int _sortSelection = -1;
+        private static readonly string?[,] VotedMaps = new string?[MaxSlots, VotedSlotCount];
         private static readonly string?[,] GridMaps = new string?[MaxSlots, SlotCount];
+        private static readonly HashSet<string> NoFavorites = new(StringComparer.Ordinal);
 
         public static void Bind(
             VoteSession session,
@@ -328,8 +318,8 @@ namespace MapVote.Huds
             {
                 // Reveal must show the whole catalog, even if the player was filtered or minimized.
                 Minimized[player.Slot] = false;
-                TypeSelection[player.Slot] = 0;
-                SortSelection[player.Slot] = -1;
+                _typeSelection = 0;
+                _sortSelection = -1;
                 FavoriteCache[player.Slot] = null;
                 SetDirty(player.Slot, true);
             }
@@ -447,7 +437,7 @@ namespace MapVote.Huds
         private static void PaintCore(CCSPlayerController player)
         {
             HashSet<string> favorites = FavoritesOf(player);
-            int limit = DisplayLimit(Humans.GetHumans().Count());
+            bool favoritesOnly = FavoritesOnly();
 
             string titleKey = _mode == Mode.Browse
                 ? "hud.maps_title"
@@ -457,9 +447,10 @@ namespace MapVote.Huds
             if (_mode == Mode.Browse)
             {
                 PaintFilterBar(player, favorites);
-                IReadOnlyList<string> browseGrid = FilteredGrid(player, favorites);
-                CustomHud.SetHasClass(player, VoteIds.Empty, "is-off", browseGrid.Count > 0);
-                PaintPool(player, Pool.Grid, browseGrid, mine: null, favorites, limit);
+                IReadOnlyList<string> browseGrid = FilteredGrid();
+                CustomHud.SetHasClass(player, VoteIds.Empty, "is-off",
+                    VisibleGridCount(browseGrid, favorites, favoritesOnly) > 0);
+                PaintPool(player, Pool.Grid, browseGrid, mine: null, favorites, SlotCount, favoritesOnly);
                 return;
             }
 
@@ -473,13 +464,14 @@ namespace MapVote.Huds
             CustomHud.SetHasClassGlobal(VoteIds.VotedSection, "has-votes", voted.Count > 0);
             CustomHud.SetHasClassGlobal(VoteIds.VotedHint, "is-off", voted.Count > 0 || _revealing);
             SetVotedWidth(Math.Min(voted.Count, MaxVotedMaps));
-            PaintPool(player, Pool.Voted, voted, mine, favorites, MaxVotedMaps);
+            PaintPool(player, Pool.Voted, voted, mine, favorites, MaxVotedMaps, favoritesOnly: false);
 
             PaintFilterBar(player, favorites);
 
-            IReadOnlyList<string> grid = FilteredGrid(player, favorites);
-            CustomHud.SetHasClass(player, VoteIds.Empty, "is-off", grid.Count > 0);
-            PaintPool(player, Pool.Grid, grid, mine, favorites, limit);
+            IReadOnlyList<string> grid = FilteredGrid();
+            CustomHud.SetHasClass(player, VoteIds.Empty, "is-off",
+                VisibleGridCount(grid, favorites, favoritesOnly) > 0);
+            PaintPool(player, Pool.Grid, grid, mine, favorites, SlotCount, favoritesOnly);
         }
 
         private static void PaintCurrent(CCSPlayerController player, HashSet<string> favorites)
@@ -520,7 +512,7 @@ namespace MapVote.Huds
 
             int typeCount = Math.Min(_filters.Types.Count, FilterTypeSlots - 1);
             bool hasTypes = typeCount > 0;
-            int activeType = Math.Clamp(TypeSelection[player.Slot], 0, hasTypes ? typeCount : 0);
+            int activeType = Math.Clamp(_typeSelection, 0, hasTypes ? typeCount : 0);
 
             // Slot 0 = All when any type is configured.
             if (hasTypes)
@@ -530,7 +522,7 @@ namespace MapVote.Huds
                     && !TypeHasMaps(_filters.Types[activeType - 1]))
                 {
                     activeType = 0;
-                    TypeSelection[player.Slot] = 0;
+                    _typeSelection = 0;
                 }
 
                 WriteChip(
@@ -567,13 +559,13 @@ namespace MapVote.Huds
                 }
             }
 
-            int activeSort = SortSelection[player.Slot];
+            int activeSort = _sortSelection;
             if (activeSort >= 0
                 && activeSort < _filters.Sorts.Count
                 && !MapSort.ChipEnabled(_filters.Sorts[activeSort], favorites))
             {
+                // The shared selection stays; this viewer just cannot use it.
                 activeSort = -1;
-                SortSelection[player.Slot] = -1;
             }
 
             int onlySortIndex = OnlySortIndex();
@@ -690,21 +682,24 @@ namespace MapVote.Huds
             return false;
         }
 
-        private static IReadOnlyList<string> FilteredGrid(CCSPlayerController player, HashSet<string> favorites)
+        private static IReadOnlyList<string> FilteredGrid()
         {
             IReadOnlyList<string> source = SourceOrder;
             List<string> maps = [.. source];
 
             int typeCount = Math.Min(_filters.Types.Count, FilterTypeSlots - 1);
-            int activeType = TypeSelection[player.Slot];
+            int activeType = _typeSelection;
             if (_filters.Enabled && typeCount > 0 && activeType > 0 && activeType <= typeCount)
             {
                 FilterTypeConfig type = _filters.Types[activeType - 1];
                 maps = maps.Where(m => MapTypeFilter.MatchesType(m, type, _filters.Types)).ToList();
             }
 
-            int activeSort = SortSelection[player.Slot];
-            if (_filters.Enabled && activeSort >= 0 && activeSort < _filters.Sorts.Count)
+            int activeSort = _sortSelection;
+            if (_filters.Enabled
+                && activeSort >= 0
+                && activeSort < _filters.Sorts.Count
+                && !_filters.Sorts[activeSort].Only)
             {
                 maps = MapSort.Apply(
                     maps,
@@ -712,11 +707,37 @@ namespace MapVote.Huds
                     _filters.Sorts[activeSort],
                     m => _plays?.CountOf(m) ?? 0,
                     m => _archive?.RatingScore(m) ?? 0,
-                    favorites,
+                    NoFavorites,
                     _formatMapName);
             }
 
             return maps;
+        }
+
+        private static bool FavoritesOnly() =>
+            _filters.Enabled
+            && _sortSelection >= 0
+            && _sortSelection < _filters.Sorts.Count
+            && _filters.Sorts[_sortSelection].Only;
+
+        private static int VisibleGridCount(IReadOnlyList<string> grid, HashSet<string> favorites, bool favoritesOnly)
+        {
+            int shown = Math.Min(grid.Count, SlotCount);
+            if (!favoritesOnly)
+            {
+                return shown;
+            }
+
+            int count = 0;
+            for (int i = 0; i < shown; i++)
+            {
+                if (favorites.Contains(grid[i]))
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private static void ApplyFilterClick(CCSPlayerController player, bool isType, int chipIndex)
@@ -745,9 +766,8 @@ namespace MapVote.Huds
             }
 
             // Clicking the active type again falls back to All (slot 0).
-            TypeSelection[player.Slot] = TypeSelection[player.Slot] == chipIndex ? 0 : chipIndex;
-            SetDirty(player.Slot, true);
-            Paint(player);
+            _typeSelection = _typeSelection == chipIndex ? 0 : chipIndex;
+            PaintAll();
         }
 
         private static void ApplySortClick(CCSPlayerController player, int sortIndex)
@@ -760,9 +780,8 @@ namespace MapVote.Huds
                 return;
             }
 
-            SortSelection[player.Slot] = SortSelection[player.Slot] == sortIndex ? -1 : sortIndex;
-            SetDirty(player.Slot, true);
-            Paint(player);
+            _sortSelection = _sortSelection == sortIndex ? -1 : sortIndex;
+            PaintAll();
         }
 
         private static void ToggleFavorite(CCSPlayerController player, string? map)
@@ -890,10 +909,12 @@ namespace MapVote.Huds
             IReadOnlyList<string> order,
             string? mine,
             HashSet<string> favorites,
-            int limit)
+            int limit,
+            bool favoritesOnly)
         {
+            int slots = pool == Pool.Voted ? VotedSlotCount : SlotCount;
             int painted = Math.Min(order.Count, limit);
-            for (int i = 0; i < SlotCount; i++)
+            for (int i = 0; i < slots; i++)
             {
                 if (CustomHud.Writes >= PaintWriteBudget)
                 {
@@ -901,9 +922,12 @@ namespace MapVote.Huds
                     return;
                 }
 
-                if (i >= painted)
+                bool hidden = i >= painted
+                    || (pool == Pool.Grid && favoritesOnly && !favorites.Contains(order[i]));
+                if (hidden)
                 {
-                    PaintEmpty(player, pool, i);
+                    // Tail is hidden for everyone; a favorites-only filter hides per player.
+                    PaintEmpty(player, pool, i, shared: i >= painted);
                     continue;
                 }
 
@@ -914,7 +938,8 @@ namespace MapVote.Huds
 
         private static void InvalidateRememberFrom(CCSPlayerController player, Pool pool, int startIndex)
         {
-            for (int i = startIndex; i < SlotCount; i++)
+            int slots = pool == Pool.Voted ? VotedSlotCount : SlotCount;
+            for (int i = startIndex; i < slots; i++)
             {
                 Remember(player, pool, i, null);
             }
@@ -940,29 +965,25 @@ namespace MapVote.Huds
             if (shared)
             {
                 CustomHud.SetHasClassGlobal(slotId, "is-off", false);
-                CustomHud.SetHasClassGlobal(tileId, "is-voted", votes > 0);
-                CustomHud.SetHasClassGlobal(tileId, "is-done", isWinner);
-                CustomHud.SetHasClassGlobal(tileId, "is-lost", isLost);
-                CustomHud.SetTextGlobal(Panel, VoteVar(pool, index), votes.ToString());
-                CustomHud.SetTextGlobal(Panel, NameVar(pool, index), _formatMapName(map));
-                PaintRating(player, pool, index, map);
-                _origins.TryGetValue(map, out MapOrigin origin);
-                CustomHud.SetMapImageGlobal(ShotId(pool, index), map, origin);
             }
             else
             {
+                // Grid visibility is global; per-player only clears a
+                // favorites-only hide from an earlier paint.
+                CustomHud.SetHasClassGlobal(slotId, "is-off", false);
                 CustomHud.SetHasClass(player, slotId, "is-off", false);
-                CustomHud.SetHasClass(player, tileId, "is-voted", votes > 0);
-                CustomHud.SetHasClass(player, tileId, "is-done", isWinner);
-                CustomHud.SetHasClass(player, tileId, "is-lost", isLost);
-                CustomHud.SetText(player, Panel, VoteVar(pool, index), votes.ToString());
-                CustomHud.SetText(player, Panel, NameVar(pool, index), _formatMapName(map));
-                PaintRating(player, pool, index, map);
-                _origins.TryGetValue(map, out MapOrigin origin);
-                CustomHud.SetMapImage(player, ShotId(pool, index), map, origin);
             }
 
-            // These depend on the viewer, even on the shared voted strip.
+            CustomHud.SetHasClassGlobal(tileId, "is-voted", votes > 0);
+            CustomHud.SetHasClassGlobal(tileId, "is-done", isWinner);
+            CustomHud.SetHasClassGlobal(tileId, "is-lost", isLost);
+            CustomHud.SetTextGlobal(Panel, VoteVar(pool, index), votes.ToString());
+            CustomHud.SetTextGlobal(Panel, NameVar(pool, index), _formatMapName(map));
+            PaintRating(index, pool, map);
+            _origins.TryGetValue(map, out MapOrigin origin);
+            CustomHud.SetMapImageGlobal(ShotId(pool, index), map, origin);
+
+            // These depend on the viewer, even on the shared grid.
             CustomHud.SetHasClass(player, tileId, "is-fav", isFav);
             CustomHud.SetHasClass(player, tileId, "is-self", !_revealing && mine == map);
             CustomHud.SetHasClass(player, favId, "is-on", isFav);
@@ -970,34 +991,17 @@ namespace MapVote.Huds
         }
 
         /// <summary>Net like/dislike badge in the tile's top-left; hidden until a map has any rating.</summary>
-        private static void PaintRating(
-            CCSPlayerController player,
-            Pool pool,
-            int index,
-            string? map)
+        private static void PaintRating(int index, Pool pool, string? map)
         {
             string ratingId = RatingId(pool, index);
             int total = map is null ? 0 : (_archive?.RatingTotal(map) ?? 0);
             int score = map is null ? 0 : (_archive?.RatingScore(map) ?? 0);
             bool rated = total > 0;
 
-            if (pool == Pool.Voted)
-            {
-                CustomHud.SetHasClassGlobal(ratingId, "is-off", !rated);
-                CustomHud.SetHasClassGlobal(ratingId, "is-positive", rated && score > 0);
-                CustomHud.SetHasClassGlobal(ratingId, "is-negative", rated && score < 0);
-                CustomHud.SetTextGlobal(Panel, RatingVar(pool, index), rated ? FormatRating(score) : string.Empty);
-                return;
-            }
-
-            CustomHud.SetHasClass(player, ratingId, "is-off", !rated);
-            CustomHud.SetHasClass(player, ratingId, "is-positive", rated && score > 0);
-            CustomHud.SetHasClass(player, ratingId, "is-negative", rated && score < 0);
-            CustomHud.SetText(
-                player,
-                Panel,
-                RatingVar(pool, index),
-                rated ? FormatRating(score) : string.Empty);
+            CustomHud.SetHasClassGlobal(ratingId, "is-off", !rated);
+            CustomHud.SetHasClassGlobal(ratingId, "is-positive", rated && score > 0);
+            CustomHud.SetHasClassGlobal(ratingId, "is-negative", rated && score < 0);
+            CustomHud.SetTextGlobal(Panel, RatingVar(pool, index), rated ? FormatRating(score) : string.Empty);
         }
 
         /// <summary>Compact rating text; 100+ saturates so the 28px badge never clips.</summary>
@@ -1007,13 +1011,13 @@ namespace MapVote.Huds
             : score > 0 ? $"+{score}"
             : score.ToString();
 
-        private static void PaintEmpty(CCSPlayerController player, Pool pool, int index)
+        private static void PaintEmpty(CCSPlayerController player, Pool pool, int index, bool shared)
         {
             // The tile is hidden, so its text/classes/image can keep their old
             // values until a later map reuses the slot; repainting then writes
             // the differences from these caches.
             string slotId = SlotId(pool, index);
-            if (pool == Pool.Voted)
+            if (pool == Pool.Voted || shared)
             {
                 CustomHud.SetHasClassGlobal(slotId, "is-off", true);
             }
@@ -1058,13 +1062,15 @@ namespace MapVote.Huds
             Minimized[slot] = false;
             SetDirty(slot, false);
             FavoriteCache[slot] = null;
-            TypeSelection[slot] = 0;
-            SortSelection[slot] = -1;
 
             for (int i = 0; i < SlotCount; i++)
             {
-                VotedMaps[slot, i] = null;
                 GridMaps[slot, i] = null;
+            }
+
+            for (int i = 0; i < VotedSlotCount; i++)
+            {
+                VotedMaps[slot, i] = null;
             }
         }
 
@@ -1073,15 +1079,19 @@ namespace MapVote.Huds
             Array.Fill(Minimized, false);
             Array.Fill(Dirty, false);
             Array.Fill(FavoriteCache, null);
+            _typeSelection = 0;
+            _sortSelection = -1;
             _dirtyCount = 0;
-            Array.Fill(TypeSelection, 0);
-            Array.Fill(SortSelection, -1);
             for (int s = 0; s < MaxSlots; s++)
             {
                 for (int i = 0; i < SlotCount; i++)
                 {
-                    VotedMaps[s, i] = null;
                     GridMaps[s, i] = null;
+                }
+
+                for (int i = 0; i < VotedSlotCount; i++)
+                {
+                    VotedMaps[s, i] = null;
                 }
             }
         }
@@ -1142,7 +1152,7 @@ namespace MapVote.Huds
             const string votedPrefix = "mv-voted-fav-";
             if (buttonId.StartsWith(votedPrefix, StringComparison.Ordinal)
                 && int.TryParse(buttonId.AsSpan(votedPrefix.Length), out index)
-                && index is >= 0 and < SlotCount)
+                && index is >= 0 and < VotedSlotCount)
             {
                 pool = Pool.Voted;
                 return true;
@@ -1174,7 +1184,7 @@ namespace MapVote.Huds
                 }
 
                 pool = Pool.Voted;
-                return int.TryParse(rest, out index) && index is >= 0 and < SlotCount;
+                return int.TryParse(rest, out index) && index is >= 0 and < VotedSlotCount;
             }
 
             if (!buttonId.StartsWith("mv-", StringComparison.Ordinal)

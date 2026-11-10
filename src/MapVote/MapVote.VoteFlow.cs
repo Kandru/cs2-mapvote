@@ -257,9 +257,9 @@ namespace MapVote
             _pendingWinner = null;
 
             int humans = Humans.GetHumans().Count();
-            int shown = VoteHud.DisplayLimit(humans);
+            int shown = Math.Min(unique.Count, VoteHud.SlotCount);
             PluginLog.Info(
-                $"map voting started ({unique.Count} maps total -> {humans} players + {VoteHud.JoinReserve} reserve -> up to {shown} shown)");
+                $"map voting started ({unique.Count} maps total -> {humans} players -> {shown} shown, shared grid)");
             PluginLog.Debug(() =>
                 $"vote armed: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
 

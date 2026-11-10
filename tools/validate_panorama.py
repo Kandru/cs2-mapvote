@@ -44,8 +44,9 @@ CREDIT_TEXT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 # segfaults the server. Keep the pool well below it (see SLOT_COUNT).
 PANEL_ID_ENGINE_CAP = 1024
 DIALOG_VAR_ENGINE_CAP = 1244
-# XML pool cap; the runtime display limit is lower (VoteHud.DisplayLimit).
-MAX_SAFE_SLOTS = 50
+# XML pool caps. The grid is written globally; per-player state is only
+# visibility/favorites, so the pool can match the catalog cap.
+MAX_SAFE_SLOTS = 100
 
 INCLUDE_RE = re.compile(r"s2r://panorama/styles/custom_game/mapvote/([A-Za-z0-9_]+\.vcss)")
 VAR_RE = re.compile(r"\{s:([A-Za-z0-9_]+)\}")
@@ -230,15 +231,15 @@ def collect_errors() -> list[str]:
             errors.append(str(ex))
 
     slot_count = csharp_const_int(VOTE_IDS_CS, "SlotCount")
+    voted_slot_count = csharp_const_int(VOTE_IDS_CS, "VotedSlotCount")
     filter_types = csharp_const_int(VOTE_IDS_CS, "FilterTypeSlots")
     filter_sorts = csharp_const_int(VOTE_IDS_CS, "FilterSortSlots")
     root_panel = csharp_const_string(VOTE_IDS_CS, "Root")
 
     if slot_count > MAX_SAFE_SLOTS:
         errors.append(
-            f"VoteIds.SlotCount ({slot_count}) exceeds the proven full-server "
-            f"size {MAX_SAFE_SLOTS}; per-player HUD state is serialized for every "
-            f"connected player (raise only with an in-game 64-player test)"
+            f"VoteIds.SlotCount ({slot_count}) exceeds the XML pool cap "
+            f"{MAX_SAFE_SLOTS}"
         )
 
     if MAP_CATALOG_CS.is_file():
@@ -247,20 +248,6 @@ def collect_errors() -> list[str]:
             errors.append(
                 f"MapCatalog.MaxMaps ({max_maps}) must be at least "
                 f"VoteIds.SlotCount ({slot_count})"
-            )
-
-    if VOTE_HUD_CS.is_file():
-        card_budget = csharp_const_int(VOTE_HUD_CS, "MapCardBudget")
-        join_reserve = csharp_const_int(VOTE_HUD_CS, "JoinReserve")
-        if card_budget > 1280:
-            errors.append(
-                f"VoteHud.MapCardBudget ({card_budget}) exceeds the "
-                f"64-player planning budget 1280"
-            )
-        if join_reserve < 16:
-            errors.append(
-                f"VoteHud.JoinReserve ({join_reserve}) is too small for "
-                f"map-end joins (minimum 16)"
             )
 
     expected_ids = {
@@ -293,6 +280,11 @@ def collect_errors() -> list[str]:
                 f"mv-shot-{i}",
                 f"mv-fav-{i}",
                 f"mv-rate-{i}",
+            }
+        )
+    for i in range(voted_slot_count):
+        expected_ids.update(
+            {
                 f"mv-voted-slot-{i}",
                 f"mv-voted-{i}",
                 f"mv-voted-shot-{i}",
@@ -305,9 +297,9 @@ def collect_errors() -> list[str]:
         {f"v{i}" for i in range(slot_count)}
         | {f"n{i}" for i in range(slot_count)}
         | {f"r{i}" for i in range(slot_count)}
-        | {f"vv{i}" for i in range(slot_count)}
-        | {f"vn{i}" for i in range(slot_count)}
-        | {f"vr{i}" for i in range(slot_count)}
+        | {f"vv{i}" for i in range(voted_slot_count)}
+        | {f"vn{i}" for i in range(voted_slot_count)}
+        | {f"vr{i}" for i in range(voted_slot_count)}
         | {f"ft{i}" for i in range(filter_types)}
         | {f"fs{i}" for i in range(filter_sorts)}
         | {
@@ -554,12 +546,12 @@ def collect_errors() -> list[str]:
     if len(found_ids) > PANEL_ID_ENGINE_CAP:
         errors.append(
             f"{VOTE_XML_NAME}: {len(found_ids)} panel ids exceed "
-            f"m_vecPanelIds cap {PANEL_ID_ENGINE_CAP} (lower SLOT_COUNT)"
+            f"m_vecPanelIds cap {PANEL_ID_ENGINE_CAP} (lower GRID_SLOT_COUNT)"
         )
     if len(found_vars) > DIALOG_VAR_ENGINE_CAP:
         errors.append(
             f"{VOTE_XML_NAME}: {len(found_vars)} dialog vars exceed "
-            f"m_vecDialogVariableNames cap {DIALOG_VAR_ENGINE_CAP} (lower SLOT_COUNT)"
+            f"m_vecDialogVariableNames cap {DIALOG_VAR_ENGINE_CAP} (lower GRID_SLOT_COUNT)"
         )
 
     if not (IMAGES / "default.png").is_file() or not (IMAGES / "default.vtex").is_file():

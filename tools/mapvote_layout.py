@@ -3,9 +3,10 @@
 # Must match MapVote.PanoramaVersion in src/MapVote/Version.cs
 PANORAMA_VERSION = "v1"
 
-# Panel pool, not catalog size. The layout paints a player-count-dependent
-# subset of this pool; the catalog may be larger.
-SLOT_COUNT = 50
+# Panel pools, not catalog size. The grid is written globally; the voted
+# strip only shows the best-voted maps.
+GRID_SLOT_COUNT = 100
+VOTED_SLOT_COUNT = 10
 FILTER_TYPE_SLOTS = 8
 FILTER_SORT_SLOTS = 4
 

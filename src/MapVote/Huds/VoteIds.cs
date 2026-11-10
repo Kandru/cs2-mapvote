@@ -29,11 +29,10 @@ namespace MapVote.Huds
         public const string FavoritesSort = "mv-sort-fav";
         public const string FavoritesSortVar = "sfav";
 
-        /// <summary>
-        /// Panel pool, not catalog size. The actual displayed count is
-        /// <see cref="VoteHud.DisplayLimit"/>; this only bounds the XML pool.
-        /// </summary>
-        public const int SlotCount = 50;
+        /// <summary>Grid panel pool (catalog max).</summary>
+        public const int SlotCount = 100;
+        /// <summary>Voted-strip pool; only the best-voted maps are shown.</summary>
+        public const int VotedSlotCount = 10;
         public const int FilterTypeSlots = 8;
         public const int FilterSortSlots = 4;
 
@@ -46,21 +45,21 @@ namespace MapVote.Huds
         public static readonly string[] GridRatingIds = BuildIndexed("mv-rate-", SlotCount);
         public static readonly string[] GridRatingVars = BuildIndexed("r", SlotCount);
 
-        public static readonly string[] VotedSlotIds = BuildIndexed("mv-voted-slot-", SlotCount);
-        public static readonly string[] VotedTileIds = BuildIndexed("mv-voted-", SlotCount);
-        public static readonly string[] VotedShotIds = BuildIndexed("mv-voted-shot-", SlotCount);
-        public static readonly string[] VotedFavIds = BuildIndexed("mv-voted-fav-", SlotCount);
-        public static readonly string[] VotedVoteVars = BuildIndexed("vv", SlotCount);
-        public static readonly string[] VotedNameVars = BuildIndexed("vn", SlotCount);
-        public static readonly string[] VotedRatingIds = BuildIndexed("mv-voted-rate-", SlotCount);
-        public static readonly string[] VotedRatingVars = BuildIndexed("vr", SlotCount);
+        public static readonly string[] VotedSlotIds = BuildIndexed("mv-voted-slot-", VotedSlotCount);
+        public static readonly string[] VotedTileIds = BuildIndexed("mv-voted-", VotedSlotCount);
+        public static readonly string[] VotedShotIds = BuildIndexed("mv-voted-shot-", VotedSlotCount);
+        public static readonly string[] VotedFavIds = BuildIndexed("mv-voted-fav-", VotedSlotCount);
+        public static readonly string[] VotedVoteVars = BuildIndexed("vv", VotedSlotCount);
+        public static readonly string[] VotedNameVars = BuildIndexed("vn", VotedSlotCount);
+        public static readonly string[] VotedRatingIds = BuildIndexed("mv-voted-rate-", VotedSlotCount);
+        public static readonly string[] VotedRatingVars = BuildIndexed("vr", VotedSlotCount);
 
         public static readonly string[] TypeChipIds = BuildIndexed("mv-ft-", FilterTypeSlots);
         public static readonly string[] TypeVars = BuildIndexed("ft", FilterTypeSlots);
         public static readonly string[] SortChipIds = BuildIndexed("mv-fs-", FilterSortSlots);
         public static readonly string[] SortVars = BuildIndexed("fs", FilterSortSlots);
 
-        public static readonly string[] VwClasses = BuildLadder("vw-", SlotCount);
+        public static readonly string[] VwClasses = BuildLadder("vw-", VotedSlotCount);
 
         private static string[] BuildIndexed(string prefix, int count)
         {

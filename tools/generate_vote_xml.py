@@ -12,11 +12,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mapvote_layout import (
     FILTER_SORT_SLOTS,
     FILTER_TYPE_SLOTS,
+    GRID_SLOT_COUNT,
     HUD_VCSS_NAME,
     MAPS_VCSS_NAME,
     PANORAMA_VERSION,
-    SLOT_COUNT,
     SLOT_PITCH_PX,
+    VOTED_SLOT_COUNT,
     VOTE_XML_NAME,
 )
 
@@ -25,7 +26,7 @@ OUT = ROOT / "workshop" / "content" / "panorama" / "layout" / "custom_game" / "m
 HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
 CREDIT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 LAYOUT_TAG = (
-    f"{PANORAMA_VERSION} slots={SLOT_COUNT} "
+    f"{PANORAMA_VERSION} grid={GRID_SLOT_COUNT} voted={VOTED_SLOT_COUNT} "
     f"filter_types={FILTER_TYPE_SLOTS} filter_sorts={FILTER_SORT_SLOTS}"
 )
 
@@ -126,7 +127,7 @@ def rewrite_hud_ladders() -> None:
     text = HUD_VCSS.read_text(encoding="utf-8")
 
     vw_lines = ["/* BEGIN vw-ladder */"]
-    for i in range(SLOT_COUNT + 1):
+    for i in range(VOTED_SLOT_COUNT + 1):
         vw_lines.append(f".VotedStrip.vw-{i} {{ width: {i * SLOT_PITCH_PX}px; }}")
     vw_lines.append("/* END vw-ladder */")
 
@@ -172,7 +173,7 @@ def build() -> str:
         ]
     )
 
-    for i in range(SLOT_COUNT):
+    for i in range(VOTED_SLOT_COUNT):
         lines.append(tile("voted", i, f"vv{i}", f"vn{i}", f"vr{i}", "\t\t\t\t\t\t\t\t\t"))
 
     lines.extend(
@@ -215,7 +216,7 @@ def build() -> str:
         ]
     )
 
-    for i in range(SLOT_COUNT):
+    for i in range(GRID_SLOT_COUNT):
         lines.append(tile("grid", i, f"v{i}", f"n{i}", f"r{i}", "\t\t\t\t\t\t\t\t"))
 
     lines.extend(
