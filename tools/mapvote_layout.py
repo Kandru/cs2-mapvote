@@ -3,7 +3,10 @@
 # Must match MapVote.PanoramaVersion in src/MapVote/Version.cs
 PANORAMA_VERSION = "v1"
 
-SLOT_COUNT = 100
+# Panel pool, not catalog size. The layout shows at most 20 shuffled maps;
+# the catalog may be larger. Every painted slot is serialized for every
+# connected player on one shared entity, so keep this pool small.
+SLOT_COUNT = 20
 FILTER_TYPE_SLOTS = 8
 FILTER_SORT_SLOTS = 4
 

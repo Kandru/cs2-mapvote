@@ -27,7 +27,7 @@ The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limi
 
 ## Map browser
 
-`css_maps` / `maps` (chat `!maps`) opens the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): filter bar, favorites, ratings badges, and up to 100 map cards. It has no vote target, no voted strip, and no current-map card; map tiles are not clickable. The top-right chip reads `X` and closes the overlay for that player.
+`css_maps` / `maps` (chat `!maps`) opens the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): filter bar, favorites, ratings badges, and up to 20 shuffled map cards. It has no vote target, no voted strip, and no current-map card; map tiles are not clickable. The top-right chip reads `X` and closes the overlay for that player.
 
 The command triggers a short catalog refresh when the list is still empty after plugin load, then opens for everyone who was waiting. Intermission (`EventCsIntermission`) and map end close the browser and reject `!maps` until `OnMapStart`, warmup, match start, or a new match. An active end-match vote also rejects it (`maps.busy`).
 
@@ -35,7 +35,7 @@ The command triggers a short catalog refresh when the list is still empty after 
 
 - Layout path: `panorama/layout/custom_game/mapvote/vote_{PanoramaVersion}.vxml_c` (`PanoramaVersion` = `v1` in [`Version.cs`](../src/MapVote/Version.cs)).
 - Styles: `hud_v1` (UI) + `maps_v1` (generated map images) under workshop content; sources in `workshop/content/`.
-- Paint / clicks: [`VoteHud`](../src/MapVote/Huds/VoteHud.cs) + [`CustomHud`](../src/MapVote/Utils/CustomHud.cs) (`CheckTransmit`, dialog vars, classes, input capture). Fixed slot pools - see [PANORAMA_RULESET](../stuff/PANORAMA_RULESET.md).
+- Paint / clicks: [`VoteHud`](../src/MapVote/Huds/VoteHud.cs) + [`CustomHud`](../src/MapVote/Utils/CustomHud.cs) (`CheckTransmit`, dialog vars, classes, input capture). Fixed slot pools - see [PANORAMA_RULESET](../stuff/PANORAMA_RULESET.md). The pool is 20: one shared layout entity carries every player's state, so slot count multiplies by the number of connected players. The catalog is shuffled at vote/browse start and only the first 20 maps are painted; the voted strip is shared/global and shows the top 10 by vote count.
 - Current map sits top-left of the vote strip: its header sits above the shot, the net rating is centered large on the image, the favorite button is top-right, and the like/dislike icon buttons stack to the right. Likes and dislikes are per player and aggregated server-wide.
 - The catalog is one `flow-children: right-wrap` scroll panel of fixed 110×213 cards, so the column count follows the viewport width. `right-wrap` is the documented Panorama deviation and must be verified in game.
 - Tile frames: near-black default, green for voted (`is-voted`) and favorited (`is-fav`) maps, stronger green plus glow for the local vote (`is-self`), and a green pulse for the winner (`is-done`). Each tile shows its net rating (likes − dislikes) top-left, green when positive and red when negative; scores of 100 or more render as `99+`. Revealed non-winners are greyed out (`is-lost`), not blacked out.

@@ -39,6 +39,14 @@ PREVIEW_BROWSE_HTML = ROOT / "workshop" / "preview" / "maps.html"
 GENERATE_XML = ROOT / "tools" / "generate_vote_xml.py"
 CREDIT_TEXT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 
+# Engine name tables on one CCSCustomHudLayout. Every id/variable the server
+# writes is interned per layout entity; hitting the cap aborts PackEntity and
+# segfaults the server. Keep the pool well below it (see SLOT_COUNT).
+PANEL_ID_ENGINE_CAP = 1024
+DIALOG_VAR_ENGINE_CAP = 1244
+# Proven full-server size for this shared two-pool layout (see SLOT_COUNT).
+MAX_SAFE_SLOTS = 20
+
 INCLUDE_RE = re.compile(r"s2r://panorama/styles/custom_game/mapvote/([A-Za-z0-9_]+\.vcss)")
 VAR_RE = re.compile(r"\{s:([A-Za-z0-9_]+)\}")
 HIDDEN_CLASS = re.compile(r"(?<![\w-])(?:hidden|Hidden)(?![\w-])")
@@ -226,11 +234,19 @@ def collect_errors() -> list[str]:
     filter_sorts = csharp_const_int(VOTE_IDS_CS, "FilterSortSlots")
     root_panel = csharp_const_string(VOTE_IDS_CS, "Root")
 
+    if slot_count > MAX_SAFE_SLOTS:
+        errors.append(
+            f"VoteIds.SlotCount ({slot_count}) exceeds the proven full-server "
+            f"size {MAX_SAFE_SLOTS}; per-player HUD state is serialized for every "
+            f"connected player (raise only with an in-game 64-player test)"
+        )
+
     if MAP_CATALOG_CS.is_file():
         max_maps = csharp_const_int(MAP_CATALOG_CS, "MaxMaps")
-        if max_maps != slot_count:
+        if max_maps < slot_count:
             errors.append(
-                f"MapCatalog.MaxMaps ({max_maps}) must equal VoteIds.SlotCount ({slot_count})"
+                f"MapCatalog.MaxMaps ({max_maps}) must be at least "
+                f"VoteIds.SlotCount ({slot_count})"
             )
 
     expected_ids = {
@@ -520,6 +536,17 @@ def collect_errors() -> list[str]:
         errors.append(f"{VOTE_XML_NAME}: missing dialog vars: {sorted(missing_vars)}")
     if extra_vars:
         errors.append(f"{VOTE_XML_NAME}: unexpected dialog vars: {sorted(extra_vars)}")
+
+    if len(found_ids) > PANEL_ID_ENGINE_CAP:
+        errors.append(
+            f"{VOTE_XML_NAME}: {len(found_ids)} panel ids exceed "
+            f"m_vecPanelIds cap {PANEL_ID_ENGINE_CAP} (lower SLOT_COUNT)"
+        )
+    if len(found_vars) > DIALOG_VAR_ENGINE_CAP:
+        errors.append(
+            f"{VOTE_XML_NAME}: {len(found_vars)} dialog vars exceed "
+            f"m_vecDialogVariableNames cap {DIALOG_VAR_ENGINE_CAP} (lower SLOT_COUNT)"
+        )
 
     if not (IMAGES / "default.png").is_file() or not (IMAGES / "default.vtex").is_file():
         errors.append("default.png / default.vtex required under images/.../maps/")

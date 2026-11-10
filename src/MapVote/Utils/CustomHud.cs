@@ -11,6 +11,7 @@ namespace MapVote.Utils
     public static class CustomHud
     {
         public const double FadeSeconds = 0.5;
+        private const int MaxSlots = 65;
 
         private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(FadeSeconds);
         private static readonly string LayoutResource =
@@ -22,6 +23,18 @@ namespace MapVote.Utils
         private static readonly Dictionary<int, Dictionary<string, Dictionary<string, bool>>> ClassBySlot = [];
         private static readonly Dictionary<int, Dictionary<string, Dictionary<string, string>>> TextBySlot = [];
         private static readonly Dictionary<int, Dictionary<string, string>> ImageClassBySlot = [];
+        private static readonly Dictionary<string, Dictionary<string, string>> GlobalText = new(StringComparer.Ordinal);
+        private static readonly Dictionary<string, Dictionary<string, bool>> GlobalClass = new(StringComparer.Ordinal);
+        private static readonly Dictionary<string, string> GlobalImageClass = new(StringComparer.Ordinal);
+        /// <summary>Slot still matches the XML defaults (never written, or explicitly restored).</summary>
+        private static readonly bool[] Pristine = BuildPristine();
+
+        private static bool[] BuildPristine()
+        {
+            bool[] slots = new bool[MaxSlots];
+            Array.Fill(slots, true);
+            return slots;
+        }
 
         private static bool _budgetActive;
         private static int _writes;
@@ -107,8 +120,16 @@ namespace MapVote.Utils
                 return;
             }
 
-            if (TryGetCached(TextBySlot, player.Slot, panelId, name, out string? prev) && prev == value)
+            bool cached = TryGetCached(TextBySlot, player.Slot, panelId, name, out string? prev);
+            if (cached && prev == value)
             {
+                return;
+            }
+
+            if (!cached && value.Length == 0 && IsPristine(player.Slot))
+            {
+                // A pristine slot already shows the XML default for this var.
+                SetCached(TextBySlot, player.Slot, panelId, name, value);
                 return;
             }
 
@@ -129,8 +150,18 @@ namespace MapVote.Utils
                 return false;
             }
 
-            if (TryGetCached(ClassBySlot, player.Slot, panelId, className, out bool prev) && prev == enabled)
+            bool cached = TryGetCached(ClassBySlot, player.Slot, panelId, className, out bool prev);
+            if (cached && prev == enabled)
             {
+                return true;
+            }
+
+            // Only is-off is authored as true in the layout; every other state
+            // class starts absent. On a pristine slot a false write would be a
+            // no-op that only bloats the per-player vectors.
+            if (!cached && !enabled && className != "is-off" && IsPristine(player.Slot))
+            {
+                SetCached(ClassBySlot, player.Slot, panelId, className, false);
                 return true;
             }
 
@@ -150,6 +181,138 @@ namespace MapVote.Utils
             if (_budgetActive)
             {
                 _writes++;
+            }
+        }
+
+        public static void SetTextGlobal(string panelId, string name, string value)
+        {
+            bool cached = GlobalText.TryGetValue(panelId, out Dictionary<string, string>? vars)
+                && vars.TryGetValue(name, out string? prev);
+            if (cached && prev == value)
+            {
+                return;
+            }
+
+            if (!cached && value.Length == 0)
+            {
+                RememberGlobalText(panelId, name, value);
+                return;
+            }
+
+            if (!TryWriteGlobal(out CCSCustomHudLayout hud))
+            {
+                return;
+            }
+
+            hud.SetDialogVariableString(panelId, name, value);
+            RememberGlobalText(panelId, name, value);
+            NoteWrite();
+        }
+
+        public static bool SetHasClassGlobal(string panelId, string className, bool enabled)
+        {
+            if (string.IsNullOrEmpty(className))
+            {
+                return false;
+            }
+
+            bool cached = GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes)
+                && classes.TryGetValue(className, out bool prev);
+            if (cached && prev == enabled)
+            {
+                return true;
+            }
+
+            if (!cached && !enabled && className != "is-off")
+            {
+                RememberGlobalClass(panelId, className, false);
+                return true;
+            }
+
+            if (!TryWriteGlobal(out CCSCustomHudLayout hud))
+            {
+                return false;
+            }
+
+            hud.SetHasClass(panelId, className, enabled);
+            RememberGlobalClass(panelId, className, enabled);
+            NoteWrite();
+            return true;
+        }
+
+        public static void SetMapImageGlobal(string imagePanelId, string? mapName, MapOrigin origin = MapOrigin.Local)
+        {
+            string? next = string.IsNullOrWhiteSpace(mapName) ? null : MapImageClasses.ClassFor(mapName, origin);
+            GlobalImageClass.TryGetValue(imagePanelId, out string? prev);
+            if (prev == next)
+            {
+                return;
+            }
+
+            if (prev is not null && !SetHasClassGlobal(imagePanelId, prev, false))
+            {
+                return;
+            }
+
+            if (next is null)
+            {
+                GlobalImageClass.Remove(imagePanelId);
+                return;
+            }
+
+            if (SetHasClassGlobal(imagePanelId, next, true))
+            {
+                GlobalImageClass[imagePanelId] = next;
+            }
+        }
+
+        private static void RememberGlobalText(string panelId, string name, string value)
+        {
+            if (!GlobalText.TryGetValue(panelId, out Dictionary<string, string>? vars))
+            {
+                GlobalText[panelId] = vars = new(StringComparer.Ordinal);
+            }
+
+            vars[name] = value;
+        }
+
+        private static void RememberGlobalClass(string panelId, string className, bool enabled)
+        {
+            if (!GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes))
+            {
+                GlobalClass[panelId] = classes = new(StringComparer.Ordinal);
+            }
+
+            classes[className] = enabled;
+        }
+
+        private static bool TryWriteGlobal(out CCSCustomHudLayout hud)
+        {
+            hud = null!;
+            if (!EnsureLayout() || _layout is not { IsValid: true } layout)
+            {
+                return false;
+            }
+
+            hud = layout;
+            return true;
+        }
+
+        private static void ClearGlobalState()
+        {
+            GlobalText.Clear();
+            GlobalClass.Clear();
+            GlobalImageClass.Clear();
+        }
+
+        private static bool IsPristine(int slot) =>
+            (uint)slot < MaxSlots && Pristine[slot];
+
+        private static void MarkPristine(int slot)
+        {
+            if ((uint)slot < MaxSlots)
+            {
+                Pristine[slot] = true;
             }
         }
 
@@ -201,10 +364,13 @@ namespace MapVote.Utils
 
         public static void ResetRound()
         {
+            ClearGlobalState();
             HashSet<int> liveSlots = [];
             foreach (CCSPlayerController player in Humans.GetHumans())
             {
                 liveSlots.Add(player.Slot);
+                // The client rebuilt the layout from XML on round restart.
+                MarkPristine(player.Slot);
                 HudMenu.ReleasePlayer(player);
                 RestorePlayerDefaults(player);
             }
@@ -220,7 +386,7 @@ namespace MapVote.Utils
             }
 
             HudMenu.ReleasePlayer(player);
-            RestorePlayerDefaults(player);
+            RestorePlayerDefaults(player, writeDefaults: false);
             if (TryGetLayout(player, VoteHud.Panel, out CCSCustomHudLayout hud))
             {
                 hud.SetInputCaptureEnabled(player, false);
@@ -385,6 +551,13 @@ namespace MapVote.Utils
                 }
 
                 _layout = hud;
+                // A fresh entity starts at the XML defaults, so cached values
+                // from the previous entity are no longer the client's state.
+                ClassBySlot.Clear();
+                TextBySlot.Clear();
+                ImageClassBySlot.Clear();
+                Array.Fill(Pristine, true);
+                ClearGlobalState();
                 PluginLog.Debug($"[CustomHud] Spawned #{hud.Index} → {LayoutResource}");
                 return true;
             }
@@ -414,7 +587,7 @@ namespace MapVote.Utils
             }
         }
 
-        private static void RestorePlayerDefaults(CCSPlayerController player)
+        private static void RestorePlayerDefaults(CCSPlayerController player, bool writeDefaults = true)
         {
             if (player is not { IsValid: true })
             {
@@ -428,12 +601,12 @@ namespace MapVote.Utils
                 || ImageClassBySlot.ContainsKey(slot);
             if (!dirty)
             {
+                MarkPristine(slot);
                 return;
             }
 
             ClassBySlot.TryGetValue(slot, out Dictionary<string, Dictionary<string, bool>>? classes);
             TextBySlot.TryGetValue(slot, out Dictionary<string, Dictionary<string, string>>? texts);
-            ClearSlotCaches(slot);
 
             if (classes is not null)
             {
@@ -460,8 +633,14 @@ namespace MapVote.Utils
             SetHasClass(player, VoteHud.Panel, "is-fading", false);
             SetHasClass(player, VoteHud.Panel, "is-off", true);
             MarkClosingRoot(slot);
-            VoteHud.WriteDefaults(player);
+            if (writeDefaults)
+            {
+                VoteHud.WriteDefaults(player);
+            }
+
             ClearSlotCaches(slot);
+            // Everything we wrote is back at the XML default now.
+            MarkPristine(slot);
         }
 
         private static void ClearSlotCaches(int slot)
@@ -496,6 +675,8 @@ namespace MapVote.Utils
             ClassBySlot.Clear();
             TextBySlot.Clear();
             ImageClassBySlot.Clear();
+            Array.Fill(Pristine, true);
+            ClearGlobalState();
         }
 
         private static string? LayoutPath(CCSCustomHudLayout layout)

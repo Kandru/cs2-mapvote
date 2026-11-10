@@ -12,7 +12,6 @@ public class VoteSessionTests
         Assert.True(session.Cast(1, "b"));
         Assert.True(session.Cast(2, "c"));
         Assert.True(session.Cast(3, "b"));
-        Assert.Equal(["b", "c", "a"], session.DisplayOrder());
         Assert.Equal(["b", "c"], session.VotedOrder());
         Assert.Equal(["a", "b", "c"], session.GridOrder());
         Assert.Equal(2, session.CountOf("b"));
@@ -21,19 +20,16 @@ public class VoteSessionTests
         // Equal counts keep first-vote order.
         Assert.True(session.Cast(4, "c"));
         Assert.Equal(["b", "c"], session.VotedOrder());
-        Assert.Equal(["b", "c", "a"], session.DisplayOrder());
 
         // Higher count moves to the front of the strip.
         Assert.True(session.Cast(5, "c"));
         Assert.Equal(["c", "b"], session.VotedOrder());
-        Assert.Equal(["c", "b", "a"], session.DisplayOrder());
 
         // Player changes mind: drops empty maps from the strip; grid still lists all.
         Assert.True(session.Cast(1, "a"));
         Assert.True(session.Cast(3, "a"));
         Assert.Equal(0, session.CountOf("b"));
         Assert.Equal(["c", "a"], session.VotedOrder());
-        Assert.Equal(["c", "a", "b"], session.DisplayOrder());
         Assert.Equal(["a", "b", "c"], session.GridOrder());
     }
 
@@ -64,7 +60,7 @@ public class VoteSessionTests
         session.Cast(2, "b");
         Assert.True(session.RemovePlayer(1));
         Assert.Equal(0, session.CountOf("a"));
-        Assert.Equal(["b", "a"], session.DisplayOrder());
+        Assert.Equal(["b"], session.VotedOrder());
     }
 
     [Fact]

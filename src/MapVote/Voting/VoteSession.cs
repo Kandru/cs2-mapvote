@@ -115,23 +115,6 @@ namespace MapVote.Voting
         /// <summary>Full catalog order for the map grid (voted maps stay visible with overlays).</summary>
         public IReadOnlyList<string> GridOrder() => _maps;
 
-        /// <summary>Voted strip (by count) then remaining maps in catalog order.</summary>
-        public IReadOnlyList<string> DisplayOrder()
-        {
-            IReadOnlyList<string> voted = VotedOrder();
-            HashSet<string> seen = new(voted, StringComparer.Ordinal);
-            List<string> ordered = [.. voted];
-            foreach (string map in _maps)
-            {
-                if (seen.Add(map))
-                {
-                    ordered.Add(map);
-                }
-            }
-
-            return ordered;
-        }
-
         public void Lock()
         {
             if (!IsOpen)
