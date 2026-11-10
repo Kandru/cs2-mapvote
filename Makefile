@@ -46,7 +46,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help require-sdk debug release restore clean dirs panorama images images-check images-opt images-css images-prune test
+.PHONY: images-missing images-missing-ws images-missing-stock
 
 ifeq ($(RUNNER),missing)
 require-sdk:
@@ -107,6 +107,15 @@ images: ## Images: Extract map images (WORKSHOP_DIR and/or GAME_DIR=…/game/csg
 	SOURCE2VIEWER_CLI="$(SOURCE2VIEWER_CLI)" python3 tools/extract_workshop_images.py \
 		$(if $(WORKSHOP_DIR),"$(WORKSHOP_DIR)",) \
 		$(if $(GAME_DIR),--game-dir "$(GAME_DIR)",)
+
+images-missing: ## Images: Report missing maps and stub them (auto-detect workshop vs stock)
+	@python3 tools/find_missing_images.py
+
+images-missing-ws: ## Images: Report missing maps and always add as workshop (ws_*)
+	@python3 tools/find_missing_images.py --type workshop
+
+images-missing-stock: ## Images: Report missing maps and always add as stock (map_*)
+	@python3 tools/find_missing_images.py --type stock
 
 images-check: ## Images: Rewrite map tiles that are not 350×197 PNG (center-crop, no stretch)
 	python3 tools/check_map_images.py
