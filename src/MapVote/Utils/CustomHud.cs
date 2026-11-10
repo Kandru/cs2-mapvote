@@ -186,8 +186,9 @@ namespace MapVote.Utils
 
         public static void SetTextGlobal(string panelId, string name, string value)
         {
+            string? prev = null;
             bool cached = GlobalText.TryGetValue(panelId, out Dictionary<string, string>? vars)
-                && vars.TryGetValue(name, out string? prev);
+                && vars.TryGetValue(name, out prev);
             if (cached && prev == value)
             {
                 return;
@@ -216,8 +217,9 @@ namespace MapVote.Utils
                 return false;
             }
 
+            bool prev = false;
             bool cached = GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes)
-                && classes.TryGetValue(className, out bool prev);
+                && classes.TryGetValue(className, out prev);
             if (cached && prev == enabled)
             {
                 return true;
