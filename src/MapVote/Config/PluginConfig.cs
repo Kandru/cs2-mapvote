@@ -43,6 +43,9 @@ namespace MapVote.Config
 
         [JsonPropertyName("winner_reveal_seconds")]
         public int WinnerRevealSeconds { get; set; } = 5;
+
+        [JsonPropertyName("max_maps")]
+        public int MaxMaps { get; set; } = 100;
     }
 
     public sealed class RtvConfig

@@ -18,6 +18,20 @@ public class MapNameDisplayTests
     }
 
     [Fact]
+    public void ForHud_WrapsInNonBreakingSpaces()
+    {
+        char nbsp = MapNameDisplay.NonBreakingSpace;
+        Assert.Equal(160, (int)nbsp);
+        Assert.Equal($"{nbsp}Overpass{nbsp}", MapNameDisplay.ForHud("Overpass"));
+    }
+
+    [Fact]
+    public void ForHud_LeavesEmptyTextEmpty()
+    {
+        Assert.Equal(string.Empty, MapNameDisplay.ForHud(string.Empty));
+    }
+
+    [Fact]
     public void OrderByDisplayName_OrdersByCleanedName()
     {
         List<MapEntry> maps =

@@ -36,19 +36,15 @@ namespace MapVote.Utils
             return slots;
         }
 
-        private static bool _budgetActive;
+        private static int _writesTick = -1;
         private static int _writes;
 
-        /// <summary>Native Set* calls since the last <see cref="BeginWriteBudget"/>.</summary>
-        public static int Writes => _writes;
+        /// <summary>Native layout writes in the current server tick, from every caller and every player.</summary>
+        public static int TickWrites => WritesInTick(_writesTick, _writes, Server.TickCount);
 
-        public static void BeginWriteBudget()
-        {
-            _budgetActive = true;
-            _writes = 0;
-        }
-
-        public static void EndWriteBudget() => _budgetActive = false;
+        /// <summary>A count belongs to the tick it was made in; any other tick starts at zero.</summary>
+        internal static int WritesInTick(int countedTick, int writes, int nowTick) =>
+            countedTick == nowTick ? writes : 0;
 
         public static bool IsPanelVisible(CCSPlayerController player, string panelId) =>
             player is { IsValid: true }
@@ -57,6 +53,8 @@ namespace MapVote.Utils
 
         public static bool EnsureSpawned(CCSPlayerController player) =>
             Humans.IsHumanViewer(player) && EnsureLayout();
+
+        public static void Prewarm() => EnsureLayout();
 
         public static bool TryGetLayout(CCSPlayerController player, string rootPanelId, out CCSCustomHudLayout hud)
         {
@@ -176,12 +174,16 @@ namespace MapVote.Utils
             return true;
         }
 
-        private static void NoteWrite()
+        /// <summary>The per-player class value last written for this viewer, if any.</summary>
+        public static bool TryGetPlayerClass(CCSPlayerController player, string panelId, string className, out bool enabled) =>
+            TryGetCached(ClassBySlot, player.Slot, panelId, className, out enabled);
+
+        /// <summary>Counts one native write against the per-tick budget.</summary>
+        internal static void NoteWrite()
         {
-            if (_budgetActive)
-            {
-                _writes++;
-            }
+            int now = Server.TickCount;
+            _writes = WritesInTick(_writesTick, _writes, now) + 1;
+            _writesTick = now;
         }
 
         public static void SetTextGlobal(string panelId, string name, string value)
@@ -406,6 +408,7 @@ namespace MapVote.Utils
             if (TryGetLayout(player, VoteHud.Panel, out CCSCustomHudLayout hud))
             {
                 hud.SetInputCaptureEnabled(player, false);
+                NoteWrite();
             }
         }
 

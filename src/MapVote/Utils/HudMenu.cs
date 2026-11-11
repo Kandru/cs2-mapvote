@@ -22,7 +22,6 @@ namespace MapVote.Utils
         {
             public required HudMenuOpenOptions Options;
             public int CaptureToken;
-            public CssTimer? CaptureTimer;
         }
 
         private static readonly Dictionary<int, Session> Sessions = [];
@@ -47,7 +46,7 @@ namespace MapVote.Utils
             CustomHud.ShowPanel(player, PanelId);
             if (options.CaptureMouse)
             {
-                ScheduleCapture(player, session);
+                ScheduleCapture(player.Slot, session);
             }
 
             return true;
@@ -117,19 +116,20 @@ namespace MapVote.Utils
             return true;
         }
 
-        private static void ScheduleCapture(CCSPlayerController player, Session session)
+        private static void ScheduleCapture(int slot, Session session)
         {
             int token = ++session.CaptureToken;
-            session.CaptureTimer = new CssTimer(CaptureDelaySeconds, () =>
+            _ = new CssTimer(CaptureDelaySeconds, () =>
             {
-                if (!Sessions.TryGetValue(player.Slot, out Session? live)
-                    || live.CaptureToken != token
-                    || !player.IsValid)
+                // The session check stands in for Kill(): a reopened menu has a new session object.
+                if (Utilities.GetPlayerFromSlot(slot) is not { IsValid: true } player
+                    || !Sessions.TryGetValue(slot, out Session? live)
+                    || live != session
+                    || live.CaptureToken != token)
                 {
                     return;
                 }
 
-                live.CaptureTimer = null;
                 SetCapture(player, enabled: true);
             });
         }
@@ -157,8 +157,6 @@ namespace MapVote.Utils
         private static void InvalidateCapture(Session session)
         {
             session.CaptureToken++;
-            session.CaptureTimer?.Kill();
-            session.CaptureTimer = null;
         }
 
         private static void SetCapture(CCSPlayerController player, bool enabled)
@@ -166,6 +164,7 @@ namespace MapVote.Utils
             if (player.IsValid && CustomHud.TryGetLayout(player, PanelId, out CCSCustomHudLayout hud))
             {
                 hud.SetInputCaptureEnabled(player, enabled);
+                CustomHud.NoteWrite();
             }
         }
     }
