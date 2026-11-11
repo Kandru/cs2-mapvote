@@ -36,6 +36,12 @@ namespace MapVote.Utils
             return slots;
         }
 
+        /// <summary>Classes some panel of layout v2 authors as present; an uncached false write must still go out.</summary>
+        private static readonly HashSet<string> AuthoredOn = new(StringComparer.Ordinal) { "is-off", "p0", "votes-none", "view-vote" };
+
+        /// <summary>Per-player classes whose XML default is on wherever v2 writes them per player (#Vote, mv-slot-*, mv-empty).</summary>
+        private static readonly HashSet<string> PlayerAuthoredOn = new(StringComparer.Ordinal) { "is-off", "view-vote" };
+
         private static int _writesTick = -1;
         private static int _writes;
 
@@ -154,10 +160,10 @@ namespace MapVote.Utils
                 return true;
             }
 
-            // Only is-off is authored as true in the layout; every other state
-            // class starts absent. On a pristine slot a false write would be a
-            // no-op that only bloats the per-player vectors.
-            if (!cached && !enabled && className != "is-off" && IsPristine(player.Slot))
+            // Only the AuthoredOn classes can be true in the XML; every other
+            // state class starts absent. On a pristine slot a false write would
+            // be a no-op that only bloats the per-player vectors.
+            if (!cached && !enabled && !AuthoredOn.Contains(className) && IsPristine(player.Slot))
             {
                 SetCached(ClassBySlot, player.Slot, panelId, className, false);
                 return true;
@@ -172,6 +178,14 @@ namespace MapVote.Utils
             SetCached(ClassBySlot, player.Slot, panelId, className, enabled);
             NoteWrite();
             return true;
+        }
+
+        /// <summary>The global class value last written, if any.</summary>
+        public static bool TryGetGlobalClass(string panelId, string className, out bool enabled)
+        {
+            enabled = false;
+            return GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes)
+                && classes.TryGetValue(className, out enabled);
         }
 
         /// <summary>The per-player class value last written for this viewer, if any.</summary>
@@ -241,7 +255,7 @@ namespace MapVote.Utils
                 return true;
             }
 
-            if (!cached && !enabled && className != "is-off")
+            if (!cached && !enabled && !AuthoredOn.Contains(className))
             {
                 RememberGlobalClass(panelId, className, false);
                 return true;
@@ -631,9 +645,15 @@ namespace MapVote.Utils
             {
                 foreach ((string panelId, Dictionary<string, bool> map) in classes)
                 {
-                    foreach ((string className, bool enabled) in map.Where(static kv => kv.Value))
+                    foreach ((string className, bool enabled) in map.ToList())
                     {
-                        SetHasClass(player, panelId, className, false);
+                        // Back to the XML default: off for state classes, on for the authored-on ones
+                        // (a lingering per-player is-off=false would be a ghost card after the reset).
+                        bool authored = PlayerAuthoredOn.Contains(className);
+                        if (enabled != authored)
+                        {
+                            SetHasClass(player, panelId, className, authored);
+                        }
                     }
                 }
             }

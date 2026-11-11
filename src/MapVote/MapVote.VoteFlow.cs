@@ -285,6 +285,7 @@ namespace MapVote
                 return;
             }
 
+            VoteHud.SetDeadline(_scheduleEpochUtc.AddSeconds(_timing.RevealOffsetSeconds));
             bool openForVote = untilReveal > 0f;
             foreach (CCSPlayerController player in Humans.GetHumans())
             {
@@ -397,7 +398,9 @@ namespace MapVote
 
             LockWinner();
             string winner = _pendingWinner ?? _session.Maps[0];
+            // Reveal first: the new deadline then starts the reveal's own timer panel.
             VoteHud.BeginReveal(winner);
+            VoteHud.SetDeadline(_scheduleEpochUtc.AddSeconds(_timing.ChangelevelOffsetSeconds));
 
             float remaining = RemainingUntil(_timing.ChangelevelOffsetSeconds);
             PluginLog.Info($"map voting completed: winner={winner} ({_session.CountOf(winner)} votes)");

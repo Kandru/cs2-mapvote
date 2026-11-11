@@ -12,12 +12,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from map_names import is_playable_map_id
 from mapvote_layout import (
+    HUD_V2_VCSS_NAME,
+    V2_FILTER_SORT_SLOTS,
+    V2_FILTER_TYPE_SLOTS,
+    V2_GRID_SLOTS,
+    V2_RANK_SLOTS,
+    V2_SHARE_STEP,
+    V2_SPAN_MAX,
+    V2_SPAN_MIN,
+    VOTE_V2_XML_NAME,
     HUD_CSS_NAME,
     HUD_VCSS_NAME,
     MAPS_CSS_NAME,
     MAPS_VCSS_NAME,
     PANORAMA_VERSION,
     VOTE_XML_NAME,
+    VOTED_SLOT_COUNT,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -231,7 +241,7 @@ def collect_errors() -> list[str]:
             errors.append(str(ex))
 
     slot_count = csharp_const_int(VOTE_IDS_CS, "SlotCount")
-    voted_slot_count = csharp_const_int(VOTE_IDS_CS, "VotedSlotCount")
+    voted_slot_count = VOTED_SLOT_COUNT  # v1-only pool; VoteIds dropped it with v2
     filter_types = csharp_const_int(VOTE_IDS_CS, "FilterTypeSlots")
     filter_sorts = csharp_const_int(VOTE_IDS_CS, "FilterSortSlots")
     root_panel = csharp_const_string(VOTE_IDS_CS, "Root")
@@ -560,8 +570,187 @@ def collect_errors() -> list[str]:
     return errors
 
 
+# ---- Layout v2 (T6): stricter than v1 - ruleset §5.1 subset only. ----
+V2_XML = LAYOUTS / VOTE_V2_XML_NAME
+V2_VCSS = STYLES / HUD_V2_VCSS_NAME
+GENERATE_XML_V2 = ROOT / "tools" / "generate_vote_xml_v2.py"
+V2_PROPS = frozenset(
+    {
+        "width", "height", "flow-children", "horizontal-align", "vertical-align",
+        "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+        "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+        "background-color", "background-image", "background-size", "background-repeat", "background-img-opacity",
+        "border", "border-top", "border-right", "border-bottom", "border-left", "border-color", "border-radius",
+        "box-shadow", "font-size", "font-family", "color", "letter-spacing", "text-transform", "text-align",
+        "text-overflow", "white-space", "visibility", "opacity", "overflow", "clip", "transform", "brightness",
+        "transition-property", "transition-duration", "transition-timing-function",
+        "animation-name", "animation-duration", "animation-delay", "animation-timing-function",
+        "animation-iteration-count", "animation-fill-mode", "world-blur", "wash-color", "cursor", "sound", "z-index",
+    }
+)
+V2_TRANSITION_OK = frozenset({"opacity", "transform", "clip", "background-color", "brightness"})
+V2_HIT_PANELS = frozenset({"MapCatalog", "MapSlot", "FilterBar"})
+# U15: text that must stay readable at 720p (1080p units).
+V2_MIN_IMPORTANT = {
+    "TimerText": 18, "StatusText": 18, "RankName": 18, "CardName": 18, "CurrentName": 18,
+    "ChipLabel": 18, "HideLabel": 18, "RateLabel": 18, "RevealName": 18,
+}
+CSS_BLOCK_RE = re.compile(r"([^{}]+)\{([^{}]*)\}")
+
+
+def v2_expected() -> tuple[set[str], set[str]]:
+    """Ids and dialog variables the v2 contract promises (docstring of generate_vote_xml_v2.py)."""
+    ids = {
+        "Vote", "mv-timer", "mv-timer-fill", "mv-timer-fill-reveal", "mv-minimize", "mv-status", "mv-current", "mv-current-shot",
+        "mv-current-fav", "mv-rate", "mv-like", "mv-dislike", "mv-rank", "mv-rank-empty", "mv-filters",
+        "mv-fav-only", "mv-catalog", "mv-empty", "mv-win-shot",
+    }
+    ids |= {f"mv-ft-{i}" for i in range(V2_FILTER_TYPE_SLOTS)} | {f"mv-fs-{i}" for i in range(V2_FILTER_SORT_SLOTS)}
+    for i in range(V2_RANK_SLOTS):
+        ids |= {f"mv-rank-{i}", f"mv-rank-self-{i}", f"mv-rank-shot-{i}", f"mv-rank-fill-{i}"}
+    for i in range(V2_GRID_SLOTS):
+        ids |= {f"mv-slot-{i}", f"mv-{i}", f"mv-shot-{i}", f"mv-fav-{i}"}
+    variables = {
+        "mv_title", "mv_time", "mv_hide", "mv_status", "mv_cur_tag", "mv_cur_name", "mv_rate_q", "mv_like",
+        "mv_dislike", "mv_like_n", "mv_dislike_n", "mv_rank_title", "mv_rank_empty", "mv_self", "mv_favonly",
+        "mv_empty", "mv_win_tag", "mv_win_name", "mv_win_votes",
+    }
+    variables |= {f"ft{i}" for i in range(V2_FILTER_TYPE_SLOTS)} | {f"fs{i}" for i in range(V2_FILTER_SORT_SLOTS)}
+    variables |= {f"rn{i}" for i in range(V2_RANK_SLOTS)} | {f"rv{i}" for i in range(V2_RANK_SLOTS)}
+    variables |= {f"v{i}" for i in range(V2_GRID_SLOTS)} | {f"n{i}" for i in range(V2_GRID_SLOTS)}
+    return ids, variables
+
+
+def check_v2_css(raw: str) -> list[str]:
+    name = HUD_V2_VCSS_NAME
+    errors: list[str] = []
+    css = re.sub(r"/\*.*?\*/", "", raw, flags=re.S)
+    line_of = lambda pos: css.count("\n", 0, pos) + 1  # noqa: E731
+    for m in BAD_CSS.finditer(css):
+        errors.append(f"{name}:~{line_of(m.start())}: forbidden CSS near {m.group(0)!r}")
+    for m in re.finditer(r":not\(|:selected|:disabled|:focus|\btransition\s*:", css):
+        errors.append(f"{name}:~{line_of(m.start())}: forbidden selector/shorthand {m.group(0)!r}")
+    if HIDDEN_CLASS.search(css):
+        errors.append(f"{name}: forbidden class name hidden/Hidden")
+    if css.count("{") != css.count("}"):
+        errors.append(f"{name}: unbalanced braces")
+    for prop in sorted(set(PROPERTY_RE.findall(css)) - V2_PROPS):
+        errors.append(f"{name}: property {prop!r} is not in the ruleset §5.1 subset")
+    for m in re.finditer(r"transition-property:\s*([^;]+);", css):
+        for prop in (p.strip() for p in m.group(1).split(",")):
+            if prop not in V2_TRANSITION_OK:
+                errors.append(f"{name}:~{line_of(m.start())}: transition on {prop!r} (allowed: {sorted(V2_TRANSITION_OK)})")
+    for m in KEYFRAMES_RE.finditer(css):
+        if m.group(1)[0] not in "'\"":
+            errors.append(f"{name}:~{line_of(m.start())}: @keyframes name must be quoted")
+    if len(re.findall(r"animation-iteration-count:\s*infinite", css)) > 1:
+        errors.append(f"{name}: more than one infinite animation (only is-urgent may pulse)")
+    for m in re.finditer(r"font-size:\s*([0-9.]+)\s*;", css):
+        if float(m.group(1)) < 14:
+            errors.append(f"{name}:~{line_of(m.start())}: font-size {m.group(1)} below the minimum 14")
+    for sel, body in CSS_BLOCK_RE.findall(css):
+        size = re.search(r"font-size:\s*([0-9.]+)", body)
+        for part in sel.split(","):
+            cls = part.strip().lstrip(".")
+            if size and cls in V2_MIN_IMPORTANT and float(size.group(1)) < V2_MIN_IMPORTANT[cls]:
+                errors.append(f"{name}: .{cls} font-size {size.group(1)} < {V2_MIN_IMPORTANT[cls]} (U15)")
+    for s in range(V2_SPAN_MIN, V2_SPAN_MAX + 1):
+        if f".TimerFill.span-{s} " not in css:
+            errors.append(f"{name}: missing countdown class span-{s}")
+    for p in range(0, 101, V2_SHARE_STEP):
+        if f".RankFill.p{p} " not in css:
+            errors.append(f"{name}: missing share ladder class p{p}")
+    for req in (".is-off", ".is-fading", ".is-minimized", ".view-reveal", ".view-browse", ".is-running",
+                ".is-urgent", ".is-active", ".is-disabled", ".is-self", ".votes-some", ".ico-like", ".ico-dislike"):
+        if req not in css:
+            errors.append(f"{name}: missing required selector {req}")
+    if "thumbs_up.vsvg" not in css or "rotateZ( 180deg )" not in css:
+        errors.append(f"{name}: like/dislike must use the stock thumbs_up.vsvg (dislike rotated 180deg)")
+    return errors
+
+
+def collect_v2_errors() -> list[str]:
+    errors: list[str] = []
+    check = subprocess.run([sys.executable, str(GENERATE_XML_V2), "--check"], cwd=ROOT, capture_output=True, text=True)
+    if check.returncode != 0:
+        errors.append((check.stderr or check.stdout or f"{VOTE_V2_XML_NAME} out of date").strip())
+
+    # Pool sizes = C# constants (grid and filter pools are shared with v1).
+    for const, value in (("SlotCount", V2_GRID_SLOTS), ("RankSlots", V2_RANK_SLOTS),
+                         ("FilterTypeSlots", V2_FILTER_TYPE_SLOTS), ("FilterSortSlots", V2_FILTER_SORT_SLOTS)):
+        cs = csharp_const_int(VOTE_IDS_CS, const)
+        if cs != value:
+            errors.append(f"v2 pool {const}: generator {value} != VoteIds.{const} {cs}")
+
+    if not V2_VCSS.is_file():
+        return errors + [f"missing {V2_VCSS.relative_to(ROOT)}"]
+    errors += check_v2_css(V2_VCSS.read_text(encoding="utf-8"))
+
+    name = VOTE_V2_XML_NAME
+    try:
+        root = ET.parse(V2_XML).getroot()
+    except (ET.ParseError, FileNotFoundError) as ex:
+        return errors + [f"{name}: {ex}"]
+    found_ids: list[str] = []
+    found_vars: set[str] = set()
+    includes: list[str] = []
+    for el in root.iter():
+        tag, attrs = el.tag, el.attrib
+        if tag not in ALLOWED_TAGS:
+            errors.append(f"{name}: forbidden tag <{tag}>")
+        for attr in attrs:
+            if attr not in ALLOWED_ATTRS:
+                errors.append(f"{name}: rejected attr {attr!r} on <{tag}>")
+        classes = set(attrs.get("class", "").split())
+        if tag == "Button" and "hittest" in attrs:
+            errors.append(f"{name}: do not set hittest on Button ({attrs.get('id')})")
+        if tag == "Label" and attrs.get("hittest") != "false":
+            errors.append(f"{name}: Label must have hittest=\"false\" ({attrs.get('id')})")
+        if tag == "Panel" and attrs.get("hittest") != "false" and not classes & V2_HIT_PANELS:
+            errors.append(f"{name}: Panel must have hittest=\"false\" ({attrs.get('id') or attrs.get('class')})")
+        if tag == "include":
+            m = INCLUDE_RE.search(attrs.get("src", ""))
+            if m:
+                includes.append(m.group(1))
+        if "id" in attrs:
+            found_ids.append(attrs["id"])
+        text = attrs.get("text", "")
+        found_vars.update(VAR_RE.findall(text))
+        if tag == "Label" and text and not VAR_RE.fullmatch(text) and text != CREDIT_TEXT and not text.isdigit():
+            errors.append(f"{name}: Label text must be {{s:…}}, a rank digit or the credit ({text!r})")
+
+    if len(found_ids) != len(set(found_ids)):
+        errors.append(f"{name}: duplicate panel ids")
+    exp_ids, exp_vars = v2_expected()
+    if set(found_ids) != exp_ids:
+        errors.append(f"{name}: ids differ from contract: missing {sorted(exp_ids - set(found_ids))[:10]}, "
+                      f"extra {sorted(set(found_ids) - exp_ids)[:10]}")
+    if found_vars != exp_vars:
+        errors.append(f"{name}: dialog vars differ from contract: missing {sorted(exp_vars - found_vars)[:10]}, "
+                      f"extra {sorted(found_vars - exp_vars)[:10]}")
+    if len(found_ids) >= PANEL_ID_ENGINE_CAP:
+        errors.append(f"{name}: {len(found_ids)} panel ids, engine cap {PANEL_ID_ENGINE_CAP}")
+    if len(found_vars) >= DIALOG_VAR_ENGINE_CAP:
+        errors.append(f"{name}: {len(found_vars)} dialog vars, engine cap {DIALOG_VAR_ENGINE_CAP}")
+    slots = sum(1 for el in root.iter("Panel") if "MapSlot" in el.attrib.get("class", "").split())
+    ranks = sum(1 for el in root.iter("Button") if "RankRow" in el.attrib.get("class", "").split())
+    if slots != V2_GRID_SLOTS or ranks != V2_RANK_SLOTS:
+        errors.append(f"{name}: pools grid={slots} rank={ranks}, expected {V2_GRID_SLOTS}/{V2_RANK_SLOTS}")
+    for el in root.iter():
+        if el.attrib.get("id") == "Vote" and not {"is-off", "view-vote"} <= set(el.attrib.get("class", "").split()):
+            errors.append(f"{name}: #Vote must start with is-off view-vote")
+        if "MapSlot" in el.attrib.get("class", "") and "is-off" not in el.attrib.get("class", ""):
+            errors.append(f"{name}: {el.attrib.get('id')} must start is-off")
+    if includes != [HUD_V2_VCSS_NAME, MAPS_VCSS_NAME]:
+        errors.append(f"{name}: must include {HUD_V2_VCSS_NAME} then {MAPS_VCSS_NAME} (got {includes})")
+    if CREDIT_TEXT not in V2_XML.read_text(encoding="utf-8"):
+        errors.append(f"{name}: missing credit footer")
+    print(f"v2: {len(found_ids)}/{PANEL_ID_ENGINE_CAP} panel ids, {len(found_vars)}/{DIALOG_VAR_ENGINE_CAP} dialog vars")
+    return errors
+
+
 def main() -> int:
-    errors = collect_errors()
+    errors = collect_errors() + collect_v2_errors()
     if errors:
         print("Panorama validation failed:")
         for err in errors:

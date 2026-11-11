@@ -7,6 +7,6 @@ namespace MapVote
         public override string ModuleVersion => "26.11.7";
 
         /// <summary>Workshop layout generation spawned by CustomHud (<c>vote_vN.vxml_c</c>).</summary>
-        public const string PanoramaVersion = "v1";
+        public const string PanoramaVersion = "v2";
     }
 }

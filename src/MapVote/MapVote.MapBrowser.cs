@@ -102,6 +102,7 @@ namespace MapVote
             if (!VoteHud.IsBrowsing)
             {
                 List<MapEntry> maps = SelectMaps(excludeCurrent: false);
+                var (currentMap, currentOrigin) = CurrentMap();
                 Dictionary<string, MapOrigin> origins = new(maps.Count, StringComparer.Ordinal);
                 List<string> names = new(maps.Count);
                 foreach (MapEntry map in maps)
@@ -117,6 +118,8 @@ namespace MapVote
                     (viewer, key) => Localization.ForPlayerSafe(Localizer, viewer, key),
                     origins,
                     names,
+                    currentMap,
+                    currentOrigin,
                     Config.CleanMapNames);
             }
 
