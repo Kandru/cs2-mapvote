@@ -17,7 +17,7 @@ When the match ends, players should pick the next map the way Valve never intend
 
 1. Install [Metamod:Source](https://www.metamodsource.net/downloads.php?branch=dev).
 2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (HUD and map pictures), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`.
-3. Install [CounterStrikeSharp](https://docs.cssharp.dev/).
+3. Install [CounterStrikeSharp](https://docs.cssharp.dev/). CounterStrikeSharp 1.0.379 or newer is required.
 4. Download the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-mapvote/releases/) and copy the `MapVote` folder into `/game/csgo/addons/counterstrikesharp/plugins/`.
 5. Set a non-empty `rcon_password` (the plugin loads the map list over localhost RCON).
 6. Restart the server. Config is created at `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`.

@@ -10,14 +10,31 @@ namespace MapVote.Players
         private readonly Dictionary<string, int> _likes = new(StringComparer.Ordinal);
         private readonly Dictionary<string, int> _dislikes = new(StringComparer.Ordinal);
 
-        public void Load(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
+        public void Load(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null) =>
+            Load(PlayerFiles.DirectoryPath(config), warn, debug);
+
+        internal void Load(string dir, Action<string>? warn = null, Action<string>? debug = null)
+        {
+            // Unsaved changes (failed write, or made since the last save) must outlive the reload.
+            List<PlayerState> unsaved = _bySteam.Values.Where(s => s.Dirty).ToList();
+
+            ReadFiles(dir, warn, debug);
+
+            foreach (PlayerState state in unsaved)
+            {
+                _bySteam[state.SteamId] = state;
+            }
+
+            RebuildRatingCounts(debug);
+        }
+
+        private void ReadFiles(string dir, Action<string>? warn, Action<string>? debug)
         {
             _bySteam.Clear();
             _blockedWrites.Clear();
             _likes.Clear();
             _dislikes.Clear();
 
-            string dir = PlayerFiles.DirectoryPath(config);
             if (!Directory.Exists(dir))
             {
                 debug?.Invoke("player archive: no players directory");
@@ -93,8 +110,6 @@ namespace MapVote.Players
                     debug?.Invoke($"duplicate player file for {steamId}; ignoring {Path.GetFileName(path)}");
                 }
             }
-
-            RebuildRatingCounts(debug);
 
             debug?.Invoke(
                 bad > 0
@@ -262,9 +277,22 @@ namespace MapVote.Players
             return removed;
         }
 
-        public int SaveDirty(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null)
+        /// <summary>Write one player's file if that player has unsaved changes. Returns whether it wrote.</summary>
+        public bool SaveIfDirty(
+            PluginConfig config,
+            string steamId,
+            Action<string>? warn = null,
+            Action<string>? debug = null) =>
+            SaveIfDirty(PlayerFiles.DirectoryPath(config), steamId, warn, debug);
+
+        internal bool SaveIfDirty(string directory, string steamId, Action<string>? warn = null, Action<string>? debug = null) =>
+            TryGet(steamId) is { Dirty: true } state && TryWrite(directory, state, warn, debug);
+
+        public int SaveDirty(PluginConfig config, Action<string>? warn = null, Action<string>? debug = null) =>
+            SaveDirty(PlayerFiles.DirectoryPath(config), warn, debug);
+
+        internal int SaveDirty(string directory, Action<string>? warn = null, Action<string>? debug = null)
         {
-            string directory = PlayerFiles.DirectoryPath(config);
             int written = 0;
             foreach (PlayerState state in _bySteam.Values)
             {

@@ -25,6 +25,16 @@ namespace MapVote.Maps
             return char.ToUpperInvariant(name[0]) + name[1..];
         }
 
+        /// <summary>
+        /// Wraps a name in non-breaking spaces for dialog variables: the client
+        /// translates a value that equals one of its tokens ("Overpass"), and the
+        /// padding looks the same but no longer matches.
+        /// </summary>
+        public static string ForHud(string text) =>
+            text.Length == 0 ? text : $"{NonBreakingSpace}{text}{NonBreakingSpace}";
+
+        public const char NonBreakingSpace = (char)0xA0;
+
         /// <summary>Alphabetical by the cleaned display name, raw id as tie-break.</summary>
         public static List<MapEntry> OrderByDisplayName(IReadOnlyList<MapEntry> maps) =>
             [.. maps

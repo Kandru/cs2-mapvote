@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using MapVote.Config;
 using MapVote.Maps;
@@ -16,6 +17,7 @@ namespace MapVote.Huds
         public const int FilterSortSlots = VoteIds.FilterSortSlots;
 
         private const int MaxSlots = 65;
+        /// <summary>Native writes per server tick, shared by every player and caller.</summary>
         private const int PaintWriteBudget = 128;
         /// <summary>Voted strip shows only the best-voted maps (already sorted by count). Shared/global.</summary>
         public const int MaxVotedMaps = VotedSlotCount;
@@ -45,6 +47,12 @@ namespace MapVote.Huds
         private static readonly bool[] Minimized = new bool[MaxSlots];
         private static readonly bool[] Dirty = new bool[MaxSlots];
         private static readonly HashSet<string>?[] FavoriteCache = new HashSet<string>?[MaxSlots];
+        /// <summary>Reveal reached this open player while the tick budget was spent.</summary>
+        private static readonly bool[] RevealPending = new bool[MaxSlots];
+        /// <summary>Opens waiting for tick budget, first in first out. Queued players are not open.</summary>
+        private static readonly List<int> PendingOpens = [];
+        private static readonly bool[] Pending = new bool[MaxSlots];
+        private static readonly bool[] PendingCapture = new bool[MaxSlots];
         private static int _dirtyCount;
         private static int _typeSelection;
         private static int _sortSelection = -1;
@@ -199,16 +207,67 @@ namespace MapVote.Huds
             if (slot is >= 0 and < MaxSlots)
             {
                 ResetSlotState(slot);
+                if (Pending[slot])
+                {
+                    Pending[slot] = false;
+                    PendingOpens.Remove(slot);
+                }
             }
         }
 
+        /// <summary>
+        /// Opens now when the tick budget allows and nobody is queued ahead,
+        /// otherwise queues the open for <see cref="OnTick"/>.
+        /// </summary>
         public static void OpenFor(CCSPlayerController player, bool captureMouse = true)
         {
-            if (!IsBound || !Humans.IsHumanViewer(player))
+            if (!IsBound || !Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
 
+            int slot = player.Slot;
+            PendingCapture[slot] = captureMouse;
+            if (!Pending[slot])
+            {
+                Pending[slot] = true;
+                PendingOpens.Add(slot);
+            }
+
+            DrainPendingOpens();
+            if (Pending[slot])
+            {
+                PluginLog.Debug($"hud open queued: {Humans.Label(player)} slot={slot} queue={PendingOpens.Count}");
+            }
+        }
+
+        private static void DrainPendingOpens()
+        {
+            while (PendingOpens.Count > 0 && CustomHud.TickWrites < PaintWriteBudget)
+            {
+                int slot = PendingOpens[0];
+                PendingOpens.RemoveAt(0);
+                Pending[slot] = false;
+                if (Utilities.GetPlayerFromSlot(slot) is not { } player || !Humans.IsHumanViewer(player))
+                {
+                    continue;
+                }
+
+                if (_revealing)
+                {
+                    // Reveal started while queued: open like a joiner during reveal.
+                    OpenNow(player, captureMouse: false);
+                    ApplyRevealPaint(player);
+                }
+                else
+                {
+                    OpenNow(player, PendingCapture[slot]);
+                }
+            }
+        }
+
+        private static void OpenNow(CCSPlayerController player, bool captureMouse)
+        {
             WriteDefaults(player);
             Paint(player);
             HudMenu.Open(player, new HudMenuOpenOptions { OnButton = OnButton, CaptureMouse = captureMouse });
@@ -224,6 +283,12 @@ namespace MapVote.Huds
 
             _revealing = true;
             _winner = winner;
+            if (player.Slot is >= 0 and < MaxSlots && Pending[player.Slot])
+            {
+                // Not open yet; DrainPendingOpens opens it in the reveal state.
+                return;
+            }
+
             ApplyRevealPaint(player);
         }
 
@@ -247,26 +312,37 @@ namespace MapVote.Huds
 
         public static void Paint(CCSPlayerController player)
         {
-            if (!IsBound || !Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
+            if (!IsBound || !Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots || Pending[player.Slot])
             {
                 return;
             }
 
-            CustomHud.BeginWriteBudget();
-            try
+            if (CustomHud.TickWrites >= PaintWriteBudget)
             {
-                PaintCore(player);
-                SetDirty(player.Slot, CustomHud.Writes >= PaintWriteBudget);
+                // Postponed, not partial: keep the click tables of a finished grid.
+                SetDirty(player.Slot, true);
+                return;
             }
-            finally
+
+            if (RevealPending[player.Slot])
             {
-                CustomHud.EndWriteBudget();
+                ApplyRevealPaint(player);
+                return;
             }
+
+            PaintCore(player);
+            SetDirty(player.Slot, CustomHud.TickWrites >= PaintWriteBudget);
         }
 
         public static void OnTick()
         {
-            if (!IsBound || _dirtyCount == 0)
+            if (!IsBound || (_dirtyCount == 0 && PendingOpens.Count == 0))
+            {
+                return;
+            }
+
+            DrainPendingOpens();
+            if (_dirtyCount == 0 || CustomHud.TickWrites >= PaintWriteBudget)
             {
                 return;
             }
@@ -313,6 +389,19 @@ namespace MapVote.Huds
 
         private static void ApplyRevealPaint(CCSPlayerController player)
         {
+            if (player.Slot is >= 0 and < MaxSlots)
+            {
+                if (CustomHud.TickWrites >= PaintWriteBudget)
+                {
+                    // Paint (via OnTick) finishes the reveal once budget is back.
+                    RevealPending[player.Slot] = true;
+                    SetDirty(player.Slot, true);
+                    return;
+                }
+
+                RevealPending[player.Slot] = false;
+            }
+
             HudMenu.DropCapture(player);
             if (player.Slot is >= 0 and < MaxSlots)
             {
@@ -489,7 +578,7 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, VoteIds.CurrentImage, "is-fav", isFav);
             CustomHud.SetHasClass(player, VoteIds.CurrentRating, "is-positive", score > 0);
             CustomHud.SetHasClass(player, VoteIds.CurrentRating, "is-negative", score < 0);
-            CustomHud.SetText(player, Panel, VoteIds.CurrentNameVar, _formatMapName(current));
+            CustomHud.SetText(player, Panel, VoteIds.CurrentNameVar, MapNameDisplay.ForHud(_formatMapName(current)));
             CustomHud.SetText(player, Panel, VoteIds.CurrentRatingVar, FormatRating(score));
             CustomHud.SetMapImage(player, VoteIds.CurrentShot, current, _currentOrigin);
 
@@ -916,7 +1005,7 @@ namespace MapVote.Huds
             int painted = Math.Min(order.Count, limit);
             for (int i = 0; i < slots; i++)
             {
-                if (CustomHud.Writes >= PaintWriteBudget)
+                if (CustomHud.TickWrites >= PaintWriteBudget)
                 {
                     InvalidateRememberFrom(player, pool, i);
                     return;
@@ -971,14 +1060,17 @@ namespace MapVote.Huds
                 // Grid visibility is global; per-player only clears a
                 // favorites-only hide from an earlier paint.
                 CustomHud.SetHasClassGlobal(slotId, "is-off", false);
-                CustomHud.SetHasClass(player, slotId, "is-off", false);
+                if (CustomHud.TryGetPlayerClass(player, slotId, "is-off", out bool hiddenForPlayer) && hiddenForPlayer)
+                {
+                    CustomHud.SetHasClass(player, slotId, "is-off", false);
+                }
             }
 
             CustomHud.SetHasClassGlobal(tileId, "is-voted", votes > 0);
             CustomHud.SetHasClassGlobal(tileId, "is-done", isWinner);
             CustomHud.SetHasClassGlobal(tileId, "is-lost", isLost);
             CustomHud.SetTextGlobal(Panel, VoteVar(pool, index), votes.ToString());
-            CustomHud.SetTextGlobal(Panel, NameVar(pool, index), _formatMapName(map));
+            CustomHud.SetTextGlobal(Panel, NameVar(pool, index), MapNameDisplay.ForHud(_formatMapName(map)));
             PaintRating(index, pool, map);
             _origins.TryGetValue(map, out MapOrigin origin);
             CustomHud.SetMapImageGlobal(ShotId(pool, index), map, origin);
@@ -1020,6 +1112,13 @@ namespace MapVote.Huds
             if (pool == Pool.Voted || shared)
             {
                 CustomHud.SetHasClassGlobal(slotId, "is-off", true);
+                // A per-player false from an earlier paint would still win over the global hide.
+                if (pool == Pool.Grid
+                    && CustomHud.TryGetPlayerClass(player, slotId, "is-off", out bool shownForPlayer)
+                    && !shownForPlayer)
+                {
+                    CustomHud.SetHasClass(player, slotId, "is-off", true);
+                }
             }
             else
             {
@@ -1062,6 +1161,7 @@ namespace MapVote.Huds
             Minimized[slot] = false;
             SetDirty(slot, false);
             FavoriteCache[slot] = null;
+            RevealPending[slot] = false;
 
             for (int i = 0; i < SlotCount; i++)
             {
@@ -1079,6 +1179,9 @@ namespace MapVote.Huds
             Array.Fill(Minimized, false);
             Array.Fill(Dirty, false);
             Array.Fill(FavoriteCache, null);
+            Array.Fill(RevealPending, false);
+            Array.Fill(Pending, false);
+            PendingOpens.Clear();
             _typeSelection = 0;
             _sortSelection = -1;
             _dirtyCount = 0;
