@@ -4,7 +4,7 @@ namespace MapVote
 {
     public partial class MapVote : BasePlugin
     {
-        public override string ModuleVersion => "26.11.7";
+        public override string ModuleVersion => "26.11.8";
 
         /// <summary>Workshop layout generation spawned by CustomHud (<c>vote_vN.vxml_c</c>).</summary>
         public const string PanoramaVersion = "v2";
