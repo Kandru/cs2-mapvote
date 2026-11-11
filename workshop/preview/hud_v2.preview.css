@@ -274,6 +274,18 @@ button { pointer-events: auto; }
 	clip-path: inset(0% 100% 0% 0%);
 }
 
+/* The reveal drains a fresh panel: reversing a still-running drain would refill at the old pace. */
+.TimerFillReveal,
+.VoteRoot.view-reveal .TimerFill
+{
+	display: none;
+}
+
+.VoteRoot.view-reveal .TimerFillReveal
+{
+	display: flex;
+}
+
 @keyframes mv-urgent
 {
 	0% { opacity: 1.0; }

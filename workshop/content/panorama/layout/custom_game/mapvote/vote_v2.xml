@@ -18,6 +18,7 @@
 						<Label class="TimerText" hittest="false" text="{s:mv_time}" />
 						<Panel class="TimerTrack" hittest="false">
 							<Panel id="mv-timer-fill" class="TimerFill" hittest="false" />
+							<Panel id="mv-timer-fill-reveal" class="TimerFill TimerFillReveal" hittest="false" />
 						</Panel>
 					</Panel>
 					<Button id="mv-minimize" class="HideBtn">

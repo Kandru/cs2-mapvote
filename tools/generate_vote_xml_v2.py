@@ -15,6 +15,8 @@ Top bar
   #mv-timer               is-urgent (P, last 5 s; red text + pulse, the only infinite animation)
   mv_time       (G) countdown text, at most 1x/s     "0:08"
   #mv-timer-fill          span-3 … span-90 (P, set first), is-running (P, next tick). Reset: remove both.
+  #mv-timer-fill-reveal   same classes, used only in the reveal: a fresh panel, because reversing a still
+                          running drain refills at the old pace (after a late client start, e.g. a reconnect).
   #mv-minimize  Button    hide/show toggle
   mv_hide       (P) its label                        "Ausblenden" / "Einblenden"
 Status
@@ -152,6 +154,7 @@ def top_bar(x: Xml) -> None:
     x.leaf("Label", cls="TimerText", text="{s:mv_time}")
     x.open("Panel", cls="TimerTrack")
     x.leaf("Panel", "mv-timer-fill", "TimerFill")
+    x.leaf("Panel", "mv-timer-fill-reveal", "TimerFill TimerFillReveal")
     x.close("Panel")
     x.close("Panel")
     x.open("Button", "mv-minimize", "HideBtn")

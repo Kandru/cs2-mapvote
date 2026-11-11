@@ -601,7 +601,7 @@ CSS_BLOCK_RE = re.compile(r"([^{}]+)\{([^{}]*)\}")
 def v2_expected() -> tuple[set[str], set[str]]:
     """Ids and dialog variables the v2 contract promises (docstring of generate_vote_xml_v2.py)."""
     ids = {
-        "Vote", "mv-timer", "mv-timer-fill", "mv-minimize", "mv-status", "mv-current", "mv-current-shot",
+        "Vote", "mv-timer", "mv-timer-fill", "mv-timer-fill-reveal", "mv-minimize", "mv-status", "mv-current", "mv-current-shot",
         "mv-current-fav", "mv-rate", "mv-like", "mv-dislike", "mv-rank", "mv-rank-empty", "mv-filters",
         "mv-fav-only", "mv-catalog", "mv-empty", "mv-win-shot",
     }

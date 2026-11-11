@@ -13,6 +13,7 @@ namespace MapVote.Huds
         public const string Timer = "mv-timer";                 // is-urgent P
         public const string TimeVar = "mv_time";                // G
         public const string TimerFill = "mv-timer-fill";        // span-N then is-running, P
+        public const string TimerFillReveal = "mv-timer-fill-reveal"; // same, reveal only (fresh panel), P
         public const string Minimize = "mv-minimize";
         public const string HideVar = "mv_hide";                // P
 

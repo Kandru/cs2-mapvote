@@ -179,8 +179,9 @@
     if (left-- > 0) setTimeout(tick, 1000);
   };
   if (left > 0) {
-    flag("mv-timer-fill", `span-${left}`, true);
-    requestAnimationFrame(() => requestAnimationFrame(() => flag("mv-timer-fill", "is-running", true)));
+    const fill = STATE === "reveal" ? "mv-timer-fill-reveal" : "mv-timer-fill";
+    flag(fill, `span-${left}`, true);
+    requestAnimationFrame(() => requestAnimationFrame(() => flag(fill, "is-running", true)));
     tick();
   }
 

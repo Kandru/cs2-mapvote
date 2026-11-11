@@ -493,7 +493,8 @@ namespace MapVote.Huds
         public static void OnButton(CCSPlayerController player, string buttonId)
         {
             bool browsing = _mode == Mode.Browse;
-            bool interactive = browsing || _session is { IsOpen: true };            if (!interactive || player.Slot is < 0 or >= MaxSlots)
+            bool interactive = browsing || _session is { IsOpen: true };
+            if (!interactive || player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
@@ -1163,6 +1164,9 @@ namespace MapVote.Huds
             ForEachOpen(player => CustomHud.SetHasClass(player, VoteIds.Timer, "is-urgent", urgent));
         }
 
+        // The reveal drains its own fresh panel; resetting the vote bar mid-transition would refill slowly.
+        private static string TimerFillId => _revealing ? VoteIds.TimerFillReveal : VoteIds.TimerFill;
+
         /// <summary>Reset the bar (remove both classes), then span-N and is-running in later ticks.</summary>
         private static void StartTimer(CCSPlayerController player)
         {
@@ -1172,10 +1176,10 @@ namespace MapVote.Huds
             }
 
             int before = CustomHud.TickWrites;
-            CustomHud.SetHasClass(player, VoteIds.TimerFill, "is-running", false);
+            CustomHud.SetHasClass(player, TimerFillId, "is-running", false);
             for (int s = VoteIds.SpanMin; s <= VoteIds.SpanMax; s++)
             {
-                CustomHud.SetHasClass(player, VoteIds.TimerFill, VoteIds.SpanClasses[s], false);
+                CustomHud.SetHasClass(player, TimerFillId, VoteIds.SpanClasses[s], false);
             }
 
             // A reset that went out needs its own tick, or span-N would animate a refill.
@@ -1221,13 +1225,13 @@ namespace MapVote.Huds
                     return;
                 }
 
-                CustomHud.SetHasClass(player, VoteIds.TimerFill, VoteIds.SpanClasses[VoteView.SpanFor(remaining)], true);
+                CustomHud.SetHasClass(player, TimerFillId, VoteIds.SpanClasses[VoteView.SpanFor(remaining)], true);
                 TimerStage[slot] = 2;
                 TimerTick[slot] = now;
             }
             else if (TimerStage[slot] == 2)
             {
-                CustomHud.SetHasClass(player, VoteIds.TimerFill, "is-running", true);
+                CustomHud.SetHasClass(player, TimerFillId, "is-running", true);
                 TimerStage[slot] = 0;
             }
         }
