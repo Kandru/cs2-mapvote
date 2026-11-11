@@ -285,6 +285,7 @@ namespace MapVote
                 return;
             }
 
+            VoteHud.SetDeadline(_scheduleEpochUtc.AddSeconds(_timing.RevealOffsetSeconds));
             bool openForVote = untilReveal > 0f;
             foreach (CCSPlayerController player in Humans.GetHumans())
             {
@@ -397,6 +398,7 @@ namespace MapVote
 
             LockWinner();
             string winner = _pendingWinner ?? _session.Maps[0];
+            VoteHud.SetDeadline(_scheduleEpochUtc.AddSeconds(_timing.ChangelevelOffsetSeconds));
             VoteHud.BeginReveal(winner);
 
             float remaining = RemainingUntil(_timing.ChangelevelOffsetSeconds);

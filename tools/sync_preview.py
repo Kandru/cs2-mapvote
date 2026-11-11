@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from map_names import DEFAULT_STEM, is_playable_map_id
-from mapvote_layout import HUD_VCSS_NAME, MAPS_VCSS_NAME, VOTE_XML_NAME
+from mapvote_layout import HUD_V2_VCSS_NAME, HUD_VCSS_NAME, MAPS_VCSS_NAME, VOTE_V2_XML_NAME, VOTE_XML_NAME
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "workshop" / "content" / "panorama"
@@ -25,6 +25,11 @@ OUT_CSS = PREVIEW / "hud.preview.css"
 OUT_JS = PREVIEW / "vote.js"
 OUT_BROWSE_HTML = PREVIEW / "maps.html"
 OUT_BROWSE_JS = PREVIEW / "maps.js"
+VOTE_V2_XML = CONTENT / "layout" / "custom_game" / "mapvote" / VOTE_V2_XML_NAME
+HUD_V2_VCSS = CONTENT / "styles" / "custom_game" / "mapvote" / HUD_V2_VCSS_NAME
+OUT_V2_HTML = PREVIEW / "vote_v2.html"
+OUT_V2_BROWSE_HTML = PREVIEW / "maps_v2.html"
+OUT_V2_CSS = PREVIEW / "hud_v2.preview.css"
 
 TAGS = {"Panel": "div", "Label": "div", "Button": "button", "Image": "div"}
 
@@ -68,6 +73,11 @@ HORIZ_CENTER_RE = re.compile(r"horizontal-align:\s*center\s*;")
 HORIZ_RIGHT_RE = re.compile(r"horizontal-align:\s*right\s*;")
 HORIZ_LEFT_RE = re.compile(r"horizontal-align:\s*left\s*;")
 BG_IMG_OPACITY_RE = re.compile(r"background-img-opacity:\s*([0-9.]+)\s*;")
+CLIP_RECT_RE = re.compile(
+    r"(?<![-\w])clip:\s*rect\(\s*([\d.]+)%\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)\s*;"
+)
+TRANSITION_PROP_RE = re.compile(r"transition-property:([^;]*);")
+QUOTED_ANIM_RE = re.compile(r"""(@keyframes\s+|animation-name:\s*)['"]([^'"]+)['"]""")
 
 # Stand-ins for stock Valve icons referenced by the HUD (browser cannot load s2r://).
 S2R_ICON_STANDINS = {
@@ -96,6 +106,14 @@ S2R_ICON_STANDINS = {
         "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
         "%3Cpath fill='none' stroke='%23ffffff' stroke-width='3' "
         "d='M4 12.5 9.5 18 20 6'/%3E"
+        "%3C/svg%3E"
+    ),
+    # Stock CS2 thumb; the dislike is the same icon turned by 180deg in CSS.
+    "panorama/images/icons/ui/thumbs_up.vsvg": (
+        "data:image/svg+xml,"
+        "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
+        "%3Cpath fill='%23ffffff' d='M2 21h4V9H2v12zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3a1.5 1.5 0 0 0-.4-1"
+        "L13.2 1 6.6 7.6A2 2 0 0 0 6 9v10a2 2 0 0 0 2 2h9a2 2 0 0 0 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2z'/%3E"
         "%3C/svg%3E"
     ),
     "panorama/images/icons/ui/cancel.svg": (
@@ -204,6 +222,24 @@ def translate_css(text: str) -> str:
         lambda m: f"opacity: {m.group(1)}; /* background-img-opacity */", t
     )
 
+    # Panorama clip rect (t, r, b, l in %) -> clip-path inset; keyframe names unquoted for browsers.
+    t = CLIP_RECT_RE.sub(
+        lambda m: (
+            f"clip-path: inset({m.group(1)}% {100 - float(m.group(2)):g}% "
+            f"{100 - float(m.group(3)):g}% {m.group(4)}%);"
+        ),
+        t,
+    )
+    t = TRANSITION_PROP_RE.sub(
+        lambda m: "transition-property:" + re.sub(r"\bclip\b", "clip-path", m.group(1)) + ";", t
+    )
+    t = QUOTED_ANIM_RE.sub(r"\1\2", t)
+    t = t.replace("background-size: contains;", "background-size: contain;")
+    # A later fixed height replaces fill-parent-flow in Panorama; flex-grow would keep it in Chromium.
+    t = t.replace("height: 0px;", "height: 0px; flex: none;")
+    # Panorama labels clip their own text; browsers need overflow for the ellipsis.
+    t = t.replace("text-overflow: ellipsis;", "text-overflow: ellipsis; overflow: hidden;")
+
     t = SAT_RE.sub(r"filter: saturate(\1); /* saturation */", t)
     t = BRIGHT_RE.sub(r"filter: brightness(\1); /* brightness */", t)
 
@@ -222,6 +258,8 @@ def translate_css(text: str) -> str:
         "display: flex; flex-direction: row; flex-wrap: nowrap;",
     )
     t = t.replace("visibility: collapse;", "display: none;")
+    # Undo of a collapse; a rule that needs a column/stack also states its flow-children after this.
+    t = t.replace("visibility: visible;", "display: flex;")
     t = WIDTH_PERCENTAGE_RE.sub(
         lambda m: f"aspect-ratio: 100 / {m.group(1)}; height: auto;",
         t,
@@ -274,7 +312,7 @@ def translate_css(text: str) -> str:
     return t
 
 
-def render_node(node: ET.Element, out: list[str]) -> None:
+def render_node(node: ET.Element, out: list[str], mark_hit: bool = False) -> None:
     tag = TAGS.get(node.tag)
     if tag is None:
         return
@@ -287,6 +325,8 @@ def render_node(node: ET.Element, out: list[str]) -> None:
     if ident:
         attrs.append(f'id="{html.escape(ident)}"')
         attrs.append(f'data-id="{html.escape(ident)}"')
+    if mark_hit and node.get("hittest") == "false":
+        attrs.append("data-nohit")
 
     text = node.get("text", "")
     body = ""
@@ -300,7 +340,7 @@ def render_node(node: ET.Element, out: list[str]) -> None:
     attr_s = (" " + " ".join(attrs)) if attrs else ""
     out.append(f"<{tag}{attr_s}>{body}")
     for child in node:
-        render_node(child, out)
+        render_node(child, out, mark_hit)
     out.append(f"</{tag}>")
 
 
@@ -1297,8 +1337,75 @@ def write_html(path: Path, body: str, js_name: str, title: str, browse: bool) ->
     )
 
 
+SHELL_V2_CSS = """
+/* Browser host only. Visual layout comes from the translated hud_v2.vcss below. */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap");
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: #0a0c10; color: #f5f7fa; overflow: hidden; font-family: "Barlow Condensed", sans-serif; }
+div, button { min-width: 0; min-height: 0; flex-shrink: 0; line-height: 1.15; }
+button { background: none; border: 0; font: inherit; color: inherit; cursor: pointer; text-align: inherit; padding: 0; appearance: none; }
+.pv-plate { position: fixed; inset: 0; background: #0a0c10 url("endmatch.jpg") center center / cover no-repeat; overflow: hidden; }
+.HudScreen { position: absolute; inset: 0; }
+/* Preview forces the card open; the game starts with is-off. */
+.VoteRoot.is-off { display: grid !important; }
+/* Panorama paints later siblings on top; in Chromium the blurred glass would form a higher stacking layer. */
+.VoteColumn { position: relative; z-index: 1; }
+/* hittest="false" */
+[data-nohit] { pointer-events: none; }
+button { pointer-events: auto; }
+.pv-bar { position: fixed; left: 12px; bottom: 36px; z-index: 20; display: flex; gap: 6px; align-items: center;
+  font: 12px/1.4 ui-monospace, monospace; }
+.pv-bar a { border: 1px solid #ffffff22; background: #0b0f14e0; padding: 3px 9px; border-radius: 3px; color: #d7deea; text-decoration: none; }
+.pv-bar a.is-active { border-color: #f0a531; color: #ffd27a; }
+.pv-bar .pv-sep { width: 1px; height: 18px; background: #ffffff33; margin: 0 4px; }
+"""
+
+STACK_CLASS_RE = re.compile(r"^\.([A-Za-z][\w-]*)\s*\{[^}]*flow-children:\s*none", re.M)
+
+
+def sync_v2() -> list[str]:
+    """Preview of layout v2: vote_v2.html (vote/voted/reveal/empty) + maps_v2.html (browse), preview_v2.js."""
+    for path in (VOTE_V2_XML, HUD_V2_VCSS, MAPS_VCSS):
+        if not path.is_file():
+            return [f"missing {path.relative_to(ROOT)}"]
+    try:
+        root = ET.parse(VOTE_V2_XML).getroot()
+    except ET.ParseError as ex:
+        return [f"{VOTE_V2_XML_NAME}: parse error: {ex}"]
+    body_parts: list[str] = []
+    for child in root:
+        if child.tag != "styles":
+            render_node(child, body_parts, mark_hit=True)
+    body = "".join(body_parts)
+
+    hud = HUD_V2_VCSS.read_text(encoding="utf-8")
+    # flow-children: none stacks children; the browser grid needs every child in the one cell.
+    # position: relative keeps DOM paint order when a child forms its own layer (filter, opacity).
+    stacks = "\n".join(f".{c} > * {{ grid-area: 1 / 1; position: relative; }}" for c in STACK_CLASS_RE.findall(hud))
+    css = [f"/* AUTO-GENERATED from {HUD_V2_VCSS_NAME} + {MAPS_VCSS_NAME} by tools/sync_preview.py - do not edit. */\n", SHELL_V2_CSS, stacks]
+    for path in (HUD_V2_VCSS, MAPS_VCSS):
+        translated = "\n".join(line.rstrip() for line in translate_css(path.read_text(encoding="utf-8")).splitlines())
+        css.append(f"\n/* ---- {path.name} (translated) ---- */\n{translated}\n")
+    OUT_V2_CSS.write_text("\n".join(css), encoding="utf-8", newline="\n")
+
+    maps_json = json.dumps(preview_maps(), separators=(",", ":"))
+    for out, browse, title in ((OUT_V2_HTML, "0", "MapVote v2 preview"), (OUT_V2_BROWSE_HTML, "1", "MapVote v2 map browser preview")):
+        out.write_text(
+            "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\" />\n"
+            f"<title>{title}</title>\n<link rel=\"stylesheet\" href=\"hud_v2.preview.css\" />\n</head>\n"
+            f"<body data-browse=\"{browse}\">\n<div class=\"pv-plate\">\n{body}\n</div>\n"
+            f"<script>window.PV_MAPS = {maps_json};</script>\n<script src=\"preview_v2.js\"></script>\n"
+            "</body>\n</html>\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+    return []
+
+
 def sync() -> list[str]:
-    errors: list[str] = []
+    errors: list[str] = sync_v2()
     if not VOTE_XML.is_file():
         return [f"missing {VOTE_XML.relative_to(ROOT)}"]
     if not HUD_VCSS.is_file():

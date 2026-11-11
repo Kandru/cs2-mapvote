@@ -18,3 +18,5 @@ Read and follow these before editing HUD or image tooling:
 - Stock end-match vote layout/styles under `stuff/panorama/` - especially `layout/endofmatch-voting.xml`, `styles/endofmatch-voting.css`, `styles/endofmatch.css`
 
 Run `make panorama` after XML/CSS changes. Layout edits require a workshop addon republish.
+
+Layout v2 (`vote_v2.xml`, `hud_v2.vcss`) is generated: edit `tools/generate_vote_xml_v2.py`, run it, then `python3 tools/sync_preview.py`, then `make panorama`. Do not hand-edit the generated files. Keep `src/MapVote/Huds/VoteIds.cs` in step with the generator docstring. The v1 files stay in the addon for older plugin versions.
