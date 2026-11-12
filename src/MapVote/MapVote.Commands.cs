@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Timers;
 using MapVote.Utils;
 
 namespace MapVote
@@ -118,32 +117,38 @@ namespace MapVote
         {
             StopRtvWindow();
 
+            int token = _rtvToken;
             int duration = Math.Max(0, Config.Rtv.DurationSeconds);
             if (duration > 0)
             {
                 _rtvDeadlineUtc = DateTime.UtcNow.AddSeconds(duration);
-                _rtvExpireTimer = AddTimer(duration, OnRtvExpired);
+                AddTimer(duration, () => OnRtvExpired(token));
             }
 
             int announce = Math.Max(0, Config.Rtv.AnnounceSeconds);
             if (announce > 0)
             {
-                _rtvAnnounceTimer = AddTimer(announce, OnRtvAnnounce, TimerFlags.REPEAT);
+                ScheduleRtvAnnounce(token, announce);
             }
         }
 
+        /// <summary>Cancels the window timers by token; safe to call from their own callbacks.</summary>
         private void StopRtvWindow()
         {
-            _rtvExpireTimer?.Kill();
-            _rtvExpireTimer = null;
-            _rtvAnnounceTimer?.Kill();
-            _rtvAnnounceTimer = null;
+            _rtvToken++;
             _rtvDeadlineUtc = null;
         }
 
-        private void OnRtvExpired()
+        private void ScheduleRtvAnnounce(int token, int seconds) =>
+            AddTimer(seconds, () => OnRtvAnnounce(token, seconds));
+
+        private void OnRtvExpired(int token)
         {
-            _rtvExpireTimer = null;
+            if (token != _rtvToken)
+            {
+                return;
+            }
+
             if (_unloaded || _rtvPassed || _rtvClosed || _rtvVoters.Count == 0)
             {
                 StopRtvWindow();
@@ -156,8 +161,14 @@ namespace MapVote
             Server.PrintToChatAll(Chat(Localizer["rtv.expired"]));
         }
 
-        private void OnRtvAnnounce()
+        private void OnRtvAnnounce(int token, int seconds)
         {
+            if (token != _rtvToken)
+            {
+                return;
+            }
+
+            ScheduleRtvAnnounce(token, seconds);
             if (_unloaded || _rtvPassed || _rtvClosed || _rtvVoters.Count == 0)
             {
                 return;

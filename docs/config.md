@@ -8,6 +8,7 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | `clean_map_names` | `true` | Show `de_dust2` as `Dust2`: drop a leading type prefix (`de_`, `cs_`, ...), capitalize the first letter, and order the list by that name. `false` keeps raw map ids and catalog order |
 | `endmatch.exclude_current_map` | `true` | Hide the map just played |
 | `endmatch.vote_seconds` | `null` | Menu length. `null` uses the server's `mp_endmatch_votenextleveltime` as first read. The engine timer is then written longer (vote length + 4s) so it does not change the map before the plugin |
+| `endmatch.max_maps` | `100` | Most maps offered in the vote (1 to 100). Above that many votable maps, a random subset is offered each vote; `!maps` always lists up to 100 |
 | `endmatch.winner_reveal_seconds` | `5` | Locked-winner hold after our vote (custom menu only); taken off the end of the time after the 6s match-results hold |
 | `rtv.enabled` | `true` | `!rtv` / `css_rtv` / `rtv` |
 | `rtv.ratio` | `0.6` | Fraction of humans required (clamped 0.01–1) |

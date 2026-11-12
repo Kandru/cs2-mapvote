@@ -36,19 +36,21 @@ namespace MapVote.Utils
             return slots;
         }
 
-        private static bool _budgetActive;
+        /// <summary>Classes some panel of layout v2 authors as present; an uncached false write must still go out.</summary>
+        private static readonly HashSet<string> AuthoredOn = new(StringComparer.Ordinal) { "is-off", "p0", "votes-none", "view-vote" };
+
+        /// <summary>Per-player classes whose XML default is on wherever v2 writes them per player (#Vote, mv-slot-*, mv-empty).</summary>
+        private static readonly HashSet<string> PlayerAuthoredOn = new(StringComparer.Ordinal) { "is-off", "view-vote" };
+
+        private static int _writesTick = -1;
         private static int _writes;
 
-        /// <summary>Native Set* calls since the last <see cref="BeginWriteBudget"/>.</summary>
-        public static int Writes => _writes;
+        /// <summary>Native layout writes in the current server tick, from every caller and every player.</summary>
+        public static int TickWrites => WritesInTick(_writesTick, _writes, Server.TickCount);
 
-        public static void BeginWriteBudget()
-        {
-            _budgetActive = true;
-            _writes = 0;
-        }
-
-        public static void EndWriteBudget() => _budgetActive = false;
+        /// <summary>A count belongs to the tick it was made in; any other tick starts at zero.</summary>
+        internal static int WritesInTick(int countedTick, int writes, int nowTick) =>
+            countedTick == nowTick ? writes : 0;
 
         public static bool IsPanelVisible(CCSPlayerController player, string panelId) =>
             player is { IsValid: true }
@@ -57,6 +59,8 @@ namespace MapVote.Utils
 
         public static bool EnsureSpawned(CCSPlayerController player) =>
             Humans.IsHumanViewer(player) && EnsureLayout();
+
+        public static void Prewarm() => EnsureLayout();
 
         public static bool TryGetLayout(CCSPlayerController player, string rootPanelId, out CCSCustomHudLayout hud)
         {
@@ -156,10 +160,10 @@ namespace MapVote.Utils
                 return true;
             }
 
-            // Only is-off is authored as true in the layout; every other state
-            // class starts absent. On a pristine slot a false write would be a
-            // no-op that only bloats the per-player vectors.
-            if (!cached && !enabled && className != "is-off" && IsPristine(player.Slot))
+            // Only the AuthoredOn classes can be true in the XML; every other
+            // state class starts absent. On a pristine slot a false write would
+            // be a no-op that only bloats the per-player vectors.
+            if (!cached && !enabled && !AuthoredOn.Contains(className) && IsPristine(player.Slot))
             {
                 SetCached(ClassBySlot, player.Slot, panelId, className, false);
                 return true;
@@ -176,12 +180,24 @@ namespace MapVote.Utils
             return true;
         }
 
-        private static void NoteWrite()
+        /// <summary>The global class value last written, if any.</summary>
+        public static bool TryGetGlobalClass(string panelId, string className, out bool enabled)
         {
-            if (_budgetActive)
-            {
-                _writes++;
-            }
+            enabled = false;
+            return GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes)
+                && classes.TryGetValue(className, out enabled);
+        }
+
+        /// <summary>The per-player class value last written for this viewer, if any.</summary>
+        public static bool TryGetPlayerClass(CCSPlayerController player, string panelId, string className, out bool enabled) =>
+            TryGetCached(ClassBySlot, player.Slot, panelId, className, out enabled);
+
+        /// <summary>Counts one native write against the per-tick budget.</summary>
+        internal static void NoteWrite()
+        {
+            int now = Server.TickCount;
+            _writes = WritesInTick(_writesTick, _writes, now) + 1;
+            _writesTick = now;
         }
 
         public static void SetTextGlobal(string panelId, string name, string value)
@@ -239,7 +255,7 @@ namespace MapVote.Utils
                 return true;
             }
 
-            if (!cached && !enabled && className != "is-off")
+            if (!cached && !enabled && !AuthoredOn.Contains(className))
             {
                 RememberGlobalClass(panelId, className, false);
                 return true;
@@ -406,6 +422,7 @@ namespace MapVote.Utils
             if (TryGetLayout(player, VoteHud.Panel, out CCSCustomHudLayout hud))
             {
                 hud.SetInputCaptureEnabled(player, false);
+                NoteWrite();
             }
         }
 
@@ -628,9 +645,15 @@ namespace MapVote.Utils
             {
                 foreach ((string panelId, Dictionary<string, bool> map) in classes)
                 {
-                    foreach ((string className, bool enabled) in map.Where(static kv => kv.Value))
+                    foreach ((string className, bool enabled) in map.ToList())
                     {
-                        SetHasClass(player, panelId, className, false);
+                        // Back to the XML default: off for state classes, on for the authored-on ones
+                        // (a lingering per-player is-off=false would be a ghost card after the reset).
+                        bool authored = PlayerAuthoredOn.Contains(className);
+                        if (enabled != authored)
+                        {
+                            SetHasClass(player, panelId, className, authored);
+                        }
                     }
                 }
             }

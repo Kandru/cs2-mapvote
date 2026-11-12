@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
@@ -55,8 +56,36 @@ namespace MapVote
                 return;
             }
 
-            OpenMapBrowserFor(player);
-            PluginLog.Info($"maps opened: {label}");
+            if (player.Slot is >= 0 and < 65)
+            {
+                ScheduleMapBrowserOpen(player.Slot, id);
+            }
+        }
+
+        /// <summary>
+        /// Opens the browser 0.2s after the chat command, never in the command tick (ruleset §1.3).
+        /// A newer !maps from the same slot supersedes a pending open.
+        /// </summary>
+        private void ScheduleMapBrowserOpen(int slot, ulong steamId)
+        {
+            int token = ++_hudOpenTokens[slot];
+            AddTimer(HudOpenDelaySeconds, () =>
+            {
+                if (_unloaded
+                    || _hudOpenTokens[slot] != token
+                    || _mapsClosed
+                    || VoteBusy
+                    || _catalog.Maps.Count == 0
+                    || Utilities.GetPlayerFromSlot(slot) is not { } player
+                    || !Humans.IsHumanViewer(player)
+                    || player.AuthorizedSteamID?.SteamId64 != steamId)
+                {
+                    return;
+                }
+
+                OpenMapBrowserFor(player);
+                PluginLog.Info($"maps opened: {Humans.Label(player, steamId)}");
+            });
         }
 
         /// <summary>
@@ -73,6 +102,7 @@ namespace MapVote
             if (!VoteHud.IsBrowsing)
             {
                 List<MapEntry> maps = SelectMaps(excludeCurrent: false);
+                var (currentMap, currentOrigin) = CurrentMap();
                 Dictionary<string, MapOrigin> origins = new(maps.Count, StringComparer.Ordinal);
                 List<string> names = new(maps.Count);
                 foreach (MapEntry map in maps)
@@ -88,6 +118,8 @@ namespace MapVote
                     (viewer, key) => Localization.ForPlayerSafe(Localizer, viewer, key),
                     origins,
                     names,
+                    currentMap,
+                    currentOrigin,
                     Config.CleanMapNames);
             }
 

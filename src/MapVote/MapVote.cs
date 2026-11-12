@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Extensions;
 using MapVote.Config;
 using MapVote.Huds;
@@ -7,12 +8,16 @@ using MapVote.Maps;
 using MapVote.Players;
 using MapVote.Utils;
 using MapVote.Voting;
-using CssTimer = CounterStrikeSharp.API.Modules.Timers.Timer;
 
 namespace MapVote
 {
+    [MinimumApiVersion(379)]
     public partial class MapVote : BasePlugin, IPluginConfig<PluginConfig>
     {
+        private const float PrewarmDelaySeconds = 2f;
+        private const float HudOpenDelaySeconds = 0.2f;
+        private const float JoinerOpenDelaySeconds = 0.5f;
+
         public override string ModuleName => "MapVote";
         public override string ModuleAuthor => "Kandru";
         public override string ModuleDescription => "Fullscreen Panorama end-match map vote";
@@ -24,12 +29,11 @@ namespace MapVote
         private MapPlayCounts _plays = null!;
         private VoteSession? _session;
         private VoteTiming _timing;
-        private CssTimer? _openTimer;
-        private CssTimer? _revealTimer;
-        private CssTimer? _decisionTimer;
-        private CssTimer? _holdTimer;
-        private CssTimer? _rtvExpireTimer;
-        private CssTimer? _rtvAnnounceTimer;
+        // Timers are cancelled by bumping these tokens, never by Kill() (ruleset §1.3).
+        private int _flowEpoch;
+        private int _rtvToken;
+        private int _prewarmToken;
+        private readonly int[] _hudOpenTokens = new int[65];
         private DateTime _scheduleEpochUtc;
         private DateTime _intermissionEpochUtc;
         private DateTime? _rtvDeadlineUtc;
@@ -201,6 +205,14 @@ namespace MapVote
             CustomHud.ResetRound();
             LoadPersistence();
             ArmEngineHold();
+            int prewarm = ++_prewarmToken;
+            AddTimer(PrewarmDelaySeconds, () =>
+            {
+                if (!_unloaded && !_leaveMap && prewarm == _prewarmToken)
+                {
+                    CustomHud.Prewarm();
+                }
+            });
             PluginLog.Debug(() => $"map start {mapName}");
         }
 
@@ -279,9 +291,10 @@ namespace MapVote
                 PluginLog.Debug($"connect: {Humans.Label(player, steam.SteamId64)} slot={player.Slot}");
             }
 
-            if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing)
+            if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing
+                && player.Slot is >= 0 and < 65)
             {
-                OpenVoteHudForJoiner(player);
+                ScheduleVoteHudForJoiner(player.Slot, player.SteamID);
             }
 
             return HookResult.Continue;
@@ -311,6 +324,12 @@ namespace MapVote
 
             if (steamId is > 0)
             {
+                _archive.SaveIfDirty(
+                    Config,
+                    steamId.Value.ToString(),
+                    warn: msg => PluginLog.Info($"[players] {msg}"),
+                    debug: msg => PluginLog.Debug($"[players] {msg}"));
+
                 _rtvVoters.Remove(steamId.Value);
                 if (_rtvVoters.Count == 0)
                 {

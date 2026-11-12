@@ -15,7 +15,7 @@ from mapvote_layout import (
     GRID_SLOT_COUNT,
     HUD_VCSS_NAME,
     MAPS_VCSS_NAME,
-    PANORAMA_VERSION,
+    V1_VERSION,
     SLOT_PITCH_PX,
     VOTED_SLOT_COUNT,
     VOTE_XML_NAME,
@@ -26,7 +26,7 @@ OUT = ROOT / "workshop" / "content" / "panorama" / "layout" / "custom_game" / "m
 HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
 CREDIT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 LAYOUT_TAG = (
-    f"{PANORAMA_VERSION} grid={GRID_SLOT_COUNT} voted={VOTED_SLOT_COUNT} "
+    f"{V1_VERSION} grid={GRID_SLOT_COUNT} voted={VOTED_SLOT_COUNT} "
     f"filter_types={FILTER_TYPE_SLOTS} filter_sorts={FILTER_SORT_SLOTS}"
 )
 

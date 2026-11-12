@@ -36,7 +36,7 @@ namespace MapVote
             PluginLog.Debug(() =>
                 $"intermission: catalog_timeout={budget}s decision={VoteClock.DecisionOffsetSeconds}s generation={_catalogGeneration}");
 
-            KillDecisionTimer();
+            _flowEpoch++;
             _catalog.RequestRefresh(budget);
 
             float untilDecision = VoteClock.SecondsUntil(
@@ -49,7 +49,7 @@ namespace MapVote
             }
             else
             {
-                _decisionTimer = AddTimer(untilDecision, OnDecisionDeadline);
+                AddFlowTimer(untilDecision, OnDecisionDeadline);
             }
         }
 
@@ -77,7 +77,6 @@ namespace MapVote
         /// <summary>Backstop at intermission + 2s. Uses whatever list is already in hand.</summary>
         private void OnDecisionDeadline()
         {
-            _decisionTimer = null;
             if (_unloaded || _flow.Phase != EndMatchPhase.Preparing)
             {
                 return;
@@ -130,7 +129,6 @@ namespace MapVote
 
         private void ApplyPath(PathChoice choice)
         {
-            KillDecisionTimer();
             if (!choice.Custom)
             {
                 _pendingCandidates = null;
@@ -204,13 +202,12 @@ namespace MapVote
             }
             else
             {
-                _holdTimer = AddTimer(untilOpen, OnMatchResultsElapsed);
+                AddFlowTimer(untilOpen, OnMatchResultsElapsed);
             }
         }
 
         private void OnMatchResultsElapsed()
         {
-            _holdTimer = null;
             if (_unloaded || !_flow.TryBeginVoting())
             {
                 return;
@@ -288,6 +285,7 @@ namespace MapVote
                 return;
             }
 
+            VoteHud.SetDeadline(_scheduleEpochUtc.AddSeconds(_timing.RevealOffsetSeconds));
             bool openForVote = untilReveal > 0f;
             foreach (CCSPlayerController player in Humans.GetHumans())
             {
@@ -301,7 +299,7 @@ namespace MapVote
                 return;
             }
 
-            _openTimer = AddTimer(untilReveal, BeginReveal);
+            AddFlowTimer(untilReveal, BeginReveal);
             PluginLog.Debug(() =>
                 $"vote hud open: {untilReveal:0.###}s until reveal, {untilChangelevel:0.###}s until changelevel");
         }
@@ -358,19 +356,21 @@ namespace MapVote
                 ? Server.MapName.ToLowerInvariant()
                 : null;
             List<MapEntry> maps = MapVisibility.Shown(catalog, Config.MapsVotable, exclude);
+            int limit = excludeCurrent
+                ? Math.Clamp(Config.Endmatch.MaxMaps, 1, MapCatalog.MaxMaps)
+                : MapCatalog.MaxMaps;
+            int original = maps.Count;
+            maps = MapSample.Take(maps, limit, Random.Shared);
+            if (maps.Count < original)
+            {
+                PluginLog.Debug(() => $"map list truncated from {original} to {maps.Count}");
+            }
+
             if (Config.CleanMapNames)
             {
                 maps = MapNameDisplay.OrderByDisplayName(maps);
             }
 
-            if (maps.Count <= MapCatalog.MaxMaps)
-            {
-                return maps;
-            }
-
-            int original = maps.Count;
-            maps.RemoveRange(MapCatalog.MaxMaps, maps.Count - MapCatalog.MaxMaps);
-            PluginLog.Debug(() => $"map list truncated from {original} to {MapCatalog.MaxMaps}");
             return maps;
         }
 
@@ -391,7 +391,6 @@ namespace MapVote
 
         private void BeginReveal()
         {
-            _openTimer = null;
             if (_unloaded || _leaveMap || !_flow.TryBeginReveal() || _session is null)
             {
                 return;
@@ -399,7 +398,9 @@ namespace MapVote
 
             LockWinner();
             string winner = _pendingWinner ?? _session.Maps[0];
+            // Reveal first: the new deadline then starts the reveal's own timer panel.
             VoteHud.BeginReveal(winner);
+            VoteHud.SetDeadline(_scheduleEpochUtc.AddSeconds(_timing.ChangelevelOffsetSeconds));
 
             float remaining = RemainingUntil(_timing.ChangelevelOffsetSeconds);
             PluginLog.Info($"map voting completed: winner={winner} ({_session.CountOf(winner)} votes)");
@@ -411,12 +412,11 @@ namespace MapVote
                 return;
             }
 
-            _revealTimer = AddTimer(remaining, ChangeToWinner);
+            AddFlowTimer(remaining, ChangeToWinner);
         }
 
         private void ChangeToWinner()
         {
-            _revealTimer = null;
             if (_unloaded || _leaveMap || !_flow.TryBeginChange())
             {
                 return;
@@ -441,12 +441,7 @@ namespace MapVote
 
         private void EndVoteUi()
         {
-            KillDecisionTimer();
-            KillHoldTimer();
-            _openTimer?.Kill();
-            _openTimer = null;
-            _revealTimer?.Kill();
-            _revealTimer = null;
+            _flowEpoch++;
             _flow.Reset();
             _pendingCandidates = null;
             _session = null;
@@ -454,16 +449,35 @@ namespace MapVote
             VoteHud.CloseAll();
         }
 
-        private void KillDecisionTimer()
+        /// <summary>One-shot flow timer; <see cref="EndVoteUi"/> cancels it by bumping the epoch.</summary>
+        private void AddFlowTimer(float seconds, Action callback)
         {
-            _decisionTimer?.Kill();
-            _decisionTimer = null;
+            int epoch = _flowEpoch;
+            AddTimer(seconds, () =>
+            {
+                if (epoch == _flowEpoch)
+                {
+                    callback();
+                }
+            });
         }
 
-        private void KillHoldTimer()
+        /// <summary>Opens the vote HUD for a joiner a moment after connect, never in the connect tick.</summary>
+        private void ScheduleVoteHudForJoiner(int slot, ulong steamId)
         {
-            _holdTimer?.Kill();
-            _holdTimer = null;
+            int token = ++_hudOpenTokens[slot];
+            AddFlowTimer(JoinerOpenDelaySeconds, () =>
+            {
+                if (_unloaded
+                    || _hudOpenTokens[slot] != token
+                    || Utilities.GetPlayerFromSlot(slot) is not { IsValid: true } player
+                    || player.SteamID != steamId)
+                {
+                    return;
+                }
+
+                OpenVoteHudForJoiner(player);
+            });
         }
 
         private void OpenVoteHudForJoiner(CCSPlayerController player)

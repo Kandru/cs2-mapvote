@@ -2,7 +2,7 @@
 
 Shipped Workshop addon (HUD + tiles): [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946). Mount via MultiAddonManager. Map pictures cannot live in the plugin folder - only in a mounted Workshop addon. Missing tile → `default.png` / class `mv-map-default`.
 
-Custom addons must ship the same Panorama image classes the HUD expects (`mv-map-map_{name}`, `mv-map-ws_{name}`). Layout/style sources: `workshop/content/` (`vote_v1.xml`, `hud_v1.vcss` ↔ `PanoramaVersion` in `Version.cs`). Map images live in a separate generated sheet, `maps_v1.vcss`, so an image pack can replace it without copying the UI stylesheet. Copy both into `csgo_addons/<addon>/`; publish compiles to `.vxml_c` / `.vcss_c`.
+Custom addons must ship the same Panorama image classes the HUD expects (`mv-map-map_{name}`, `mv-map-ws_{name}`). Layout/style sources: `workshop/content/` (`vote_v2.xml`, `hud_v2.vcss` for the `PanoramaVersion` in `Version.cs`; the v1 pair is still shipped for older plugin versions). Map images live in a separate generated sheet, `maps_v1.vcss`, shared by v1 and v2, so an image pack can replace it without copying the UI stylesheet. Copy both into `csgo_addons/<addon>/`; publish compiles to `.vxml_c` / `.vcss_c`.
 
 The C# side maps a map slug to `mv-map-map_{slug}` or `mv-map-ws_{slug}` dynamically. A runtime `background-image` URL cannot be sent from the plugin: `custom_hud_layout` only supports text variables and classes, and Panorama forbids `var()`/`calc()`. The generated map sheet is therefore the static lookup table of shipped images.
 

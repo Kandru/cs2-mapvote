@@ -11,13 +11,13 @@
 
 ![Map vote](example.png)
 
-When the match ends, players should pick the next map the way Valve never intended - big pictures, a clear winner row, and a list you can browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: portrait map cards, a top row of maps that already have votes, filters by type and "most played", favorites, and `!rtv` so the lobby can force a vote early on your map list.
+When the match ends, players should pick the next map the way Valve never intended - big pictures, a clear winner row, and a list you can browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: landscape map cards, a "Leading" ranking of the maps with the most votes, type filters and favorites, and `!rtv` so the lobby can force a vote early on your map list.
 
 ## Installation
 
 1. Install [Metamod:Source](https://www.metamodsource.net/downloads.php?branch=dev).
-2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (HUD and map pictures), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`.
-3. Install [CounterStrikeSharp](https://docs.cssharp.dev/).
+2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (HUD and map pictures), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`. This plugin release needs the addon version that contains the v2 HUD files.
+3. Install [CounterStrikeSharp](https://docs.cssharp.dev/). CounterStrikeSharp 1.0.379 or newer is required.
 4. Download the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-mapvote/releases/) and copy the `MapVote` folder into `/game/csgo/addons/counterstrikesharp/plugins/`.
 5. Set a non-empty `rcon_password` (the plugin loads the map list over localhost RCON).
 6. Restart the server. Config is created at `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`.
@@ -30,9 +30,9 @@ We publish [that addon](https://steamcommunity.com/sharedfiles/filedetails/?id=3
 
 ## How to use it
 
-- At the end of a match, the vote screen opens with up to 100 shuffled maps from the catalog; players click a map, and the top row shows the 10 maps with the most votes.
+- At the end of a match, the vote screen opens with up to 100 shuffled maps from the catalog; players click a map, and the "Leading" ranking shows the 6 maps with the most votes.
 - In chat, type `!rtv` (or `css_rtv` / `rtv`). By default about 60% of humans must agree; then the match ends early so this vote can run.
-- Type `!maps` (or `css_maps` / `maps`) to browse the server map list at any time before intermission. Filter, sort, and manage favorites; press `X` to close. The browser closes automatically when the match ends and reopens with the next match or map.
+- Type `!maps` (or `css_maps` / `maps`) to browse the server map list at any time before intermission. Filter, sort, rate the current map, and manage favorites; use the Close button to leave. The browser closes automatically when the match ends and reopens with the next match or map.
 - Config file: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`. Useful knobs: vote length, whether to hide the map just played, RTV on/off and ratio, and which maps appear (`maps_votable`). Full key list: [docs/config.md](docs/config.md).
 
 Changing the plugin code, building, or extracting images: see [docs/](docs/README.md).
