@@ -14,7 +14,7 @@ namespace MapVote.Maps
             Func<string, string>? nameKey = null)
         {
             bool descending = !string.Equals(sort.Order, "asc", StringComparison.OrdinalIgnoreCase);
-            string by = sort.By.Trim().ToLowerInvariant();
+            string by = (sort.By ?? string.Empty).Trim().ToLowerInvariant();
 
             // Unknown `by` keeps catalog order; known keys use catalog index as a stable tie-break.
             return by switch

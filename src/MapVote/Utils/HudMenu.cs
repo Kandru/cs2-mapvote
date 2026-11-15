@@ -99,22 +99,6 @@ namespace MapVote.Utils
             Sessions.Clear();
         }
 
-        public static void Shutdown()
-        {
-            foreach (int slot in Sessions.Keys.ToList())
-            {
-                if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player
-                    && Sessions.TryGetValue(slot, out Session? session))
-                {
-                    CloseInternal(player, session, invokeClosed: false);
-                }
-                else
-                {
-                    Sessions.Remove(slot);
-                }
-            }
-        }
-
         public static bool OnCustomHudClicked(CCSPlayerController player, CCSCustomHudLayout layout, string buttonId)
         {
             if (!Sessions.TryGetValue(player.Slot, out Session? session)

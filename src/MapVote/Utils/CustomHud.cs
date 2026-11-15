@@ -380,7 +380,7 @@ namespace MapVote.Utils
 
         public static void Shutdown()
         {
-            HudMenu.Shutdown();
+            HudMenu.ResetSessions();
             for (int slot = 0; slot < MaxSlots; slot++)
             {
                 Kill(slot);

@@ -276,6 +276,7 @@ namespace MapVote
 
         private HookResult OnBeginNewMatch(EventBeginNewMatch @event, GameEventInfo info)
         {
+            MapOrder.ResetMatch();
             OpenRtvForNewMatch("new match");
             OpenMapsForNewMatch("new match");
             return HookResult.Continue;
