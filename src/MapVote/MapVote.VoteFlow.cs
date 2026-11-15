@@ -510,13 +510,12 @@ namespace MapVote
                 return;
             }
 
-            int token = ++_hudOpenTokens[slot];
+            int token = _hudOpenTokens.Next(slot);
             PluginLog.Debug($"map vote: scheduling HUD open for joiner slot={slot} in {JoinerOpenDelaySeconds}s");
             AddFlowTimer(JoinerOpenDelaySeconds, () =>
             {
                 if (_unloaded
-                    || !_hudOpenTokens.TryGetValue(slot, out int currentToken)
-                    || currentToken != token
+                    || !_hudOpenTokens.IsCurrent(slot, token)
                     || Utilities.GetPlayerFromSlot(slot) is not { IsValid: true } player
                     || !Humans.TryGetSteamId(player, out ulong liveSteamId)
                     || liveSteamId != steamId)

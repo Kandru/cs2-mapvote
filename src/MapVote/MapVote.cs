@@ -32,8 +32,8 @@ namespace MapVote
         // Timers are cancelled by bumping these tokens, never by Kill() (ruleset §1.3).
         private int _flowEpoch;
         private int _rtvToken;
-        // Keyed by slot so no fixed player-count array is required.
-        private readonly Dictionary<int, int> _hudOpenTokens = [];
+        // Deferred HUD opens are superseded per slot; never touch a dictionary indexer directly.
+        private readonly SlotActionTokens _hudOpenTokens = new();
         private DateTime _scheduleEpochUtc;
         private DateTime _intermissionEpochUtc;
         private DateTime? _rtvDeadlineUtc;
@@ -116,7 +116,7 @@ namespace MapVote
             EndVoteUi();
             SavePersistence();
             _steamBySlot.Clear();
-            _hudOpenTokens.Clear();
+            _hudOpenTokens.ClearAll();
             CustomHud.Shutdown();
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);

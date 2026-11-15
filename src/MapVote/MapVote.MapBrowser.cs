@@ -86,12 +86,11 @@ namespace MapVote
                 return;
             }
 
-            int token = ++_hudOpenTokens[slot];
+            int token = _hudOpenTokens.Next(slot);
             AddTimer(HudOpenDelaySeconds, () =>
             {
                 if (_unloaded
-                    || !_hudOpenTokens.TryGetValue(slot, out int currentToken)
-                    || currentToken != token
+                    || !_hudOpenTokens.IsCurrent(slot, token)
                     || _mapsClosed
                     || VoteBusy
                     || _catalog.Maps.Count == 0
