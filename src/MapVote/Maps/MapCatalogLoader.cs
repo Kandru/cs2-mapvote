@@ -20,7 +20,8 @@ namespace MapVote.Maps
         private readonly string _password;
         private readonly CatalogRequest _request;
         private readonly int _generation;
-        private readonly Action<string> _log;
+        private readonly Action<string> _info;
+        private readonly Action<string> _debug;
         private readonly Func<int, bool> _isCurrent;
         private readonly Action<CatalogLoadResult> _publish;
         private readonly Action<int> _notifyCurrent;
@@ -31,7 +32,8 @@ namespace MapVote.Maps
             string password,
             CatalogRequest request,
             int generation,
-            Action<string> log,
+            Action<string> info,
+            Action<string> debug,
             Func<int, bool> isCurrent,
             Action<CatalogLoadResult> publish,
             Action<int> notifyCurrent,
@@ -41,7 +43,8 @@ namespace MapVote.Maps
             _password = password;
             _request = request;
             _generation = generation;
-            _log = log;
+            _info = info;
+            _debug = debug;
             _isCurrent = isCurrent;
             _publish = publish;
             _notifyCurrent = notifyCurrent;
@@ -55,6 +58,7 @@ namespace MapVote.Maps
             IReadOnlyDictionary<string, string> bestWorkshopNamesById =
                 MapGroupParseResult.Empty.WorkshopNamesById;
             string sources = _request.DescribeSources();
+            int attempt = 0;
 
             try
             {
@@ -70,6 +74,9 @@ namespace MapVote.Maps
                         ? Math.Clamp(remainingMs, 1, MapCatalog.MaxCommandTimeoutMilliseconds)
                         : MapCatalog.MaxCommandTimeoutMilliseconds;
 
+                    attempt++;
+                    _debug(
+                        $"catalog: attempt {attempt} generation={_generation} timeout={timeoutMs}ms remaining={Math.Max(0, remainingMs)}ms");
                     try
                     {
                         using RconClient client = new("127.0.0.1", _port, _password, timeoutMs);
@@ -126,7 +133,7 @@ namespace MapVote.Maps
                         {
                             if (maps.Count == 0)
                             {
-                                _log($"catalog ready but empty ({summary}); keeping previous list");
+                                _info($"catalog: RCON is ready but returned no maps ({summary}); keeping previous list");
                                 break;
                             }
 
@@ -134,12 +141,12 @@ namespace MapVote.Maps
                             return;
                         }
 
-                        _log(
-                            $"catalog not ready (local_ready={localReady}, mapgroup_ready={mapgroupReady}, {summary}); retrying");
+                        _debug(
+                            $"catalog: attempt {attempt} not ready (local_ready={localReady}, mapgroup_ready={mapgroupReady}); {summary}");
                     }
                     catch (Exception ex)
                     {
-                        _log($"map load attempt failed: {ex.Message}");
+                        _debug($"catalog: attempt {attempt} failed: {ex.Message}");
                     }
 
                     if (_request.BudgetSeconds <= 0)
@@ -158,6 +165,7 @@ namespace MapVote.Maps
 
                 if (!_isCurrent(_generation))
                 {
+                    _debug($"catalog: worker for generation {_generation} is stale; discarding {attempt} attempt(s)");
                     return;
                 }
 
@@ -167,7 +175,7 @@ namespace MapVote.Maps
                     return;
                 }
 
-                _log("catalog refresh ended with no maps; keeping previous list");
+                _info($"catalog: refresh ended with no maps after {attempt} attempt(s); keeping previous list");
                 _notifyCurrent(_generation);
             }
             finally

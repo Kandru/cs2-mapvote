@@ -17,7 +17,7 @@ namespace MapVote
         {
             if (!Config.Rtv.Enabled || !Humans.TryGetSteamId(player, out ulong id))
             {
-                PluginLog.Debug("rtv ignored: disabled or invalid player");
+                PluginLog.Debug($"rtv ignored: enabled={Config.Rtv.Enabled}, player={Humans.Label(player)}");
                 return;
             }
 
@@ -25,28 +25,28 @@ namespace MapVote
 
             if (_rtvClosed)
             {
-                PluginLog.Info($"rtv failed: {label} - closed until next map");
+                PluginLog.Info($"rtv: {label} requested but RTV is closed until next map");
                 info.ReplyToCommand(Chat(Localizer["rtv.ended"]));
                 return;
             }
 
             if (VoteBusy)
             {
-                PluginLog.Info($"rtv failed: {label} - vote already running");
+                PluginLog.Info($"rtv: {label} requested but a vote is already running");
                 info.ReplyToCommand(Chat(Localizer["rtv.closed"]));
                 return;
             }
 
             if (_rtvPassed)
             {
-                PluginLog.Debug($"rtv ignored: {label} - already succeeded");
+                PluginLog.Debug($"rtv ignored: {label} already succeeded; success command pending");
                 info.ReplyToCommand(Chat(Localizer["rtv.pending"]));
                 return;
             }
 
             if (!_rtvVoters.Add(id))
             {
-                PluginLog.Info($"rtv failed: {label} - already voted");
+                PluginLog.Info($"rtv: {label} already voted ({_rtvVoters.Count} vote(s))");
                 info.ReplyToCommand(Chat(Localizer["rtv.already"]));
                 return;
             }
@@ -54,14 +54,14 @@ namespace MapVote
             int humans = CountRtvHumans();
             int need = RtvVotesNeeded(humans);
             int have = _rtvVoters.Count;
-            PluginLog.Info($"rtv invoked: {label} ({have}/{need})");
+            PluginLog.Info($"rtv vote: {label} ({have}/{need} needed)");
+            PluginLog.Debug($"rtv: humans={humans}, ratio={Config.Rtv.Ratio:0.##}, voters={have}, needed={need}");
 
             if (TrySucceedRtv(humans, label))
             {
                 return;
             }
 
-            PluginLog.Info($"rtv open: {label} - {have}/{need}");
             Server.PrintToChatAll(Chat(Localizer["rtv.need", have, need]));
             if (have == 1)
             {
@@ -88,7 +88,12 @@ namespace MapVote
                 }
             }
 
-            _rtvVoters.RemoveWhere(id => !eligible.Contains(id));
+            int pruned = _rtvVoters.RemoveWhere(id => !eligible.Contains(id));
+            if (pruned > 0)
+            {
+                PluginLog.Debug($"rtv: pruned {pruned} disconnected voter(s), {eligible.Count} eligible human(s)");
+            }
+
             return eligible.Count;
         }
 
@@ -115,7 +120,7 @@ namespace MapVote
             _rtvVoters.Clear();
             _rtvPassed = true;
             Server.PrintToChatAll(Chat(Localizer["rtv.success", have, need]));
-            PluginLog.Info($"rtv succeeded: {reason} → {Config.Rtv.SuccessCommand}");
+            PluginLog.Info($"rtv passed: {have}/{need} vote(s), reason={reason}; running '{Config.Rtv.SuccessCommand}'");
             if (deferCommand)
             {
                 Server.NextFrame(ExecuteRtvSuccessCommand);
@@ -145,6 +150,9 @@ namespace MapVote
             {
                 ScheduleRtvAnnounce(token, announce);
             }
+
+            PluginLog.Debug(
+                $"rtv: window started token={token} duration={duration}s announce={announce}s");
         }
 
         /// <summary>Cancels the window timers by token; safe to call from their own callbacks.</summary>
@@ -166,13 +174,16 @@ namespace MapVote
 
             if (_unloaded || _rtvPassed || _rtvClosed || _rtvVoters.Count == 0)
             {
+                PluginLog.Debug($"rtv: expiry ignored token={token} unloaded={_unloaded} passed={_rtvPassed} closed={_rtvClosed} voters={_rtvVoters.Count}");
                 StopRtvWindow();
                 return;
             }
 
+            int have = _rtvVoters.Count;
+            int need = RtvVotesNeeded(CountRtvHumans());
             _rtvVoters.Clear();
             StopRtvWindow();
-            PluginLog.Info("rtv expired");
+            PluginLog.Info($"rtv expired: {have}/{need} vote(s) were not enough");
             Server.PrintToChatAll(Chat(Localizer["rtv.expired"]));
         }
 
@@ -195,10 +206,12 @@ namespace MapVote
             if (_rtvDeadlineUtc is DateTime deadline)
             {
                 int left = Math.Max(0, (int)Math.Ceiling((deadline - DateTime.UtcNow).TotalSeconds));
+                PluginLog.Debug($"rtv: reminder {have}/{need}, {left}s left, {humans} human(s)");
                 Server.PrintToChatAll(Chat(Localizer["rtv.running", have, need, left]));
                 return;
             }
 
+            PluginLog.Debug($"rtv: reminder {have}/{need}, no deadline, {humans} human(s)");
             Server.PrintToChatAll(Chat(Localizer["rtv.need", have, need]));
         }
 
@@ -211,7 +224,7 @@ namespace MapVote
             _rtvVoters.Clear();
             StopRtvWindow();
             _rtvClosed = true;
-            PluginLog.Debug("rtv closed until next match (intermission)");
+            PluginLog.Debug("rtv: closed until next match");
         }
 
         /// <summary>Map start always clears RTV. Warmup and match start do too, once our vote is gone.</summary>
@@ -221,6 +234,7 @@ namespace MapVote
             _rtvVoters.Clear();
             _rtvPassed = false;
             _rtvClosed = false;
+            PluginLog.Debug("rtv: reset for new map");
         }
 
         private void OpenRtvForNewMatch(string reason)
@@ -231,7 +245,7 @@ namespace MapVote
             }
 
             ResetRtv();
-            PluginLog.Debug($"rtv open ({reason})");
+            PluginLog.Debug($"rtv: opened ({reason})");
         }
 
         private void ExecuteRtvSuccessCommand() =>

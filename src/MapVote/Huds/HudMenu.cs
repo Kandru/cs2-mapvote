@@ -50,6 +50,8 @@ namespace MapVote.Huds
                 ScheduleCapture(player.Slot, session);
             }
 
+            PluginLog.Debug(
+                $"hud menu opened: {Humans.Label(player)} slot={player.Slot} capture={options.CaptureMouse}");
             return true;
         }
 
@@ -115,7 +117,8 @@ namespace MapVote.Huds
             }
             catch (Exception ex)
             {
-                PluginLog.Info($"[HudMenu] OnButton failed: {ex.Message}");
+                PluginLog.Info(
+                    $"hud button handler failed: {Humans.Label(player)} slot={player.Slot} id={buttonId}: {ex.Message}");
             }
 
             return true;
@@ -154,9 +157,13 @@ namespace MapVote.Huds
                 }
                 catch (Exception ex)
                 {
-                    PluginLog.Info($"[HudMenu] OnClosed failed: {ex.Message}");
+                    PluginLog.Info(
+                        $"hud close handler failed: {Humans.Label(player)} slot={player.Slot}: {ex.Message}");
                 }
             }
+
+            PluginLog.Debug(
+                $"hud menu closed: {Humans.Label(player)} slot={player.Slot} notify={invokeClosed}");
         }
 
         private static void InvalidateCapture(Session session)

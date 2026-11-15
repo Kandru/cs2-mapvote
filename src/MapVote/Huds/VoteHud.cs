@@ -273,7 +273,7 @@ namespace MapVote.Huds
             DrainPendingOpens();
             if (SlotAt(slot).Pending)
             {
-                PluginLog.Debug($"hud open queued: {Humans.Label(player)} slot={slot} queue={PendingOpens.Count}");
+                PluginLog.Debug($"hud: open queued for {Humans.Label(player)} slot={slot} queue={PendingOpens.Count}");
             }
         }
 
@@ -326,12 +326,12 @@ namespace MapVote.Huds
             }
 
             StartTimer(player);
-            PluginLog.Debug($"hud open: {Humans.Label(player)} slot={player.Slot}");
+            PluginLog.Debug($"hud: opened for {Humans.Label(player)} slot={player.Slot}");
         }
 
         private static void ReportOpenFailure(CCSPlayerController player)
         {
-            PluginLog.Info($"hud open failed: {Humans.Label(player)} slot={player.Slot}");
+            PluginLog.Info($"hud: open failed for {Humans.Label(player)} slot={player.Slot}");
             if (player is not { IsValid: true })
             {
                 return;
@@ -507,10 +507,14 @@ namespace MapVote.Huds
             bool interactive = browsing || _session is { IsOpen: true };
             if (!interactive || !IsSlot(player.Slot))
             {
+                PluginLog.Debug(
+                    () => $"hud button ignored: {Humans.Label(player)} slot={player.Slot} mode={_mode} interactive={interactive} id={buttonId}");
                 return;
             }
 
             int slot = player.Slot;
+            PluginLog.Debug(
+                () => $"hud button: {Humans.Label(player)} slot={slot} mode={_mode} id={buttonId}");
             if (buttonId == VoteIds.Minimize)
             {
                 if (browsing)
@@ -615,22 +619,30 @@ namespace MapVote.Huds
                 return;
             }
 
+            string? previous = _session.VoteOf(steamId);
             VoteCastResult result = _session.Cast(steamId, map);
             if (result == VoteCastResult.RateLimited)
             {
                 // No visual feedback: just the blocked sound, and no repaint for anyone.
                 PlayBlockedSound(player);
-                PluginLog.Debug(() => $"vote blocked (cooldown) {Humans.Label(player, steamId)} → {map}");
+                PluginLog.Debug(
+                    () => $"vote blocked by cooldown: {Humans.Label(player, steamId)} wanted {map}, has {previous ?? "none"}");
                 return;
             }
 
             if (result is not (VoteCastResult.Accepted or VoteCastResult.Changed))
             {
+                PluginLog.Debug(
+                    () => $"vote ignored: {Humans.Label(player, steamId)} map={map} result={result} previous={previous ?? "none"}");
                 return;
             }
 
-            PluginLog.Debug(
-                () => $"{(_mode == Mode.Browse ? "nominate" : "cast")} {Humans.Label(player, steamId)} → {map}");
+            string action = _mode == Mode.Browse ? "nomination" : "vote";
+            PluginLog.Info(
+                $"{action}: {Humans.Label(player, steamId)} -> {map} ({_session.CountOf(map)} vote(s))");
+            PluginLog.Debug(() =>
+                $"vote detail: action={action} result={result} slot={player.Slot} previous={previous ?? "none"} map={map} "
+                + $"map_votes={_session.CountOf(map)} maps={_session.Maps.Count}");
             PaintAll();
         }
 
@@ -712,7 +724,8 @@ namespace MapVote.Huds
 
             PlayerState state = StateOf(player);
             int idx = state.Favorites.FindIndex(f => string.Equals(f, map, StringComparison.Ordinal));
-            if (idx >= 0)
+            bool added = idx < 0;
+            if (!added)
             {
                 state.Favorites.RemoveAt(idx);
             }
@@ -721,6 +734,8 @@ namespace MapVote.Huds
                 state.Favorites.Add(map);
             }
 
+            PluginLog.Debug(
+                () => $"favorite {(added ? "added" : "removed")}: {Humans.Label(player)} map={map} total={state.Favorites.Count}");
             state.Dirty = true;
             SlotAt(player.Slot).FavoriteCache = null;
             int sortIndex = SlotAt(player.Slot).SortIndex;
@@ -743,11 +758,16 @@ namespace MapVote.Huds
             }
 
             PlayerState state = StateOf(player);
-            PlayerRating next = VoteView.NextRating(PlayerArchive.RatingOf(state, _currentMap), clicked);
+            PlayerRating previous = PlayerArchive.RatingOf(state, _currentMap);
+            PlayerRating next = VoteView.NextRating(previous, clicked);
             if (!_archive.SetRating(state.SteamId, _currentMap, next))
             {
                 return;
             }
+
+            PluginLog.Debug(
+                () => $"rating: {Humans.Label(player)} map={_currentMap} {previous} -> {next} "
+                    + $"score={_archive.RatingScore(_currentMap)} likes={_archive.LikeCount(_currentMap)} dislikes={_archive.DislikeCount(_currentMap)}");
 
             // Rating sorts depend on the global score; rebuild only the affected viewers.
             for (int slot = 0; slot < MaxSlots; slot++)

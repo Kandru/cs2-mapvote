@@ -6,10 +6,12 @@ namespace MapVote.Utils
 
         public static void Bind(Func<bool> debugEnabled) => _debugEnabled = debugEnabled;
 
+        /// <summary>Lifecycle and user-visible outcomes: maps found, votes cast, RTV state, map changes.</summary>
         public static void Info(string message) => Console.WriteLine($"[MapVote] {message}");
 
         public static bool IsDebug => _debugEnabled?.Invoke() == true;
 
+        /// <summary>Exact internal flow: attempts, slots, timers, ignored actions and per-step details.</summary>
         public static void Debug(string message)
         {
             if (IsDebug)
@@ -26,19 +28,5 @@ namespace MapVote.Utils
                 Debug(message());
             }
         }
-
-        /// <summary>Always logs failures, empty password, and truncation; routine catalog noise is debug-only.</summary>
-        public static Action<string> CatalogSink() => message =>
-        {
-            if (message.Contains("fail", StringComparison.OrdinalIgnoreCase)
-                || message.Contains("rcon_password", StringComparison.OrdinalIgnoreCase)
-                || message.Contains("truncat", StringComparison.OrdinalIgnoreCase))
-            {
-                Info(message);
-                return;
-            }
-
-            Debug(message);
-        };
     }
 }

@@ -63,15 +63,23 @@ namespace MapVote
             MapOrder.Configure(Config.Display.Order);
             EnsureMapsVotable();
             PluginLog.Bind(() => Config.Debug);
+            PluginLog.Debug(
+                $"config: order={Config.Display.Order}, max_maps={Config.Endmatch.MaxMaps}, "
+                + $"vote_seconds={Config.Endmatch.VoteSeconds?.ToString() ?? "server"}, "
+                + $"reveal={Config.Endmatch.WinnerRevealSeconds}s, "
+                + $"catalog={Config.Catalog.QueryLocalMaps}/{Config.Catalog.QueryMapGroup}, "
+                + $"rtv={Config.Rtv.Enabled} ({Config.Rtv.Ratio:0.##}, {Config.Rtv.DurationSeconds}s), "
+                + $"nominations={Config.Nominations.Enabled}, votable_keys={Config.MapsVotable.Count}");
         }
 
         public override void Load(bool hotReload)
         {
             PluginLog.Bind(() => Config.Debug);
-            PluginLog.Debug($"load hotReload={hotReload}");
+            PluginLog.Info($"plugin loading{(hotReload ? " (hot reload)" : string.Empty)}");
+            PluginLog.Debug($"debug logging enabled; hotReload={hotReload}");
             _unloaded = false;
 
-            _catalog = new MapCatalog(PluginLog.CatalogSink(), OnCatalogLoaded);
+            _catalog = new MapCatalog(PluginLog.Info, PluginLog.Debug, OnCatalogLoaded);
             _archive = new PlayerArchive();
             _plays = new MapPlayCounts();
             LoadPersistence();
@@ -101,7 +109,7 @@ namespace MapVote
 
         public override void Unload(bool hotReload)
         {
-            PluginLog.Debug($"unload (hotReload={hotReload})");
+            PluginLog.Info($"plugin unloading{(hotReload ? " (hot reload)" : string.Empty)}");
             _unloaded = true;
             StopRtvWindow();
             _catalog?.Invalidate();
@@ -154,7 +162,7 @@ namespace MapVote
             }
             catch (Exception ex)
             {
-                PluginLog.Info($"config reload before maps_votable sync failed: {ex.Message}");
+                PluginLog.Info($"config: reload before maps_votable sync failed: {ex.Message}");
             }
 
             EnsureMapsVotable();
@@ -167,11 +175,11 @@ namespace MapVote
             try
             {
                 Config.Update();
-                PluginLog.Debug($"maps_votable synced ({Config.MapsVotable.Count} keys)");
+                PluginLog.Debug($"maps_votable: synced {Config.MapsVotable.Count} key(s)");
             }
             catch (Exception ex)
             {
-                PluginLog.Info($"maps_votable config update failed: {ex.Message}");
+                PluginLog.Info($"maps_votable: config update failed: {ex.Message}");
             }
         }
 
@@ -189,27 +197,28 @@ namespace MapVote
         {
             _archive.Load(
                 Config,
-                warn: msg => PluginLog.Info($"[players] {msg}"),
-                debug: msg => PluginLog.Debug($"[players] {msg}"));
-            _plays.Load(Config, warn: msg => PluginLog.Info($"[plays] {msg}"));
+                warn: msg => PluginLog.Info($"players: {msg}"),
+                debug: msg => PluginLog.Debug($"players: {msg}"));
+            _plays.Load(Config, warn: msg => PluginLog.Info($"plays: {msg}"));
         }
 
         private void SavePersistence()
         {
             int written = _archive.SaveDirty(
                 Config,
-                warn: msg => PluginLog.Info($"[players] {msg}"),
-                debug: msg => PluginLog.Debug($"[players] {msg}"));
+                warn: msg => PluginLog.Info($"players: {msg}"),
+                debug: msg => PluginLog.Debug($"players: {msg}"));
             if (written > 0)
             {
-                PluginLog.Debug($"[players] saved {written} dirty player(s)");
+                PluginLog.Debug($"players: saved {written} dirty player(s)");
             }
 
-            _plays.Save(Config, warn: msg => PluginLog.Info($"[plays] {msg}"));
+            _plays.Save(Config, warn: msg => PluginLog.Info($"plays: {msg}"));
         }
 
         private void OnMapStart(string mapName)
         {
+            PluginLog.Info($"map start: {mapName}");
             _catalog.Invalidate();
             _leaveMap = false;
             // Keep _steamBySlot: on a map change the same controllers may not fire connect full
@@ -222,11 +231,12 @@ namespace MapVote
             CustomHud.ResetRound();
             LoadPersistence();
             ArmEngineHold();
-            PluginLog.Debug(() => $"map start {mapName}");
+            PluginLog.Debug($"map start: state reset, nominations/rtv cleared, persistence loaded");
         }
 
         private void OnMapEnd()
         {
+            PluginLog.Info("map end: saving player data");
             _leaveMap = true;
             _catalog.Invalidate();
             EndVoteUi();
@@ -237,7 +247,7 @@ namespace MapVote
 
         private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
         {
-            PluginLog.Debug("win panel");
+            PluginLog.Debug("end-match: win panel event");
             BeginEndMatchFromWinPanel();
             if (_flow.IsCustomVote)
             {
@@ -249,6 +259,7 @@ namespace MapVote
 
         private HookResult OnCsIntermission(EventCsIntermission @event, GameEventInfo info)
         {
+            PluginLog.Info("intermission: preparing end-match map vote");
             CloseRtvForMatchEnd();
             CloseMapsForMatchEnd();
             BeginFromIntermission();
@@ -294,17 +305,15 @@ namespace MapVote
 
                 _archive.GetOrCreate(steamId, player.PlayerName);
                 PluginLog.Debug($"connect: {Humans.Label(player, steamId)} slot={player.Slot}");
+
+                if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing
+                    && PlayerSlots.IsValid(player.Slot))
+                {
+                    ScheduleVoteHudForJoiner(player.Slot, steamId);
+                }
             }
 
             CustomHud.QueueSpawn(player);
-
-            if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing
-                && Humans.TryGetSteamId(player, out ulong joinerSteamId)
-                && PlayerSlots.IsValid(player.Slot))
-            {
-                ScheduleVoteHudForJoiner(player.Slot, joinerSteamId);
-            }
-
             return HookResult.Continue;
         }
 
@@ -333,8 +342,8 @@ namespace MapVote
                 _archive.SaveIfDirty(
                     Config,
                     steamId.ToString(),
-                    warn: msg => PluginLog.Info($"[players] {msg}"),
-                    debug: msg => PluginLog.Debug($"[players] {msg}"));
+                    warn: msg => PluginLog.Info($"players: {msg}"),
+                    debug: msg => PluginLog.Debug($"players: {msg}"));
 
                 _rtvVoters.Remove(steamId);
                 if (_rtvVoters.Count == 0)
@@ -354,7 +363,8 @@ namespace MapVote
                 }
 
                 string label = Humans.Label(player, steamId);
-                PluginLog.Debug($"disconnect: {label} slot={player.Slot}");
+                PluginLog.Debug(
+                    $"disconnect: {label} slot={player.Slot} votes_changed={votesChanged} rtv_votes={_rtvVoters.Count}");
                 TrySucceedRtv(
                     CountRtvHumans(steamId),
                     $"after disconnect of {label}",

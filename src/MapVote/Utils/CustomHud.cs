@@ -447,7 +447,7 @@ namespace MapVote.Utils
                 CCSCustomHudLayout? hud = Utilities.CreateEntityByName<CCSCustomHudLayout>("custom_hud_layout");
                 if (hud is null || hud.Handle == IntPtr.Zero)
                 {
-                    PluginLog.Info($"[CustomHud] CreateEntityByName failed for slot {slot}");
+                    PluginLog.Info($"hud: layout entity creation failed for slot {slot}");
                     return false;
                 }
 
@@ -461,7 +461,7 @@ namespace MapVote.Utils
 
                 if (hud is not { IsValid: true })
                 {
-                    PluginLog.Info($"[CustomHud] DispatchSpawn left entity invalid for slot {slot}");
+                    PluginLog.Info($"hud: layout entity is invalid after spawn for slot {slot}");
                     return false;
                 }
 
@@ -472,12 +472,13 @@ namespace MapVote.Utils
                 entry.Text.Clear();
                 entry.Class.Clear();
                 entry.ImageClass.Clear();
-                PluginLog.Debug($"[CustomHud] slot {slot} → #{hud.Index} {LayoutResource}");
+                PluginLog.Debug(
+                    $"hud: layout spawned slot={slot} entity=#{hud.Index} owner={ownerSteamId} resource={LayoutResource}");
                 return true;
             }
             catch (Exception ex)
             {
-                PluginLog.Info($"[CustomHud] Spawn failed for slot {slot}: {ex.Message}");
+                PluginLog.Info($"hud: layout spawn failed for slot {slot}: {ex.Message}");
                 return false;
             }
         }

@@ -30,7 +30,7 @@ namespace MapVote
         {
             if (!Humans.TryGetSteamId(player, out ulong id))
             {
-                PluginLog.Debug("maps ignored: invalid player");
+                PluginLog.Debug($"maps ignored: {Humans.Label(player)} has no usable SteamID64");
                 return;
             }
 
@@ -38,14 +38,14 @@ namespace MapVote
 
             if (_mapsClosed)
             {
-                PluginLog.Info($"maps failed: {label} - closed until next match");
+                PluginLog.Info($"maps: {label} requested but the browser is closed until next match");
                 info.ReplyToCommand(Chat(Localizer["maps.closed"]));
                 return;
             }
 
             if (VoteBusy)
             {
-                PluginLog.Info($"maps failed: {label} - vote already running");
+                PluginLog.Info($"maps: {label} requested but a vote is already running");
                 info.ReplyToCommand(Chat(Localizer["maps.busy"]));
                 return;
             }
@@ -54,7 +54,11 @@ namespace MapVote
             {
                 if (_mapsPendingOpen.Add(id))
                 {
-                    PluginLog.Info($"maps pending: {label} - loading catalog");
+                    PluginLog.Info($"maps: {label} is waiting for the catalog to load");
+                }
+                else
+                {
+                    PluginLog.Debug($"maps: {label} is already waiting for the catalog");
                 }
 
                 _catalog.RequestRefresh(
@@ -64,6 +68,7 @@ namespace MapVote
                 return;
             }
 
+            PluginLog.Debug($"maps: {label} opened immediately, catalog has {_catalog.Maps.Count} map(s)");
             if (PlayerSlots.IsValid(player.Slot))
             {
                 ScheduleMapBrowserOpen(player.Slot, id);
@@ -94,11 +99,13 @@ namespace MapVote
                     || !Humans.TryGetSteamId(player, out ulong liveSteamId)
                     || liveSteamId != steamId)
                 {
+                    PluginLog.Debug(
+                        $"maps: delayed open skipped slot={slot} (stale token, closed, busy, empty catalog, or player changed)");
                     return;
                 }
 
                 OpenMapBrowserFor(player);
-                PluginLog.Info($"maps opened: {Humans.Label(player, steamId)}");
+                PluginLog.Info($"maps: opened for {Humans.Label(player, steamId)}");
             });
         }
 
@@ -110,6 +117,8 @@ namespace MapVote
         {
             if (_unloaded || _mapsClosed || VoteBusy || !Humans.IsHumanViewer(player))
             {
+                PluginLog.Debug(
+                    () => $"maps: browser open ignored for {Humans.Label(player)} (unloaded={_unloaded}, closed={_mapsClosed}, busy={VoteBusy}, human={Humans.IsHumanViewer(player)})");
                 return;
             }
 
@@ -137,6 +146,9 @@ namespace MapVote
                     currentOrigin,
                     Config.CleanMapNames,
                     nominations);
+                PluginLog.Debug(
+                    () => $"maps: bound browse list with {names.Count} map(s), current={currentMap ?? "unknown"}, "
+                        + $"nominations={(nominations is null ? "off" : $"{nominations.VotedOrder().Count} map(s)")}");
             }
 
             VoteHud.OpenFor(player);
@@ -161,7 +173,7 @@ namespace MapVote
         private void ResetNominations()
         {
             _nominationSession = null;
-            PluginLog.Debug("nominations reset (map start)");
+            PluginLog.Debug("nominations: reset at map start");
         }
 
         /// <summary>Very first !maps after a load: opens everyone who was waiting once RCON answers.</summary>
@@ -174,6 +186,9 @@ namespace MapVote
 
             if (_unloaded || _mapsClosed || VoteBusy || generation != _catalog.Generation)
             {
+                PluginLog.Debug(
+                    $"maps: pending opens dropped (unloaded={_unloaded}, closed={_mapsClosed}, busy={VoteBusy}, "
+                    + $"generation={generation}/{_catalog.Generation})");
                 _mapsPendingOpen.Clear();
                 return;
             }
@@ -186,6 +201,7 @@ namespace MapVote
 
             if (maps.Count == 0)
             {
+                PluginLog.Info($"maps: catalog settled empty; {waiting.Count} waiting player(s) notified");
                 foreach (CCSPlayerController player in waiting)
                 {
                     player.PrintToChat(Chat(Localizer["maps.unavailable"]));
@@ -194,6 +210,7 @@ namespace MapVote
                 return;
             }
 
+            PluginLog.Info($"maps: catalog settled with {maps.Count} map(s); opening browser for {waiting.Count} player(s)");
             foreach (CCSPlayerController player in waiting)
             {
                 OpenMapBrowserFor(player);
@@ -214,7 +231,7 @@ namespace MapVote
             }
 
             _mapsClosed = false;
-            PluginLog.Debug($"map browser open ({reason})");
+            PluginLog.Debug($"maps: browser opened ({reason})");
         }
 
         /// <summary>Intermission / map end: close the browser and reject !maps until the next match.</summary>
@@ -223,7 +240,7 @@ namespace MapVote
             _mapsPendingOpen.Clear();
             _mapsClosed = true;
             VoteHud.CloseBrowse();
-            PluginLog.Debug("map browser closed until next match");
+            PluginLog.Debug("maps: browser closed until next match");
         }
     }
 }

@@ -11,7 +11,8 @@ namespace MapVote.Maps
         public const int RetryPauseMilliseconds = GameConstants.CatalogRetryPauseMilliseconds;
         public const int MaxCommandTimeoutMilliseconds = GameConstants.MaxCommandTimeoutMilliseconds;
 
-        private readonly Action<string> _log;
+        private readonly Action<string> _info;
+        private readonly Action<string> _debug;
         private readonly Action<IReadOnlyList<MapEntry>, int>? _onLoaded;
         private readonly object _gate = new();
         private IReadOnlyList<MapEntry> _maps = [];
@@ -24,9 +25,13 @@ namespace MapVote.Maps
         private bool _loggedSourcesDisabled;
         private int _generation;
 
-        public MapCatalog(Action<string> log, Action<IReadOnlyList<MapEntry>, int>? onLoaded = null)
+        public MapCatalog(
+            Action<string> info,
+            Action<string> debug,
+            Action<IReadOnlyList<MapEntry>, int>? onLoaded = null)
         {
-            _log = log;
+            _info = info;
+            _debug = debug;
             _onLoaded = onLoaded;
         }
 
@@ -75,6 +80,7 @@ namespace MapVote.Maps
                 _loading = false;
                 // Work queued for the previous generation is stale too.
                 _queued = null;
+                _debug($"catalog: invalidated generation {_generation}; loading state reset");
             }
         }
 
@@ -97,6 +103,8 @@ namespace MapVote.Maps
                     // Do not drop a newer request (for example !maps during the intermission
                     // query): remember it and start it when the current worker finishes.
                     _queued = (_queued ?? request).Coalesce(request);
+                    _debug(
+                        $"catalog: refresh queued (sources={_queued.Value.DescribeSources()}, budget={_queued.Value.BudgetSeconds}s)");
                     return;
                 }
 
@@ -109,7 +117,7 @@ namespace MapVote.Maps
                 if (!_loggedSourcesDisabled)
                 {
                     _loggedSourcesDisabled = true;
-                    _log("catalog sources disabled (catalog.query_local_maps=false, catalog.query_mapgroup=false); keeping previous list.");
+                    _info("catalog: both sources are disabled; keeping the previous map list");
                 }
 
                 NotifyCurrent(generation);
@@ -122,7 +130,7 @@ namespace MapVote.Maps
                 if (!_loggedMissingPassword)
                 {
                     _loggedMissingPassword = true;
-                    _log("rcon_password empty; cannot load maps.");
+                    _info("catalog: rcon_password is empty; cannot load maps");
                 }
 
                 NotifyCurrent(generation);
@@ -130,7 +138,8 @@ namespace MapVote.Maps
                 return;
             }
 
-            _log($"catalog refresh started (sources={request.DescribeSources()}, budget={request.BudgetSeconds}s generation={generation})");
+            _debug(
+                $"catalog: refresh start generation={generation} sources={request.DescribeSources()} budget={request.BudgetSeconds}s port={port}");
             _ = Task.Run(() => LoadWorker(port, password, request, generation));
         }
 
@@ -141,7 +150,8 @@ namespace MapVote.Maps
                 password,
                 request,
                 generation,
-                _log,
+                _info,
+                _debug,
                 IsCurrentGeneration,
                 result => Publish(result, generation),
                 NotifyCurrent,
@@ -155,6 +165,8 @@ namespace MapVote.Maps
             {
                 if (generation != _generation)
                 {
+                    _debug(
+                        $"catalog: discard result from generation {generation} (current {_generation})");
                     return;
                 }
 
@@ -162,7 +174,8 @@ namespace MapVote.Maps
                 _workshopNamesById = result.WorkshopNamesById;
             }
 
-            _log($"loaded {result.Maps.Count} maps ({(result.Ready ? "ready" : "partial")}; {result.Summary}).");
+            _info(
+                $"catalog: {result.Maps.Count} maps loaded ({(result.Ready ? "ready" : "partial")}; {result.Summary})");
             _onLoaded?.Invoke(result.Maps, generation);
         }
 
@@ -198,6 +211,8 @@ namespace MapVote.Maps
 
             if (queued is { } request)
             {
+                _debug(
+                    $"catalog: starting queued refresh sources={request.DescribeSources()} budget={request.BudgetSeconds}s");
                 RequestRefresh(request.BudgetSeconds, request.QueryLocalMaps, request.QueryMapgroup);
             }
         }

@@ -25,7 +25,7 @@ namespace MapVote
         {
             if (!_flow.TryBegin())
             {
-                PluginLog.Debug("intermission ignored: end-match already running");
+                PluginLog.Debug("end-match: intermission ignored; end-match flow already running");
                 return;
             }
 
@@ -35,7 +35,7 @@ namespace MapVote
 
             int budget = VoteClock.CatalogTimeoutSeconds();
             PluginLog.Debug(() =>
-                $"intermission: catalog_timeout={budget}s decision={VoteClock.DecisionOffsetSeconds}s generation={_catalogGeneration}");
+                $"end-match: intermission detected; catalog budget={budget}s decision={VoteClock.DecisionOffsetSeconds}s generation={_catalogGeneration}");
 
             _flowEpoch++;
             _catalog.RequestRefresh(
@@ -62,6 +62,8 @@ namespace MapVote
         {
             if (_unloaded || generation != _catalogGeneration || _flow.Phase != EndMatchPhase.Preparing)
             {
+                PluginLog.Debug(
+                    $"end-match: catalog settle ignored (unloaded={_unloaded}, generation={generation}/{_catalogGeneration}, phase={_flow.Phase})");
                 return;
             }
 
@@ -74,7 +76,8 @@ namespace MapVote
 
             _pendingCandidates = candidates;
             float elapsed = (float)(DateTime.UtcNow - _intermissionEpochUtc).TotalSeconds;
-            PluginLog.Debug(() => $"catalog settled: query={elapsed:0.###}s maps={candidates.Count}");
+            PluginLog.Debug(
+                () => $"end-match: catalog settled after {elapsed:0.###}s with {candidates.Count} candidate map(s)");
             ApplyPath(choice);
         }
 
@@ -83,6 +86,8 @@ namespace MapVote
         {
             if (_unloaded || _flow.Phase != EndMatchPhase.Preparing)
             {
+                PluginLog.Debug(
+                    $"end-match: decision deadline ignored (unloaded={_unloaded}, phase={_flow.Phase})");
                 return;
             }
 
@@ -93,7 +98,7 @@ namespace MapVote
             }
 
             _pendingCandidates = candidates;
-            PluginLog.Debug(() => $"decision deadline: maps={candidates.Count}");
+            PluginLog.Debug($"end-match: decision deadline reached with {candidates.Count} candidate map(s)");
             ApplyPath(choice);
         }
 
@@ -116,7 +121,7 @@ namespace MapVote
                 }
                 else if (_flow.Phase is not (EndMatchPhase.Native or EndMatchPhase.Idle))
                 {
-                    PluginLog.Debug("win panel ignored");
+                    PluginLog.Debug("end-match: win panel ignored; no hold transition");
                 }
 
                 return;
@@ -137,14 +142,15 @@ namespace MapVote
             {
                 _pendingCandidates = null;
                 EngineVotePrep.ArmNativeVote();
-                PluginLog.Info("vote skipped: no candidates; Valve end-match vote armed");
+                PluginLog.Info("end-match: no usable maps for a custom vote; Valve vote enabled");
                 return;
             }
 
             int engineHold = WriteEngineHold();
             SuppressNativeVoteSlots();
             int maps = _pendingCandidates?.Count ?? 0;
-            PluginLog.Info($"custom vote: {maps} maps; native vote disabled; engine hold={engineHold}s");
+            PluginLog.Info($"end-match: custom vote selected with {maps} map(s); Valve vote disabled");
+            PluginLog.Debug($"end-match: engine hold={engineHold}s, native slots cleared");
         }
 
         /// <summary>Menu length: config override, otherwise the server cvar captured before we stretch it.</summary>
@@ -165,7 +171,7 @@ namespace MapVote
         private void ArmEngineHold()
         {
             int hold = WriteEngineHold();
-            PluginLog.Debug(() => $"engine hold armed: {hold}s");
+            PluginLog.Debug($"end-match: engine hold armed at {hold}s");
         }
 
         /// <summary>
@@ -191,7 +197,8 @@ namespace MapVote
             _timing = VoteClock.ResolveCustom(_voteSeconds, Config.Endmatch.WinnerRevealSeconds);
 
             PluginLog.Debug(() =>
-                $"win panel: vote={_voteSeconds}s open≈{_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
+                $"end-match: clock started vote={_voteSeconds}s results={VoteClock.MatchResultsSeconds}s "
+                + $"open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
 
             if (_timing.ChangelevelOffsetSeconds <= VoteClock.MatchResultsSeconds)
             {
@@ -214,12 +221,14 @@ namespace MapVote
         {
             if (_unloaded || !_flow.TryBeginVoting())
             {
+                PluginLog.Debug(
+                    $"end-match: match-results hold ignored (unloaded={_unloaded}, phase={_flow.Phase})");
                 return;
             }
 
             if (_pendingCandidates is not { Count: > 0 } candidates)
             {
-                PluginLog.Info("custom vote had no maps at menu open");
+                PluginLog.Info("end-match: custom vote has no candidate maps at menu open");
                 EndVoteUi();
                 return;
             }
@@ -232,7 +241,7 @@ namespace MapVote
             List<MapEntry> unique = DistinctCandidates(maps);
             if (unique.Count == 0)
             {
-                PluginLog.Info("custom vote had no maps at menu open");
+                PluginLog.Info("end-match: custom vote has no unique candidate maps");
                 EndVoteUi();
                 return;
             }
@@ -263,9 +272,9 @@ namespace MapVote
             int humans = Humans.GetHumans().Count();
             int shown = Math.Min(unique.Count, VoteHud.SlotCount);
             PluginLog.Info(
-                $"map voting started ({unique.Count} maps total -> {humans} players -> {shown} shown, per-player layouts, {carried} nominations carried)");
+                $"map vote started: {unique.Count} map(s), {humans} player(s), {shown} shown, {carried} nomination(s) carried, {_voteSeconds}s");
             PluginLog.Debug(() =>
-                $"vote armed: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
+                $"map vote: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s current={currentMap} ({currentOrigin})");
 
             ShowVoteHud();
         }
@@ -286,7 +295,7 @@ namespace MapVote
 
             if (untilChangelevel <= 0f)
             {
-                PluginLog.Debug("vote hud skipped: changelevel deadline passed; changing now");
+                PluginLog.Debug("map vote: changelevel deadline already passed; changing immediately");
                 LockWinner();
                 ChangeToWinner();
                 return;
@@ -301,14 +310,14 @@ namespace MapVote
 
             if (!openForVote)
             {
-                PluginLog.Debug("vote hud open: open window elapsed; starting reveal");
+                PluginLog.Debug("map vote: voting window already elapsed; starting reveal");
                 BeginReveal();
                 return;
             }
 
             AddFlowTimer(untilReveal, BeginReveal);
             PluginLog.Debug(() =>
-                $"vote hud open: {untilReveal:0.###}s until reveal, {untilChangelevel:0.###}s until changelevel");
+                $"map vote: HUD opened, reveal in {untilReveal:0.###}s, changelevel in {untilChangelevel:0.###}s");
         }
 
         private void LockWinner()
@@ -390,13 +399,18 @@ namespace MapVote
             int limit = excludeCurrent
                 ? Math.Clamp(Config.Endmatch.MaxMaps, 1, MapCatalog.MaxMaps)
                 : MapCatalog.MaxMaps;
-            return MapCandidateSelector.Select(
+            List<MapEntry> selected = MapCandidateSelector.Select(
                 catalog,
                 Config.MapsVotable,
                 exclude,
                 limit,
                 priority,
-                static (found, capped) => PluginLog.Debug(() => $"map list truncated from {found} to {capped}"));
+                static (found, capped) => PluginLog.Debug(
+                    () => $"map candidates: {found} visible map(s) truncated to {capped}"));
+            PluginLog.Debug(() =>
+                $"map candidates: selected {selected.Count}/{catalog.Count} (exclude={exclude ?? "none"}, limit={limit}, "
+                + $"priority={priority?.Count ?? 0}) [{string.Join(", ", selected.Select(static map => map.Name))}]");
+            return selected;
         }
 
         private static List<MapEntry> DistinctCandidates(List<MapEntry> maps) =>
@@ -406,6 +420,8 @@ namespace MapVote
         {
             if (_unloaded || _leaveMap || !_flow.TryBeginReveal() || _session is null)
             {
+                PluginLog.Debug(
+                    $"map vote: reveal ignored (unloaded={_unloaded}, leaving={_leaveMap}, phase={_flow.Phase}, session={_session is not null})");
                 return;
             }
 
@@ -416,8 +432,14 @@ namespace MapVote
             VoteHud.SetDeadline(_scheduleEpochUtc.AddSeconds(_timing.ChangelevelOffsetSeconds));
 
             float remaining = RemainingUntil(_timing.ChangelevelOffsetSeconds);
-            PluginLog.Info($"map voting completed: winner={winner} ({_session.CountOf(winner)} votes)");
-            PluginLog.Debug(() => $"changelevel in {Math.Max(0f, remaining):0.###}s");
+            PluginLog.Info($"map vote complete: winner {winner} with {_session.CountOf(winner)} vote(s)");
+            PluginLog.Debug(() =>
+            {
+                string tally = string.Join(
+                    ", ",
+                    _session.VotedOrder().Select(map => $"{map}={_session.CountOf(map)}"));
+                return $"map vote: final tally [{tally}], changelevel in {Math.Max(0f, remaining):0.###}s";
+            });
 
             if (remaining <= 0f)
             {
@@ -432,6 +454,8 @@ namespace MapVote
         {
             if (_unloaded || _leaveMap || !_flow.TryBeginChange())
             {
+                PluginLog.Debug(
+                    $"changelevel: ignored (unloaded={_unloaded}, leaving={_leaveMap}, phase={_flow.Phase})");
                 return;
             }
 
@@ -441,23 +465,26 @@ namespace MapVote
 
             if (string.IsNullOrWhiteSpace(winner) || !MapNameFilter.IsValidMapName(winner))
             {
-                PluginLog.Info($"changelevel refused: invalid winner '{winner}'");
+                PluginLog.Info($"changelevel: refused invalid winner '{winner}'");
                 return;
             }
 
             _plays.Increment(winner);
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
-            PluginLog.Info($"changing to map {winner}");
-            PluginLog.Debug(() => $"changelevel command={command} origin={origin}");
+            PluginLog.Info($"changing map to {winner} ({origin.ToString().ToLowerInvariant()})");
+            PluginLog.Debug($"changelevel: command={command} origin={origin}");
             Server.ExecuteCommand(command);
         }
 
         private void EndVoteUi()
         {
+            PluginLog.Debug($"vote UI reset: epoch {_flowEpoch} -> {_flowEpoch + 1}, phase={_flow.Phase}");
             _flowEpoch++;
             _flow.Reset();
             _pendingCandidates = null;
             _session = null;
+            _pendingWinner = null;
+            _pendingOrigin = MapOrigin.Local;
             _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
             VoteHud.CloseAll();
         }
@@ -484,6 +511,7 @@ namespace MapVote
             }
 
             int token = ++_hudOpenTokens[slot];
+            PluginLog.Debug($"map vote: scheduling HUD open for joiner slot={slot} in {JoinerOpenDelaySeconds}s");
             AddFlowTimer(JoinerOpenDelaySeconds, () =>
             {
                 if (_unloaded
@@ -493,6 +521,7 @@ namespace MapVote
                     || !Humans.TryGetSteamId(player, out ulong liveSteamId)
                     || liveSteamId != steamId)
                 {
+                    PluginLog.Debug($"map vote: joiner HUD open skipped slot={slot} (stale token or player changed)");
                     return;
                 }
 
@@ -509,6 +538,7 @@ namespace MapVote
 
             if (_flow.Phase == EndMatchPhase.Revealing)
             {
+                PluginLog.Debug($"map vote: opening reveal HUD for joiner {Humans.Label(player)}");
                 VoteHud.OpenFor(player, captureMouse: false);
                 if (_pendingWinner is not null)
                 {
@@ -520,6 +550,7 @@ namespace MapVote
 
             if (_flow.Phase == EndMatchPhase.Voting)
             {
+                PluginLog.Debug($"map vote: opening vote HUD for joiner {Humans.Label(player)}");
                 VoteHud.OpenFor(player);
             }
         }
