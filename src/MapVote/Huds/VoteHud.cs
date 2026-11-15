@@ -528,7 +528,7 @@ namespace MapVote.Huds
 
             if (buttonId == VoteIds.FavOnly)
             {
-                if (_filters.Enabled && FavoritesOf(player).Count > 0)
+                if (_filters.Enabled && VoteView.AvailableFavoriteCount(FavoritesOf(player), _grid) > 0)
                 {
                     FavoritesOnly[slot] = !FavoritesOnly[slot];
                     Paint(player);
@@ -786,7 +786,8 @@ namespace MapVote.Huds
             bool browse = _mode == Mode.Browse;
             IReadOnlyList<string> order = OrderFor(slot);
             HashSet<string> favorites = FavoritesOf(player);
-            if (favorites.Count == 0)
+            int availableFavoriteCount = VoteView.AvailableFavoriteCount(favorites, _grid);
+            if (availableFavoriteCount == 0)
             {
                 FavoritesOnly[slot] = false;
             }
@@ -815,7 +816,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            PaintFilters(player, favorites);
+            PaintFilters(player, availableFavoriteCount);
             if (CustomHud.TickWrites >= PaintWriteBudget)
             {
                 return;
@@ -943,7 +944,7 @@ namespace MapVote.Huds
             }
         }
 
-        private static void PaintFilters(CCSPlayerController player, HashSet<string> favorites)
+        private static void PaintFilters(CCSPlayerController player, int availableFavoriteCount)
         {
             int slot = player.Slot;
             bool show = _filters.Enabled;
@@ -953,7 +954,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            CustomHud.SetText(player, Panel, VoteIds.FavOnlyVar, L(player, "hud.fav_only", favorites.Count));
+            CustomHud.SetText(player, Panel, VoteIds.FavOnlyVar, L(player, "hud.fav_only", availableFavoriteCount));
             for (int chip = 0; chip < FilterTypeSlots; chip++)
             {
                 bool on = _typeChips > 0 && chip <= _typeChips;
@@ -969,7 +970,7 @@ namespace MapVote.Huds
             }
 
             CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-active", FavoritesOnly[slot]);
-            CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-disabled", favorites.Count == 0);
+            CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-disabled", availableFavoriteCount == 0);
 
             // Sort chips reorder one viewer's grid, so they only exist in browse.
             int sortChip = 0;

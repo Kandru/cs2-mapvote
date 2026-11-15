@@ -52,6 +52,25 @@ public class VoteViewTests
     }
 
     [Fact]
+    public void AvailableFavoriteCount_CountsOnlyFavoritesInCurrentMapList()
+    {
+        HashSet<string> favorites = new(StringComparer.Ordinal) { "de_inferno", "cs_office", "de_dust2" };
+
+        Assert.Equal(1, VoteView.AvailableFavoriteCount(favorites, ["de_inferno"]));
+        Assert.Equal(2, VoteView.AvailableFavoriteCount(favorites, ["de_inferno", "cs_office"]));
+        Assert.Equal(0, VoteView.AvailableFavoriteCount(favorites, ["de_train"]));
+    }
+
+    [Fact]
+    public void AvailableFavoriteCount_IsZeroForEmptyFavoritesOrMapList()
+    {
+        HashSet<string> favorites = new(StringComparer.Ordinal) { "de_inferno" };
+
+        Assert.Equal(0, VoteView.AvailableFavoriteCount(new HashSet<string>(StringComparer.Ordinal), ["de_inferno"]));
+        Assert.Equal(0, VoteView.AvailableFavoriteCount(favorites, []));
+    }
+
+    [Fact]
     public void RatingToggle_MovesAndRemovesCounts()
     {
         const string alice = "76561198000000001";

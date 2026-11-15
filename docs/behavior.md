@@ -46,7 +46,7 @@ The command triggers a short catalog refresh when the list is still empty after 
 
 ## Localization
 
-Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.json`](../src/MapVote/lang/de.json). Filter/sort chip labels use `filter.{id}` / `sort.{id}` matching config ids. Type chips append the matching map count as `Label (n)` - for example `All (95)` - and the Favorites chip shows that viewer's favorite count, including `Favorites (0)`. Every HUD text is written on the viewer's private layout entity, so each player sees it in their own language.
+Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.json`](../src/MapVote/lang/de.json). Filter/sort chip labels use `filter.{id}` / `sort.{id}` matching config ids. Type chips append the matching map count as `Label (n)` - for example `All (95)` - and the Favorites chip counts only the viewer's favorites that are in the currently displayed map list, including `Favorites (0)`. Favorites for maps that left the rotation stay saved and reappear if the map returns. Every HUD text is written on the viewer's private layout entity, so each player sees it in their own language.
 
 ## Entry points (partials)
 

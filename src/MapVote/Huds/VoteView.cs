@@ -29,6 +29,29 @@ namespace MapVote.Huds
             (typeChip <= 0 || (typeMask & (1 << typeChip)) != 0)
             && (!favoritesOnly || isFavorite);
 
+        /// <summary>
+        /// How many of a viewer's stored favorites are in the currently displayed map list.
+        /// Favorites for maps that left the rotation stay stored but are not counted.
+        /// </summary>
+        public static int AvailableFavoriteCount(IReadOnlySet<string> favorites, IReadOnlyList<string> maps)
+        {
+            if (favorites.Count == 0 || maps.Count == 0)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            foreach (string map in maps)
+            {
+                if (favorites.Contains(map))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         /// <summary>Clicking the selected rating removes it; any other click selects the clicked one.</summary>
         public static PlayerRating NextRating(PlayerRating current, PlayerRating clicked) =>
             current == clicked ? PlayerRating.None : clicked;
