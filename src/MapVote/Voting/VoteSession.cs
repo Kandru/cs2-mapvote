@@ -2,13 +2,18 @@ namespace MapVote.Voting
 {
     public sealed class VoteSession
     {
+        /// <summary>Minimum time between two successful casts by the same player.</summary>
+        public static readonly TimeSpan ChangeCooldown = TimeSpan.FromSeconds(1);
+
         private readonly string[] _maps;
         private readonly Dictionary<ulong, string> _votesByPlayer = [];
         private readonly Dictionary<string, int> _counts = new(StringComparer.Ordinal);
+        private readonly Dictionary<ulong, DateTimeOffset> _lastCastUtc = [];
         private readonly List<string> _firstVoteOrder = [];
         private readonly Random _random;
+        private readonly TimeProvider _time;
 
-        public VoteSession(IReadOnlyList<string> maps, Random? random = null)
+        public VoteSession(IReadOnlyList<string> maps, Random? random = null, TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(maps);
             if (maps.Count == 0)
@@ -33,6 +38,7 @@ namespace MapVote.Voting
 
             _maps = [.. unique];
             _random = random ?? Random.Shared;
+            _time = timeProvider ?? TimeProvider.System;
             foreach (string map in _maps)
             {
                 _counts[map] = 0;
@@ -43,26 +49,35 @@ namespace MapVote.Voting
         public bool IsOpen { get; private set; } = true;
         public string? Winner { get; private set; }
 
-        public bool Cast(ulong playerId, string mapName)
+        public VoteCastResult Cast(ulong playerId, string mapName)
         {
-            if (!IsOpen || string.IsNullOrEmpty(mapName) || !_counts.ContainsKey(mapName))
+            if (!CanAccept(mapName))
             {
-                return false;
+                return VoteCastResult.Rejected;
             }
 
-            if (_votesByPlayer.TryGetValue(playerId, out string? previous))
+            if (!_votesByPlayer.TryGetValue(playerId, out string? previous))
             {
-                if (previous == mapName)
-                {
-                    return false;
-                }
-
-                Decrement(previous);
+                SetVote(playerId, mapName, null);
+                _lastCastUtc[playerId] = _time.GetUtcNow();
+                return VoteCastResult.Accepted;
             }
 
-            _votesByPlayer[playerId] = mapName;
-            Increment(mapName);
-            return true;
+            if (previous == mapName)
+            {
+                return VoteCastResult.Unchanged;
+            }
+
+            DateTimeOffset now = _time.GetUtcNow();
+            // A carried vote has no timestamp and stays changeable immediately.
+            if (now - _lastCastUtc.GetValueOrDefault(playerId) < ChangeCooldown)
+            {
+                return VoteCastResult.RateLimited;
+            }
+
+            SetVote(playerId, mapName, previous);
+            _lastCastUtc[playerId] = now;
+            return VoteCastResult.Changed;
         }
 
         public bool RemovePlayer(ulong playerId)
@@ -72,6 +87,7 @@ namespace MapVote.Voting
                 return false;
             }
 
+            _lastCastUtc.Remove(playerId);
             Decrement(map);
             return true;
         }
@@ -84,7 +100,9 @@ namespace MapVote.Voting
 
         /// <summary>
         /// Copies every vote this session holds into <paramref name="target"/>.
-        /// Votes for maps the target does not offer are skipped. Returns the number of copied votes.
+        /// Votes for maps the target does not offer are skipped, and the target's per-player
+        /// change cooldown does not apply: carried votes are not player clicks.
+        /// Returns the number of copied votes.
         /// </summary>
         public int CopyVotesTo(VoteSession target)
         {
@@ -92,10 +110,19 @@ namespace MapVote.Voting
             int copied = 0;
             foreach ((ulong playerId, string map) in _votesByPlayer)
             {
-                if (target.Cast(playerId, map))
+                if (!target.CanAccept(map))
                 {
-                    copied++;
+                    continue;
                 }
+
+                string? previous = target.VoteOf(playerId);
+                if (previous == map)
+                {
+                    continue;
+                }
+
+                target.SetVote(playerId, map, previous);
+                copied++;
             }
 
             return copied;
@@ -143,6 +170,20 @@ namespace MapVote.Voting
 
             IsOpen = false;
             Winner = ResolveWinner();
+        }
+
+        private bool CanAccept(string mapName) =>
+            IsOpen && !string.IsNullOrEmpty(mapName) && _counts.ContainsKey(mapName);
+
+        private void SetVote(ulong playerId, string mapName, string? previous)
+        {
+            if (previous is not null)
+            {
+                Decrement(previous);
+            }
+
+            _votesByPlayer[playerId] = mapName;
+            Increment(mapName);
         }
 
         private void Increment(string map)

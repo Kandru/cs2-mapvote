@@ -69,6 +69,8 @@ namespace MapVote.Huds
         public const int ShareStep = 10;
 
         public static readonly string[] Views = ["view-vote", "view-reveal", "view-browse"];
+        /// <summary>Root classes alternated by the server so every blocked click replays the sound.</summary>
+        public static readonly string[] BlockedSoundClasses = ["is-blocked-1", "is-blocked-2"];
         public static readonly string[] VotesClasses = ["votes-none", "votes-some"];
 
         public static readonly string[] GridSlotIds = BuildIndexed("mv-slot-", SlotCount);   // is-off (XML on), is-self

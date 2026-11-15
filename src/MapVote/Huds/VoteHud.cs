@@ -66,6 +66,8 @@ namespace MapVote.Huds
         /// <summary>Countdown: 0 idle/running, 1 = set span-N, 2 = set is-running; each step a later tick than <see cref="TimerTick"/>.</summary>
         private static readonly int[] TimerStage = new int[MaxSlots];
         private static readonly int[] TimerTick = BuildFilled(-1);
+        /// <summary>Which of the two alternating blocked-sound classes is applied per slot.</summary>
+        private static readonly bool[] BlockedSoundSecond = new bool[MaxSlots];
         /// <summary>Reveal reached this open player while the tick budget was spent.</summary>
         private static readonly bool[] RevealPending = new bool[MaxSlots];
         /// <summary>Opens waiting for tick budget, first in first out. Queued players are not open.</summary>
@@ -97,7 +99,7 @@ namespace MapVote.Huds
         }
 
         /// <summary>
-        /// Binds the same overlay to a plain map list (!maps): no ranking, sort chips on.
+        /// Binds the same overlay to a plain map list (!maps): shared live ranking, sort chips on.
         /// A nomination session makes the cards clickable; null keeps browse-only.
         /// </summary>
         public static void BindBrowse(
@@ -594,18 +596,41 @@ namespace MapVote.Huds
         private static void CastVote(CCSPlayerController player, string map)
         {
             ulong steamId = player.AuthorizedSteamID!.SteamId64;
-            VoteSession session = _session!;
-            string? previous = session.VoteOf(steamId);
-            if (!session.Cast(steamId, map))
+            VoteCastResult result = _session!.Cast(steamId, map);
+            if (result == VoteCastResult.RateLimited)
+            {
+                // No visual feedback: just the blocked sound, and no repaint for anyone.
+                PlayBlockedSound(player);
+                PluginLog.Debug(() => $"vote blocked (cooldown) {Humans.Label(player, steamId)} → {map}");
+                return;
+            }
+
+            if (result is not (VoteCastResult.Accepted or VoteCastResult.Changed))
             {
                 return;
             }
 
-            string label = Humans.Label(player, steamId);
-            string action = _mode == Mode.Browse ? "nominate" : "cast";
-            PluginLog.Debug(previous is null ? $"{action} {label} → {map}" : $"{action} {label} {previous} → {map}");
-
+            PluginLog.Debug(
+                () => $"{(_mode == Mode.Browse ? "nominate" : "cast")} {Humans.Label(player, steamId)} → {map}");
             PaintAll();
+        }
+
+        /// <summary>
+        /// Replays the blocked sound for one viewer by alternating two root classes. Panorama
+        /// fires <c>sound</c> when a selector applies, so a repeated class would stay silent.
+        /// </summary>
+        private static void PlayBlockedSound(CCSPlayerController player)
+        {
+            int slot = player.Slot;
+            if (slot is < 0 or >= MaxSlots)
+            {
+                return;
+            }
+
+            bool second = !BlockedSoundSecond[slot];
+            BlockedSoundSecond[slot] = second;
+            CustomHud.SetHasClass(player, Panel, VoteIds.BlockedSoundClasses[0], !second);
+            CustomHud.SetHasClass(player, Panel, VoteIds.BlockedSoundClasses[1], second);
         }
 
         private static void ApplySortClick(CCSPlayerController player, int sortIndex)
@@ -784,16 +809,10 @@ namespace MapVote.Huds
                 return;
             }
 
-            if (!browse)
+            PaintRanking(player);
+            if (CustomHud.TickWrites >= PaintWriteBudget)
             {
-                CustomHud.SetText(player, Panel, VoteIds.RankTitleVar, L(player, "hud.rank_title"));
-                CustomHud.SetText(player, Panel, VoteIds.RankEmptyVar, L(player, "hud.rank_empty"));
-                CustomHud.SetText(player, Panel, VoteIds.SelfVar, L(player, "hud.self"));
-                PaintRanking(player);
-                if (CustomHud.TickWrites >= PaintWriteBudget)
-                {
-                    return;
-                }
+                return;
             }
 
             PaintFilters(player, favorites);
@@ -881,8 +900,19 @@ namespace MapVote.Huds
 
         private static void PaintRanking(CCSPlayerController player)
         {
+            CustomHud.SetText(player, Panel, VoteIds.RankTitleVar, L(player, "hud.rank_title"));
+            CustomHud.SetText(player, Panel, VoteIds.RankEmptyVar, L(player, "hud.rank_empty"));
+            CustomHud.SetText(player, Panel, VoteIds.SelfVar, L(player, "hud.self"));
+
             if (_session is null)
             {
+                _ranked.Clear();
+                SetPlayerClass(player, VoteIds.RankEmpty, "is-off", false, xmlOn: false);
+                for (int i = 0; i < RankSlots; i++)
+                {
+                    SetPlayerClass(player, VoteIds.RankRowIds[i], "is-off", true, xmlOn: true);
+                }
+
                 return;
             }
 
@@ -1230,6 +1260,8 @@ namespace MapVote.Huds
             SelfSlot[slot] = -1;
             TimerStage[slot] = 0;
             TimerTick[slot] = -1;
+            // BlockedSoundSecond is intentionally not reset: its class may still be on the
+            // entity, and resetting it could toggle the same class on again (no replay).
         }
 
         private static void ResetAllSlots()

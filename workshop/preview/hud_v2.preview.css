@@ -84,6 +84,13 @@ button { pointer-events: auto; }
 	display: none;
 }
 
+/* Cooldown feedback: the server alternates the classes, so every blocked click replays the sound. */
+.VoteRoot.is-blocked-1,
+.VoteRoot.is-blocked-2
+{
+
+}
+
 .mv-glass
 {
 	width: 100%;
@@ -1344,13 +1351,10 @@ button { pointer-events: auto; }
 
 }
 
-/* ---- Browse view (!maps): no timer, no ranking, sort chips shown ---- */
+/* ---- Browse view (!maps): timer + status check hidden; ranking and vote counts are live ---- */
 
 .VoteRoot.view-browse .Timer,
-.VoteRoot.view-browse .Ranking,
-.VoteRoot.view-browse .StatusCheck,
-.VoteRoot.view-browse .VoteBadge,
-.VoteRoot.view-browse .SelfBadge
+.VoteRoot.view-browse .StatusCheck
 {
 	display: none;
 }

@@ -9,7 +9,8 @@ Root
   #Vote                    classes: is-off (P, XML on), is-fading (P), is-minimized (P),
                            view group view-vote | view-reveal | view-browse (P, XML view-vote).
                            Reveal is a root view: grid dimmed, rating dimmed, winner card shown.
-                           Browse (!maps): timer, status check and ranking hidden; sort row shown.
+                           Browse (!maps): timer and status check hidden; ranking, vote badges
+                           and sort row live (same renderer as the vote).
 Top bar
   mv_title      (G) title text                      "Stimme für die nächste Map"
   #mv-timer               is-urgent (P, last 5 s; red text + pulse, the only infinite animation)
