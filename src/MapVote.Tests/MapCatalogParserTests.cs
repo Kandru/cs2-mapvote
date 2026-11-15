@@ -25,9 +25,22 @@ public class MapCatalogParserTests
     }
 
     [Fact]
+    public void ParseLocalMaps_ReportsReadyForSkippedOnlyReply()
+    {
+        LocalMapParseResult parsed = MapCatalogParser.ParseLocalMaps("workshop_preview_1");
+
+        Assert.Empty(parsed.Maps);
+        Assert.Equal(1, parsed.Skipped);
+        Assert.True(parsed.Ready);
+    }
+
+    [Fact]
     public void ParseLocalMaps_ReturnsEmptyForBlankReply()
     {
-        Assert.Empty(MapCatalogParser.ParseLocalMaps(null).Maps);
+        LocalMapParseResult parsed = MapCatalogParser.ParseLocalMaps(null);
+
+        Assert.Empty(parsed.Maps);
+        Assert.False(parsed.Ready);
         Assert.Empty(MapCatalogParser.ParseLocalMaps(string.Empty).Maps);
     }
 }

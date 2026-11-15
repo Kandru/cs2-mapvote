@@ -10,24 +10,8 @@ namespace MapVote.Maps
         /// Empty body → not ready. Ready when at least one map is accepted, or at least
         /// one skipped line (paths / denied names prove the command answered).
         /// </summary>
-        public static bool IsLocalReady(string response)
-        {
-            if (string.IsNullOrWhiteSpace(response))
-            {
-                return false;
-            }
-
-            foreach (string line in response.Split('\n'))
-            {
-                MapLineKind kind = MapNameFilter.ClassifyLocalLine(line, out _);
-                if (kind is MapLineKind.Accept or MapLineKind.Skip)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        public static bool IsLocalReady(string response) =>
+            MapCatalogParser.ParseLocalMaps(response).Ready;
 
         /// <summary>
         /// Empty/header-only without maps → not ready. Ready when the reply contains at least

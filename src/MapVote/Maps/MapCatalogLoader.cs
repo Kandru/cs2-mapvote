@@ -75,20 +75,17 @@ namespace MapVote.Maps
                         using RconClient client = new("127.0.0.1", _port, _password, timeoutMs);
                         client.Connect();
 
-                        string localBody = _request.QueryLocalMaps
+                        string localReply = _request.QueryLocalMaps
                             ? client.SendCommand("maps *")
                             : string.Empty;
                         string mapgroupBody = _request.QueryMapgroup
                             ? client.SendCommand("print_mapgroup_sv")
                             : string.Empty;
 
-                        (List<MapEntry> localBodyMaps, int localBodySkipped) =
-                            _request.QueryLocalMaps
-                                ? MapCatalogParser.ParseLocalMaps(localBody)
-                                : ([], 0);
-                        bool localReady = !_request.QueryLocalMaps
-                            || localBodyMaps.Count > 0
-                            || localBodySkipped > 0;
+                        LocalMapParseResult localBody = _request.QueryLocalMaps
+                            ? MapCatalogParser.ParseLocalMaps(localReply)
+                            : LocalMapParseResult.Empty;
+                        bool localReady = !_request.QueryLocalMaps || localBody.Ready;
 
                         MapGroupParseResult mapgroup = _request.QueryMapgroup
                             ? MapGroupList.Parse(mapgroupBody)
@@ -96,11 +93,11 @@ namespace MapVote.Maps
                         bool mapgroupReady = !_request.QueryMapgroup || mapgroup.Ready;
 
                         (List<MapEntry> local, int mapgroupLocalSkipped) =
-                            MapCatalogParser.Merge(localBodyMaps, mapgroup.Local);
+                            MapCatalogParser.Merge(localBody.Maps, mapgroup.Local);
                         (List<MapEntry> maps, int workshopOverlapSkipped) =
                             MapCatalogParser.Merge(local, mapgroup.Workshop);
 
-                        int localSkipped = localBodySkipped + mapgroupLocalSkipped;
+                        int localSkipped = localBody.Skipped + mapgroupLocalSkipped;
                         int workshopSkipped = mapgroup.Skipped + workshopOverlapSkipped;
                         string summary =
                             $"sources={sources}, local={local.Count}, local_skipped={localSkipped}, "

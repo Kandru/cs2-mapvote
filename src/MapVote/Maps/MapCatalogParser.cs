@@ -1,5 +1,14 @@
 namespace MapVote.Maps
 {
+    /// <summary>One parsed <c>maps *</c> reply plus the counters used by catalog readiness.</summary>
+    public sealed record LocalMapParseResult(List<MapEntry> Maps, int Skipped)
+    {
+        public static LocalMapParseResult Empty { get; } = new([], 0);
+
+        /// <summary>At least one accepted or explicitly skipped line proves the command answered.</summary>
+        public bool Ready => Maps.Count > 0 || Skipped > 0;
+    }
+
     /// <summary>
     /// Pure parsing and merging of the two catalog sources: the <c>maps *</c> reply and
     /// the parsed <c>print_mapgroup_sv</c> reply.
@@ -25,11 +34,11 @@ namespace MapVote.Maps
         /// Parses a <c>maps *</c> reply into playable local map entries. Unplayable names
         /// are counted as skipped; unrelated output lines are ignored.
         /// </summary>
-        public static (List<MapEntry> Maps, int Skipped) ParseLocalMaps(string? response)
+        public static LocalMapParseResult ParseLocalMaps(string? response)
         {
             if (string.IsNullOrEmpty(response))
             {
-                return ([], 0);
+                return LocalMapParseResult.Empty;
             }
 
             List<MapEntry> maps = [];
@@ -52,7 +61,7 @@ namespace MapVote.Maps
                 }
             }
 
-            return (maps, skipped);
+            return new LocalMapParseResult(maps, skipped);
         }
 
         private static int AppendUnique(
