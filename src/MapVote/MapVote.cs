@@ -78,6 +78,7 @@ namespace MapVote
             PluginLog.Info($"plugin loading{(hotReload ? " (hot reload)" : string.Empty)}");
             PluginLog.Debug($"debug logging enabled; hotReload={hotReload}");
             _unloaded = false;
+            ResetRuntimeState("load");
 
             _catalog = new MapCatalog(PluginLog.Info, PluginLog.Debug, OnCatalogLoaded);
             _archive = new PlayerArchive();
@@ -111,25 +112,30 @@ namespace MapVote
         {
             PluginLog.Info($"plugin unloading{(hotReload ? " (hot reload)" : string.Empty)}");
             _unloaded = true;
-            StopRtvWindow();
-            _catalog?.Invalidate();
-            EndVoteUi();
-            SavePersistence();
-            _steamBySlot.Clear();
-            _hudOpenTokens.ClearAll();
-            CustomHud.Shutdown();
-            RemoveListener<Listeners.OnMapStart>(OnMapStart);
-            RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
-            RemoveListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
-            RemoveListener<Listeners.OnTick>(OnTick);
-            RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
-            DeregisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
-            DeregisterEventHandler<EventCsIntermission>(OnCsIntermission);
-            DeregisterEventHandler<EventRoundAnnounceWarmup>(OnRoundAnnounceWarmup);
-            DeregisterEventHandler<EventRoundAnnounceMatchStart>(OnRoundAnnounceMatchStart);
-            DeregisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
-            DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
-            DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+            try
+            {
+                StopRtvWindow();
+                _catalog?.Invalidate();
+                EndVoteUi();
+                SavePersistence();
+            }
+            finally
+            {
+                ResetRuntimeState("unload");
+                CustomHud.Shutdown();
+                RemoveListener<Listeners.OnMapStart>(OnMapStart);
+                RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
+                RemoveListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
+                RemoveListener<Listeners.OnTick>(OnTick);
+                RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
+                DeregisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
+                DeregisterEventHandler<EventCsIntermission>(OnCsIntermission);
+                DeregisterEventHandler<EventRoundAnnounceWarmup>(OnRoundAnnounceWarmup);
+                DeregisterEventHandler<EventRoundAnnounceMatchStart>(OnRoundAnnounceMatchStart);
+                DeregisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
+                DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+                DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+            }
         }
 
         private void OnCatalogLoaded(IReadOnlyList<MapEntry> maps, int generation) =>
@@ -221,28 +227,119 @@ namespace MapVote
             PluginLog.Info($"map start: {mapName}");
             _catalog.Invalidate();
             _leaveMap = false;
-            // Keep _steamBySlot: on a map change the same controllers may not fire connect full
-            // again, and disconnect cleanup still needs their SteamID.
+            ReconcileSteamSlots();
             MapOrder.ResetMatch();
             EndVoteUi();
-            ResetNominations();
+            ResetMapScopedState("map start");
             ResetRtv();
             OpenMapsForNewMatch("map start", clearPending: true);
             CustomHud.ResetRound();
             LoadPersistence();
             ArmEngineHold();
-            PluginLog.Debug($"map start: state reset, nominations/rtv cleared, persistence loaded");
+            PluginLog.Debug("map start: state reset, nominations/rtv cleared, persistence loaded");
         }
 
         private void OnMapEnd()
         {
             PluginLog.Info("map end: saving player data");
             _leaveMap = true;
-            _catalog.Invalidate();
-            EndVoteUi();
-            CloseMapsForMatchEnd();
-            SavePersistence();
-            CustomHud.Shutdown();
+            try
+            {
+                _catalog.Invalidate();
+                EndVoteUi();
+                CloseRtvForMatchEnd();
+                CloseMapsForMatchEnd();
+                ResetMapScopedState("map end");
+                SavePersistence();
+            }
+            finally
+            {
+                // Entity cleanup must run even if a save or reset step throws.
+                CustomHud.Shutdown();
+            }
+        }
+
+        /// <summary>
+        /// State that belongs to exactly one map: deferred opens, catalog generation,
+        /// nominations and the vote clock. Safe to call from both map end and map start.
+        /// </summary>
+        private void ResetMapScopedState(string reason)
+        {
+            _catalogGeneration = 0;
+            _scheduleEpochUtc = default;
+            _intermissionEpochUtc = default;
+            _voteSeconds = VoteClock.DefaultVoteSeconds;
+            _timing = default;
+            _hudOpenTokens.ClearAll();
+            _mapsPendingOpen.Clear();
+            ResetNominations();
+            PluginLog.Debug($"map-scoped state reset ({reason})");
+        }
+
+        /// <summary>Full in-memory reset for plugin load and unload, including hot reload.</summary>
+        private void ResetRuntimeState(string reason)
+        {
+            _leaveMap = false;
+            _session = null;
+            _pendingCandidates = null;
+            _pendingWinner = null;
+            _pendingOrigin = MapOrigin.Local;
+            _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
+            _catalogGeneration = 0;
+            _scheduleEpochUtc = default;
+            _intermissionEpochUtc = default;
+            _voteSeconds = VoteClock.DefaultVoteSeconds;
+            _timing = default;
+            _rtvToken++;
+            _rtvDeadlineUtc = null;
+            _rtvVoters.Clear();
+            _rtvPassed = false;
+            _rtvClosed = false;
+            _hudOpenTokens.ClearAll();
+            _mapsPendingOpen.Clear();
+            _nominationSession = null;
+            _mapsClosed = false;
+            _steamBySlot.Clear();
+            _flowEpoch++;
+            _flow.Reset();
+            PluginLog.Debug($"runtime state reset ({reason})");
+        }
+
+        /// <summary>
+        /// Keeps the slot → SteamID fallback map aligned with the controllers that
+        /// survived a map change, so a later disconnect cannot clean up a stale identity.
+        /// </summary>
+        private void ReconcileSteamSlots()
+        {
+            HashSet<int> liveSlots = [];
+            foreach (CCSPlayerController player in Humans.GetHumans())
+            {
+                if (!PlayerSlots.IsValid(player.Slot))
+                {
+                    continue;
+                }
+
+                liveSlots.Add(player.Slot);
+                if (Humans.TryGetSteamId(player, out ulong steamId))
+                {
+                    _steamBySlot[player.Slot] = steamId;
+                }
+                else
+                {
+                    // A slot without an authorized id must not fall back to the previous owner.
+                    _steamBySlot.Remove(player.Slot);
+                }
+            }
+
+            foreach (int slot in _steamBySlot.Keys.ToList())
+            {
+                if (!liveSlots.Contains(slot))
+                {
+                    _steamBySlot.Remove(slot);
+                }
+            }
+
+            PluginLog.Debug($"slot identities reconciled ({_steamBySlot.Count} cached)");
         }
 
         private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
@@ -325,20 +422,32 @@ namespace MapVote
                 return HookResult.Continue;
             }
 
+            int slot = player.Slot;
             ulong steamId = Humans.TryGetSteamId(player, out ulong current)
                 ? current
-                : player.Slot >= 0 && _steamBySlot.TryGetValue(player.Slot, out ulong cached)
+                : PlayerSlots.IsValid(slot) && _steamBySlot.TryGetValue(slot, out ulong cached)
                     ? cached
                     : 0;
 
-            if (PlayerSlots.IsValid(player.Slot))
+            // The controller may no longer expose a usable slot; fall back to the cached
+            // identity so HUD queues and per-slot state are still released.
+            if (!PlayerSlots.IsValid(slot) && steamId > 0)
             {
-                _steamBySlot.Remove(player.Slot);
-                VoteHud.ReleaseSlot(player.Slot);
+                slot = FindSlotForSteamId(steamId);
+            }
+
+            if (PlayerSlots.IsValid(slot))
+            {
+                _steamBySlot.Remove(slot);
+                _hudOpenTokens.Clear(slot);
+                VoteHud.ReleaseSlot(slot);
+                // No controller writes here: the slot may already be invalid/reused.
+                CustomHud.ReleaseSlot(slot);
             }
 
             if (steamId > 0)
             {
+                _mapsPendingOpen.Remove(steamId);
                 _archive.SaveIfDirty(
                     Config,
                     steamId.ToString(),
@@ -364,15 +473,32 @@ namespace MapVote
 
                 string label = Humans.Label(player, steamId);
                 PluginLog.Debug(
-                    $"disconnect: {label} slot={player.Slot} votes_changed={votesChanged} rtv_votes={_rtvVoters.Count}");
+                    $"disconnect: {label} slot={slot} votes_changed={votesChanged} rtv_votes={_rtvVoters.Count}");
                 TrySucceedRtv(
                     CountRtvHumans(steamId),
                     $"after disconnect of {label}",
                     deferCommand: true);
             }
+            else
+            {
+                PluginLog.Debug($"disconnect: unknown identity slot={slot}; only slot state released");
+            }
 
-            CustomHud.ReleasePlayer(player);
             return HookResult.Continue;
+        }
+
+        /// <summary>Cached slot for an identity, or -1 when the controller never reached connect full.</summary>
+        private int FindSlotForSteamId(ulong steamId)
+        {
+            foreach ((int slot, ulong cached) in _steamBySlot)
+            {
+                if (cached == steamId)
+                {
+                    return slot;
+                }
+            }
+
+            return -1;
         }
 
         private void OnCustomHudClicked(CCSPlayerController player, CCSCustomHudLayout layout, string buttonId) =>

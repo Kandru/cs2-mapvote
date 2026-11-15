@@ -375,6 +375,21 @@ namespace MapVote.Utils
             }
         }
 
+        /// <summary>
+        /// Disconnect / map-boundary cleanup by slot. Never writes to the controller:
+        /// the layout entity is killed and the input-capture session is dropped instead.
+        /// </summary>
+        public static void ReleaseSlot(int slot)
+        {
+            if (!PlayerSlots.IsValid(slot))
+            {
+                return;
+            }
+
+            HudMenu.ReleaseSlot(slot);
+            Kill(slot);
+        }
+
         public static void Shutdown()
         {
             HudMenu.ResetSessions();
@@ -491,18 +506,33 @@ namespace MapVote.Utils
             }
 
             PlayerHud? entry = Slots[slot];
-            if (entry is null)
-            {
-                return;
-            }
-
-            if (entry.Layout is { IsValid: true } layout)
+            if (entry?.Layout is { IsValid: true } layout)
             {
                 layout.AcceptInput("Kill");
             }
 
             Slots[slot] = null;
+            ForgetQueuedSlot(slot);
+        }
+
+        /// <summary>Drops a stale spawn request when its slot is released before the queue drains.</summary>
+        private static void ForgetQueuedSlot(int slot)
+        {
             Queued[slot] = false;
+            if (SpawnQueue.Count == 0)
+            {
+                return;
+            }
+
+            int count = SpawnQueue.Count;
+            for (int i = 0; i < count; i++)
+            {
+                int queued = SpawnQueue.Dequeue();
+                if (queued != slot)
+                {
+                    SpawnQueue.Enqueue(queued);
+                }
+            }
         }
 
         private static void ClearAll()

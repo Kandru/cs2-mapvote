@@ -168,11 +168,10 @@ namespace MapVote
             return _nominationSession ??= new VoteSession(maps);
         }
 
-        /// <summary>Map start: nominations belong to one map only.</summary>
+        /// <summary>Nominations belong to one map only.</summary>
         private void ResetNominations()
         {
             _nominationSession = null;
-            PluginLog.Debug("nominations: reset at map start");
         }
 
         /// <summary>Very first !maps after a load: opens everyone who was waiting once RCON answers.</summary>
