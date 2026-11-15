@@ -108,7 +108,7 @@ namespace MapVote
         /// </summary>
         private void OpenMapBrowserFor(CCSPlayerController player)
         {
-            if (_unloaded || _mapsClosed || !Humans.IsHumanViewer(player))
+            if (_unloaded || _mapsClosed || VoteBusy || !Humans.IsHumanViewer(player))
             {
                 return;
             }
@@ -172,7 +172,7 @@ namespace MapVote
                 return;
             }
 
-            if (_unloaded || _mapsClosed || generation != _catalog.Generation)
+            if (_unloaded || _mapsClosed || VoteBusy || generation != _catalog.Generation)
             {
                 _mapsPendingOpen.Clear();
                 return;

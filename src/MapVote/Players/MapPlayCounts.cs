@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CounterStrikeSharp.API.Modules.Extensions;
 using MapVote.Config;
+using MapVote.Maps;
 
 namespace MapVote.Players
 {
@@ -10,19 +11,23 @@ namespace MapVote.Players
         private readonly object _gate = new();
         private Dictionary<string, int> _counts = new(StringComparer.Ordinal);
         private bool _dirty;
+        private long _revision;
 
         public static string FilePath(PluginConfig config) =>
             Path.Combine(Path.GetDirectoryName(config.GetConfigPath()) ?? ".", "map_plays.json");
 
-        public void Load(PluginConfig config, Action<string>? warn = null)
+        public void Load(PluginConfig config, Action<string>? warn = null) =>
+            LoadFile(FilePath(config), warn);
+
+        internal void LoadFile(string path, Action<string>? warn = null)
         {
             lock (_gate)
             {
                 _counts = new Dictionary<string, int>(StringComparer.Ordinal);
                 _dirty = false;
+                _revision = 0;
             }
 
-            string path = FilePath(config);
             if (!File.Exists(path))
             {
                 return;
@@ -37,9 +42,22 @@ namespace MapVote.Players
                     return;
                 }
 
+                Dictionary<string, int> counts = new(StringComparer.Ordinal);
+                foreach ((string rawName, int count) in loaded)
+                {
+                    if (count < 0 || !MapNameFilter.TryNormalizePlayableMapId(rawName, out string name))
+                    {
+                        continue;
+                    }
+
+                    counts[name] = counts.TryGetValue(name, out int existing)
+                        ? Math.Max(existing, count)
+                        : count;
+                }
+
                 lock (_gate)
                 {
-                    _counts = new Dictionary<string, int>(loaded, StringComparer.Ordinal);
+                    _counts = counts;
                 }
             }
             catch (Exception ex)
@@ -50,30 +68,45 @@ namespace MapVote.Players
 
         public int CountOf(string map)
         {
+            if (!MapNameFilter.TryNormalizePlayableMapId(map, out string name))
+            {
+                return 0;
+            }
+
             lock (_gate)
             {
-                return _counts.TryGetValue(map, out int n) ? n : 0;
+                return _counts.TryGetValue(name, out int n) ? n : 0;
             }
         }
 
         public void Increment(string map)
         {
-            if (string.IsNullOrWhiteSpace(map))
+            if (!MapNameFilter.TryNormalizePlayableMapId(map, out string name))
             {
                 return;
             }
 
             lock (_gate)
             {
-                _counts.TryGetValue(map, out int n);
-                _counts[map] = n + 1;
+                _counts.TryGetValue(name, out int n);
+                if (n == int.MaxValue)
+                {
+                    return;
+                }
+
+                _counts[name] = n + 1;
                 _dirty = true;
+                _revision++;
             }
         }
 
-        public void Save(PluginConfig config, Action<string>? warn = null)
+        public void Save(PluginConfig config, Action<string>? warn = null) =>
+            SaveFile(FilePath(config), warn);
+
+        internal void SaveFile(string path, Action<string>? warn = null)
         {
             Dictionary<string, int> snapshot;
+            long revision;
             lock (_gate)
             {
                 if (!_dirty)
@@ -82,11 +115,11 @@ namespace MapVote.Players
                 }
 
                 snapshot = new Dictionary<string, int>(_counts, StringComparer.Ordinal);
+                revision = _revision;
             }
 
             try
             {
-                string path = FilePath(config);
                 string? dir = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(dir))
                 {
@@ -96,7 +129,11 @@ namespace MapVote.Players
                 PlayerFiles.WriteBytes(path, JsonSerializer.SerializeToUtf8Bytes(snapshot, PlayerFiles.JsonOptions));
                 lock (_gate)
                 {
-                    _dirty = false;
+                    // Keep the dirty flag when a newer increment arrived while writing.
+                    if (_revision == revision)
+                    {
+                        _dirty = false;
+                    }
                 }
             }
             catch (Exception ex)

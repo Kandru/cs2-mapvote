@@ -1,11 +1,11 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Extensions;
-using MapVote.Huds;
 using MapVote.Runtime;
+using MapVote.Utils;
 using CssTimer = CounterStrikeSharp.API.Modules.Timers.Timer;
 
-namespace MapVote.Utils
+namespace MapVote.Huds
 {
     public sealed class HudMenuOpenOptions
     {
