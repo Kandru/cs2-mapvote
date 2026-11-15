@@ -68,6 +68,15 @@ namespace MapVote.Utils
             }
         }
 
+        /// <summary>Disconnect path when the controller is already invalid: drop the session without writing.</summary>
+        public static void ReleaseSlot(int slot)
+        {
+            if (Sessions.Remove(slot, out Session? session))
+            {
+                InvalidateCapture(session);
+            }
+        }
+
         public static void DropCapture(CCSPlayerController player)
         {
             if (!Sessions.TryGetValue(player.Slot, out Session? session))
@@ -99,7 +108,7 @@ namespace MapVote.Utils
         {
             if (!Sessions.TryGetValue(player.Slot, out Session? session)
                 || string.IsNullOrEmpty(buttonId)
-                || !CustomHud.IsLayout(layout, PanelId))
+                || !CustomHud.IsLayout(player, layout))
             {
                 return false;
             }

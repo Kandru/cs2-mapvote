@@ -2,41 +2,33 @@ using MapVote.Config;
 
 namespace MapVote.Maps
 {
-    /// <summary>Applies configured sort chips to a map list.</summary>
+    /// <summary>Applies a configured sort chip to a map list. Sorting never removes maps.</summary>
     public static class MapSort
     {
-        public static bool ChipEnabled(SortConfig sort, IReadOnlySet<string> favorites) =>
-            !sort.Only || favorites.Count > 0;
-
         public static List<string> Apply(
             IReadOnlyList<string> maps,
             IReadOnlyList<string> catalogOrder,
             SortConfig sort,
             Func<string, int> playCount,
             Func<string, int> ratingScore,
-            IReadOnlySet<string> favorites,
             Func<string, string>? nameKey = null)
         {
-            IEnumerable<string> query = sort.Only ? maps.Where(favorites.Contains) : maps;
             bool descending = !string.Equals(sort.Order, "asc", StringComparison.OrdinalIgnoreCase);
             string by = sort.By.Trim().ToLowerInvariant();
 
             // Unknown `by` keeps catalog order; known keys use catalog index as a stable tie-break.
             return by switch
             {
-                "plays" => OrderBy(query, playCount, descending)
+                "plays" => OrderBy(maps, playCount, descending)
                     .ThenBy(m => CatalogIndex(catalogOrder, m))
                     .ToList(),
-                "rating" => OrderBy(query, ratingScore, descending)
+                "rating" => OrderBy(maps, ratingScore, descending)
                     .ThenBy(m => CatalogIndex(catalogOrder, m))
                     .ToList(),
-                "favorite" => OrderBy(query, m => favorites.Contains(m) ? 1 : 0, descending)
+                "name" => OrderBy(maps, nameKey ?? (static m => m), descending, StringComparer.Ordinal)
                     .ThenBy(m => CatalogIndex(catalogOrder, m))
                     .ToList(),
-                "name" => OrderBy(query, nameKey ?? (static m => m), descending, StringComparer.Ordinal)
-                    .ThenBy(m => CatalogIndex(catalogOrder, m))
-                    .ToList(),
-                _ => query.OrderBy(m => CatalogIndex(catalogOrder, m)).ToList(),
+                _ => maps.OrderBy(m => CatalogIndex(catalogOrder, m)).ToList(),
             };
         }
 

@@ -54,6 +54,14 @@ namespace MapVote
         public void OnConfigParsed(PluginConfig config)
         {
             Config = config;
+            Config.Display ??= new DisplayConfig();
+            Config.Filters ??= new FiltersConfig();
+            if (ConfigMigration.EnsureSortDefaults(Config.Filters))
+            {
+                PluginLog.Info("config: migrated default sorts to alphabetical / most_positive / most_negative");
+            }
+
+            MapOrder.Configure(Config.Display.Order);
             EnsureMapsVotable();
             PluginLog.Bind(() => Config.Debug);
         }
@@ -82,6 +90,9 @@ namespace MapVote
             RegisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+
+            MapOrder.Configure(Config.Display?.Order);
+            CustomHud.Initialize();
 
             if (hotReload)
             {
@@ -167,6 +178,7 @@ namespace MapVote
 
         private void OnTick()
         {
+            CustomHud.OnTick();
             // Vote mode is bound only during Voting/Revealing; browse mode can be open any time.
             VoteHud.OnTick();
         }
@@ -199,6 +211,7 @@ namespace MapVote
             _catalog.Invalidate();
             _leaveMap = false;
             _steamBySlot.Clear();
+            MapOrder.ResetMatch();
             EndVoteUi();
             ResetNominations();
             ResetRtv();
@@ -291,6 +304,8 @@ namespace MapVote
 
                 PluginLog.Debug($"connect: {Humans.Label(player, steam.SteamId64)} slot={player.Slot}");
             }
+
+            CustomHud.QueueSpawn(player);
 
             if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing
                 && player.Slot is >= 0 and < 65)

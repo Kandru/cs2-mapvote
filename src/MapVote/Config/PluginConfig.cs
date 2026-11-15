@@ -24,6 +24,9 @@ namespace MapVote.Config
         [JsonPropertyName("nominations")]
         public NominationsConfig Nominations { get; set; } = new();
 
+        [JsonPropertyName("display")]
+        public DisplayConfig Display { get; set; } = new();
+
         [JsonPropertyName("filters")]
         public FiltersConfig Filters { get; set; } = new();
 
@@ -103,12 +106,20 @@ namespace MapVote.Config
         [JsonPropertyName("sorts")]
         public List<SortConfig> Sorts { get; set; } =
         [
-            new() { Id = "most_played", By = "plays", Order = "desc" },
-            new() { Id = "least_played", By = "plays", Order = "asc" },
-            new() { Id = "most_liked", By = "rating", Order = "desc" },
-            new() { Id = "least_liked", By = "rating", Order = "asc" },
-            new() { Id = "favorites", By = "favorite", Order = "desc", Only = true },
+            new() { Id = "alphabetical", By = "name", Order = "asc" },
+            new() { Id = "most_positive", By = "rating", Order = "desc" },
+            new() { Id = "most_negative", By = "rating", Order = "asc" },
         ];
+    }
+
+    public sealed class DisplayConfig
+    {
+        /// <summary>
+        /// Base order of the map list: <c>shuffle</c> (default, assigned once per match) or
+        /// <c>alphabetical</c>. User sort chips order on top of this.
+        /// </summary>
+        [JsonPropertyName("order")]
+        public string Order { get; set; } = "shuffle";
     }
 
     public sealed class FilterTypeConfig
@@ -130,8 +141,5 @@ namespace MapVote.Config
 
         [JsonPropertyName("order")]
         public string Order { get; set; } = "asc";
-
-        [JsonPropertyName("only")]
-        public bool Only { get; set; }
     }
 }

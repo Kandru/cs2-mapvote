@@ -41,9 +41,7 @@
   "filter.arms_race": "Arms Race",
   "filter.danger_zone": "Danger Zone",
   "filter.other": "Andere",
-  "sort.most_played": "Meist gespielt",
-  "sort.least_played": "Wenig gespielt",
-  "sort.most_liked": "Meist gemocht",
-  "sort.least_liked": "Am wenigsten gemocht",
-  "sort.favorites": "Favoriten"
+  "sort.alphabetical": "A–Z",
+  "sort.most_positive": "Best bewertet",
+  "sort.most_negative": "Schlechtest bewertet"
 }

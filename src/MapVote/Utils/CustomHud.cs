@@ -7,40 +7,41 @@ using MapVote.Maps;
 
 namespace MapVote.Utils
 {
-    /// <summary>Single-layout <see cref="CCSCustomHudLayout"/> driver for the map vote overlay.</summary>
+    /// <summary>
+    /// One private <see cref="CCSCustomHudLayout"/> per human slot. The entity is only
+    /// transmitted to its owner, so every write on it is effectively global for that player:
+    /// no per-player class/text vectors are multiplied by the viewer count.
+    /// </summary>
     public static class CustomHud
     {
         public const double FadeSeconds = 0.5;
         private const int MaxSlots = 65;
+        private const int SpawnsPerTick = 2;
 
         private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(FadeSeconds);
         private static readonly string LayoutResource =
             $"panorama/layout/custom_game/mapvote/vote_{MapVote.PanoramaVersion}.vxml_c";
 
-        private static CCSCustomHudLayout? _layout;
-        private static readonly Dictionary<int, HashSet<string>> VisibleBySlot = [];
-        private static readonly Dictionary<int, DateTime> ClosingRootsBySlot = [];
-        private static readonly Dictionary<int, Dictionary<string, Dictionary<string, bool>>> ClassBySlot = [];
-        private static readonly Dictionary<int, Dictionary<string, Dictionary<string, string>>> TextBySlot = [];
-        private static readonly Dictionary<int, Dictionary<string, string>> ImageClassBySlot = [];
-        private static readonly Dictionary<string, Dictionary<string, string>> GlobalText = new(StringComparer.Ordinal);
-        private static readonly Dictionary<string, Dictionary<string, bool>> GlobalClass = new(StringComparer.Ordinal);
-        private static readonly Dictionary<string, string> GlobalImageClass = new(StringComparer.Ordinal);
-        /// <summary>Slot still matches the XML defaults (never written, or explicitly restored).</summary>
-        private static readonly bool[] Pristine = BuildPristine();
-
-        private static bool[] BuildPristine()
+        private sealed class PlayerHud
         {
-            bool[] slots = new bool[MaxSlots];
-            Array.Fill(slots, true);
-            return slots;
+            public CCSCustomHudLayout? Layout;
+            public ulong OwnerSteamId;
+            /// <summary>Slot still matches the XML defaults (never written, or explicitly restored).</summary>
+            public bool Pristine = true;
+            public DateTime ClosingUntil;
+            public readonly HashSet<string> VisiblePanels = new(StringComparer.Ordinal);
+            public readonly Dictionary<string, Dictionary<string, string>> Text = new(StringComparer.Ordinal);
+            public readonly Dictionary<string, Dictionary<string, bool>> Class = new(StringComparer.Ordinal);
+            public readonly Dictionary<string, string> ImageClass = new(StringComparer.Ordinal);
         }
 
-        /// <summary>Classes some panel of layout v2 authors as present; an uncached false write must still go out.</summary>
-        private static readonly HashSet<string> AuthoredOn = new(StringComparer.Ordinal) { "is-off", "p0", "votes-none", "view-vote" };
+        private static readonly PlayerHud?[] Slots = new PlayerHud?[MaxSlots];
+        private static readonly Dictionary<IntPtr, int> SlotByHandle = [];
+        private static readonly Queue<int> SpawnQueue = new();
+        private static readonly bool[] Queued = new bool[MaxSlots];
 
-        /// <summary>Per-player classes whose XML default is on wherever v2 writes them per player (#Vote, mv-slot-*, mv-empty).</summary>
-        private static readonly HashSet<string> PlayerAuthoredOn = new(StringComparer.Ordinal) { "is-off", "view-vote" };
+        /// <summary>Classes the XML authors as present; an uncached false write must still go out.</summary>
+        private static readonly HashSet<string> AuthoredOn = new(StringComparer.Ordinal) { "is-off", "p0", "votes-none", "view-vote" };
 
         private static int _writesTick = -1;
         private static int _writes;
@@ -52,48 +53,131 @@ namespace MapVote.Utils
         internal static int WritesInTick(int countedTick, int writes, int nowTick) =>
             countedTick == nowTick ? writes : 0;
 
+        /// <summary>Counts one native write against the per-tick budget.</summary>
+        internal static void NoteWrite()
+        {
+            int now = Server.TickCount;
+            _writes = WritesInTick(_writesTick, _writes, now) + 1;
+            _writesTick = now;
+        }
+
         public static bool IsPanelVisible(CCSPlayerController player, string panelId) =>
             player is { IsValid: true }
-            && VisibleBySlot.TryGetValue(player.Slot, out HashSet<string>? set)
-            && set.Contains(panelId);
+            && player.Slot is >= 0 and < MaxSlots
+            && Slots[player.Slot] is { } entry
+            && entry.VisiblePanels.Contains(panelId);
 
-        public static bool EnsureSpawned(CCSPlayerController player) =>
-            Humans.IsHumanViewer(player) && EnsureLayout();
-
-        public static void Prewarm() => EnsureLayout();
-
-        public static bool TryGetLayout(CCSPlayerController player, string rootPanelId, out CCSCustomHudLayout hud)
+        public static bool EnsureSpawned(CCSPlayerController player)
         {
-            hud = null!;
-            if (rootPanelId != VoteHud.Panel || !EnsureSpawned(player) || _layout is not { IsValid: true } layout)
+            if (!TryEntry(player, out PlayerHud entry))
             {
                 return false;
             }
 
-            hud = layout;
-            return true;
+            ulong steamId = player.AuthorizedSteamID?.SteamId64 ?? 0;
+            if (entry.Layout is { IsValid: true })
+            {
+                if (entry.OwnerSteamId == steamId)
+                {
+                    return true;
+                }
+
+                // Slot was reused before the disconnect cleanup ran: never hand over stale state.
+                Kill(player.Slot);
+                if (!TryEntry(player, out entry))
+                {
+                    return false;
+                }
+            }
+
+            return CreateLayout(player.Slot, entry, steamId);
         }
 
-        public static bool IsLayout(CCSCustomHudLayout layout, string rootPanelId) =>
-            rootPanelId == VoteHud.Panel
-            && _layout is { IsValid: true } live
-            && live.Handle == layout.Handle;
+        public static void Prewarm() => QueueHumans();
 
-        public static void ShowPanel(CCSPlayerController player, string panelId)
+        /// <summary>Hot reload / plugin start: drop stale layouts and prepare one per connected human.</summary>
+        public static void Initialize()
         {
-            if (player is not { IsValid: true })
+            HudMenu.Shutdown();
+            foreach (CCSCustomHudLayout found in
+                     Utilities.FindAllEntitiesByDesignerName<CCSCustomHudLayout>("custom_hud_layout"))
+            {
+                if (found is { IsValid: true } && LayoutPath(found) == LayoutResource)
+                {
+                    found.AcceptInput("Kill");
+                }
+            }
+
+            ClearAll();
+            QueueHumans();
+        }
+
+        /// <summary>Queue an entity for this slot; <see cref="OnTick"/> creates it outside the connect tick.</summary>
+        public static void QueueSpawn(CCSPlayerController player)
+        {
+            if (!Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
             {
                 return;
             }
 
-            if (!VisibleBySlot.TryGetValue(player.Slot, out HashSet<string>? set))
+            int slot = player.Slot;
+            ulong steamId = player.AuthorizedSteamID?.SteamId64 ?? 0;
+            if (Queued[slot]
+                || (Slots[slot] is { Layout: { IsValid: true }, OwnerSteamId: var owner } && owner == steamId))
             {
-                VisibleBySlot[player.Slot] = set = [];
+                return;
             }
 
-            bool wasVisible = set.Contains(panelId);
-            set.Add(panelId);
-            ClearClosingRoot(player.Slot);
+            Queued[slot] = true;
+            SpawnQueue.Enqueue(slot);
+        }
+
+        public static void OnTick()
+        {
+            for (int spawned = 0; spawned < SpawnsPerTick && SpawnQueue.Count > 0; spawned++)
+            {
+                int slot = SpawnQueue.Dequeue();
+                Queued[slot] = false;
+                if (Utilities.GetPlayerFromSlot(slot) is { } player && Humans.IsHumanViewer(player))
+                {
+                    EnsureSpawned(player);
+                }
+            }
+        }
+
+        public static bool TryGetLayout(CCSPlayerController player, string rootPanelId, out CCSCustomHudLayout hud)
+        {
+            hud = null!;
+            if (rootPanelId != VoteHud.Panel || !EnsureSpawned(player) || player.Slot is < 0 or >= MaxSlots)
+            {
+                return false;
+            }
+
+            if (Slots[player.Slot]?.Layout is { IsValid: true } layout)
+            {
+                hud = layout;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>True when <paramref name="layout"/> is the private entity of <paramref name="player"/>.</summary>
+        public static bool IsLayout(CCSPlayerController player, CCSCustomHudLayout layout) =>
+            player is { IsValid: true, Slot: >= 0 and < MaxSlots }
+            && Slots[player.Slot]?.Layout is { IsValid: true } owned
+            && owned.Handle == layout.Handle;
+
+        public static void ShowPanel(CCSPlayerController player, string panelId)
+        {
+            if (!TryEntry(player, out PlayerHud entry) || !EnsureSpawned(player))
+            {
+                return;
+            }
+
+            bool wasVisible = entry.VisiblePanels.Contains(panelId);
+            entry.VisiblePanels.Add(panelId);
+            ClearClosingRoot(entry);
             SetHasClass(player, panelId, "is-off", false);
             if (wasVisible)
             {
@@ -107,54 +191,54 @@ namespace MapVote.Utils
 
         public static void HidePanel(CCSPlayerController player, string panelId)
         {
-            if (player is not { IsValid: true })
+            if (!TryEntry(player, out PlayerHud entry))
             {
                 return;
             }
 
             SetHasClass(player, panelId, "is-fading", true);
-            MarkClosingRoot(player.Slot);
-            ForgetVisible(player.Slot, panelId);
+            MarkClosing(entry);
+            entry.VisiblePanels.Remove(panelId);
         }
 
         public static void SetText(CCSPlayerController player, string panelId, string name, string value)
         {
-            if (player is not { IsValid: true })
+            if (!TryEntry(player, out PlayerHud entry))
             {
                 return;
             }
 
-            bool cached = TryGetCached(TextBySlot, player.Slot, panelId, name, out string? prev);
+            bool cached = TryGetCached(entry.Text, panelId, name, out string? prev);
             if (cached && prev == value)
             {
                 return;
             }
 
-            if (!cached && value.Length == 0 && IsPristine(player.Slot))
+            if (!cached && value.Length == 0 && entry.Pristine)
             {
                 // A pristine slot already shows the XML default for this var.
-                SetCached(TextBySlot, player.Slot, panelId, name, value);
+                SetCached(entry.Text, panelId, name, value);
                 return;
             }
 
-            if (!TryWrite(player, out CCSCustomHudLayout hud))
+            if (!EnsureSpawned(player) || entry.Layout is not { IsValid: true } layout)
             {
                 return;
             }
 
-            hud.SetDialogVariableStringForPlayer(player, panelId, name, value);
-            SetCached(TextBySlot, player.Slot, panelId, name, value);
+            layout.SetDialogVariableString(panelId, name, value);
+            SetCached(entry.Text, panelId, name, value);
             NoteWrite();
         }
 
         public static bool SetHasClass(CCSPlayerController player, string panelId, string className, bool enabled)
         {
-            if (player is not { IsValid: true } || string.IsNullOrEmpty(className))
+            if (string.IsNullOrEmpty(className) || !TryEntry(player, out PlayerHud entry))
             {
                 return false;
             }
 
-            bool cached = TryGetCached(ClassBySlot, player.Slot, panelId, className, out bool prev);
+            bool cached = TryGetCached(entry.Class, panelId, className, out bool prev);
             if (cached && prev == enabled)
             {
                 return true;
@@ -163,189 +247,30 @@ namespace MapVote.Utils
             // Only the AuthoredOn classes can be true in the XML; every other
             // state class starts absent. On a pristine slot a false write would
             // be a no-op that only bloats the per-player vectors.
-            if (!cached && !enabled && !AuthoredOn.Contains(className) && IsPristine(player.Slot))
+            if (!cached && !enabled && !AuthoredOn.Contains(className) && entry.Pristine)
             {
-                SetCached(ClassBySlot, player.Slot, panelId, className, false);
+                SetCached(entry.Class, panelId, className, false);
                 return true;
             }
 
-            if (!TryWrite(player, out CCSCustomHudLayout hud))
+            if (!EnsureSpawned(player) || entry.Layout is not { IsValid: true } layout)
             {
                 return false;
             }
 
-            hud.SetHasClassForPlayer(player, panelId, className, enabled);
-            SetCached(ClassBySlot, player.Slot, panelId, className, enabled);
+            layout.SetHasClass(panelId, className, enabled);
+            SetCached(entry.Class, panelId, className, enabled);
             NoteWrite();
             return true;
         }
 
-        /// <summary>The global class value last written, if any.</summary>
-        public static bool TryGetGlobalClass(string panelId, string className, out bool enabled)
+        /// <summary>The per-entity class value last written for this player, if any.</summary>
+        public static bool TryGetPlayerClass(CCSPlayerController player, string panelId, string className, out bool enabled)
         {
             enabled = false;
-            return GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes)
-                && classes.TryGetValue(className, out enabled);
-        }
-
-        /// <summary>The per-player class value last written for this viewer, if any.</summary>
-        public static bool TryGetPlayerClass(CCSPlayerController player, string panelId, string className, out bool enabled) =>
-            TryGetCached(ClassBySlot, player.Slot, panelId, className, out enabled);
-
-        /// <summary>Counts one native write against the per-tick budget.</summary>
-        internal static void NoteWrite()
-        {
-            int now = Server.TickCount;
-            _writes = WritesInTick(_writesTick, _writes, now) + 1;
-            _writesTick = now;
-        }
-
-        public static void SetTextGlobal(string panelId, string name, string value)
-        {
-            string? prev = null;
-            bool cached = false;
-            if (GlobalText.TryGetValue(panelId, out Dictionary<string, string>? vars))
-            {
-                if (vars.TryGetValue(name, out string? found))
-                {
-                    cached = true;
-                    prev = found;
-                }
-            }
-            if (cached && prev == value)
-            {
-                return;
-            }
-
-            if (!cached && value.Length == 0)
-            {
-                RememberGlobalText(panelId, name, value);
-                return;
-            }
-
-            if (!TryWriteGlobal(out CCSCustomHudLayout hud))
-            {
-                return;
-            }
-
-            hud.SetDialogVariableString(panelId, name, value);
-            RememberGlobalText(panelId, name, value);
-            NoteWrite();
-        }
-
-        public static bool SetHasClassGlobal(string panelId, string className, bool enabled)
-        {
-            if (string.IsNullOrEmpty(className))
-            {
-                return false;
-            }
-
-            bool prev = false;
-            bool cached = false;
-            if (GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes))
-            {
-                if (classes.TryGetValue(className, out bool found))
-                {
-                    cached = true;
-                    prev = found;
-                }
-            }
-            if (cached && prev == enabled)
-            {
-                return true;
-            }
-
-            if (!cached && !enabled && !AuthoredOn.Contains(className))
-            {
-                RememberGlobalClass(panelId, className, false);
-                return true;
-            }
-
-            if (!TryWriteGlobal(out CCSCustomHudLayout hud))
-            {
-                return false;
-            }
-
-            hud.SetHasClass(panelId, className, enabled);
-            RememberGlobalClass(panelId, className, enabled);
-            NoteWrite();
-            return true;
-        }
-
-        public static void SetMapImageGlobal(string imagePanelId, string? mapName, MapOrigin origin = MapOrigin.Local)
-        {
-            string? next = string.IsNullOrWhiteSpace(mapName) ? null : MapImageClasses.ClassFor(mapName, origin);
-            GlobalImageClass.TryGetValue(imagePanelId, out string? prev);
-            if (prev == next)
-            {
-                return;
-            }
-
-            if (prev is not null && !SetHasClassGlobal(imagePanelId, prev, false))
-            {
-                return;
-            }
-
-            if (next is null)
-            {
-                GlobalImageClass.Remove(imagePanelId);
-                return;
-            }
-
-            if (SetHasClassGlobal(imagePanelId, next, true))
-            {
-                GlobalImageClass[imagePanelId] = next;
-            }
-        }
-
-        private static void RememberGlobalText(string panelId, string name, string value)
-        {
-            if (!GlobalText.TryGetValue(panelId, out Dictionary<string, string>? vars))
-            {
-                GlobalText[panelId] = vars = new(StringComparer.Ordinal);
-            }
-
-            vars[name] = value;
-        }
-
-        private static void RememberGlobalClass(string panelId, string className, bool enabled)
-        {
-            if (!GlobalClass.TryGetValue(panelId, out Dictionary<string, bool>? classes))
-            {
-                GlobalClass[panelId] = classes = new(StringComparer.Ordinal);
-            }
-
-            classes[className] = enabled;
-        }
-
-        private static bool TryWriteGlobal(out CCSCustomHudLayout hud)
-        {
-            hud = null!;
-            if (!EnsureLayout() || _layout is not { IsValid: true } layout)
-            {
-                return false;
-            }
-
-            hud = layout;
-            return true;
-        }
-
-        private static void ClearGlobalState()
-        {
-            GlobalText.Clear();
-            GlobalClass.Clear();
-            GlobalImageClass.Clear();
-        }
-
-        private static bool IsPristine(int slot) =>
-            (uint)slot < MaxSlots && Pristine[slot];
-
-        private static void MarkPristine(int slot)
-        {
-            if ((uint)slot < MaxSlots)
-            {
-                Pristine[slot] = true;
-            }
+            return player is { Slot: >= 0 and < MaxSlots }
+                && Slots[player.Slot] is { } entry
+                && TryGetCached(entry.Class, panelId, className, out enabled);
         }
 
         /// <summary>
@@ -358,7 +283,7 @@ namespace MapVote.Utils
             string? mapName,
             MapOrigin origin = MapOrigin.Local)
         {
-            if (player is not { IsValid: true })
+            if (!TryEntry(player, out PlayerHud entry))
             {
                 return;
             }
@@ -366,12 +291,7 @@ namespace MapVote.Utils
             string? next = string.IsNullOrWhiteSpace(mapName)
                 ? null
                 : MapImageClasses.ClassFor(mapName, origin);
-            if (!ImageClassBySlot.TryGetValue(player.Slot, out Dictionary<string, string>? map))
-            {
-                ImageClassBySlot[player.Slot] = map = new(StringComparer.Ordinal);
-            }
-
-            map.TryGetValue(imagePanelId, out string? prev);
+            entry.ImageClass.TryGetValue(imagePanelId, out string? prev);
             if (prev == next)
             {
                 return;
@@ -384,89 +304,230 @@ namespace MapVote.Utils
 
             if (next is null)
             {
-                map.Remove(imagePanelId);
+                entry.ImageClass.Remove(imagePanelId);
                 return;
             }
 
             if (SetHasClass(player, imagePanelId, next, true))
             {
-                map[imagePanelId] = next;
+                entry.ImageClass[imagePanelId] = next;
             }
         }
 
         public static void ResetRound()
         {
-            ClearGlobalState();
             HashSet<int> liveSlots = [];
             foreach (CCSPlayerController player in Humans.GetHumans())
             {
                 liveSlots.Add(player.Slot);
                 // The client rebuilt the layout from XML on round restart.
-                MarkPristine(player.Slot);
                 HudMenu.ReleasePlayer(player);
                 RestorePlayerDefaults(player);
             }
 
-            PurgeOrphans(liveSlots);
+            for (int slot = 0; slot < MaxSlots; slot++)
+            {
+                if (!liveSlots.Contains(slot) && Slots[slot] is not null)
+                {
+                    Kill(slot);
+                }
+            }
         }
 
         public static void ReleasePlayer(CCSPlayerController? player)
         {
-            if (player is null || !player.IsValid)
+            if (player is null)
             {
                 return;
             }
 
-            HudMenu.ReleasePlayer(player);
-            RestorePlayerDefaults(player, writeDefaults: false);
-            if (TryGetLayout(player, VoteHud.Panel, out CCSCustomHudLayout hud))
+            int slot = player.Slot;
+            if (player.IsValid)
             {
-                hud.SetInputCaptureEnabled(player, false);
-                NoteWrite();
+                HudMenu.ReleasePlayer(player);
+            }
+            else
+            {
+                HudMenu.ReleaseSlot(slot);
+            }
+
+            if (slot is >= 0 and < MaxSlots)
+            {
+                Kill(slot);
             }
         }
 
         public static void Shutdown()
         {
             HudMenu.Shutdown();
-            ClearAllSlotState();
-            if (_layout is { IsValid: true } layout)
+            for (int slot = 0; slot < MaxSlots; slot++)
             {
-                layout.AcceptInput("Kill");
+                Kill(slot);
             }
 
-            _layout = null;
+            ClearAll();
         }
 
         public static void OnCheckTransmit(CCheckTransmitInfoList infoList)
         {
             ExpireClosingRoots();
 
-            if (_layout is not { IsValid: true } layout)
-            {
-                return;
-            }
-
-            if (VisibleBySlot.Count == 0 && ClosingRootsBySlot.Count == 0)
-            {
-                return;
-            }
-
-            int index = (int)layout.Index;
             foreach ((CCheckTransmitInfo info, CCSPlayerController? viewer) in infoList)
             {
-                if (!Humans.IsHumanViewer(viewer))
+                bool human = Humans.IsHumanViewer(viewer);
+                for (int slot = 0; slot < MaxSlots; slot++)
+                {
+                    if (Slots[slot]?.Layout is not { IsValid: true } layout)
+                    {
+                        continue;
+                    }
+
+                    int index = (int)layout.Index;
+                    if (human && viewer!.Slot == slot && ShouldTransmit(Slots[slot]!))
+                    {
+                        info.TransmitEntities.Add(index);
+                    }
+                    else
+                    {
+                        info.TransmitEntities.Remove(index);
+                    }
+                }
+            }
+        }
+
+        private static void QueueHumans()
+        {
+            foreach (CCSPlayerController player in Humans.GetHumans())
+            {
+                QueueSpawn(player);
+            }
+        }
+
+        private static bool TryEntry(CCSPlayerController player, out PlayerHud entry)
+        {
+            entry = null!;
+            if (!Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
+            {
+                return false;
+            }
+
+            entry = Slots[player.Slot] ??= new PlayerHud();
+            return true;
+        }
+
+        private static bool CreateLayout(int slot, PlayerHud entry, ulong ownerSteamId)
+        {
+            if (entry.Layout is { } stale)
+            {
+                SlotByHandle.Remove(stale.Handle);
+                entry.Layout = null;
+            }
+
+            try
+            {
+                CCSCustomHudLayout? hud = Utilities.CreateEntityByName<CCSCustomHudLayout>("custom_hud_layout");
+                if (hud is null || hud.Handle == IntPtr.Zero)
+                {
+                    PluginLog.Info($"[CustomHud] CreateEntityByName failed for slot {slot}");
+                    return false;
+                }
+
+                using (CEntityKeyValues kv = new())
+                {
+                    kv.SetVector("origin", 0f, 0f, 0f);
+                    kv.SetString("layout", LayoutResource);
+                    kv.SetBool("observable", false);
+                    hud.DispatchSpawn(kv);
+                }
+
+                if (hud is not { IsValid: true })
+                {
+                    PluginLog.Info($"[CustomHud] DispatchSpawn left entity invalid for slot {slot}");
+                    return false;
+                }
+
+                entry.Layout = hud;
+                entry.OwnerSteamId = ownerSteamId;
+                entry.Pristine = true;
+                entry.ClosingUntil = default;
+                entry.VisiblePanels.Clear();
+                entry.Text.Clear();
+                entry.Class.Clear();
+                entry.ImageClass.Clear();
+                SlotByHandle[hud.Handle] = slot;
+                PluginLog.Debug($"[CustomHud] slot {slot} → #{hud.Index} {LayoutResource}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Info($"[CustomHud] Spawn failed for slot {slot}: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static void Kill(int slot)
+        {
+            if (slot is < 0 or >= MaxSlots)
+            {
+                return;
+            }
+
+            PlayerHud? entry = Slots[slot];
+            if (entry is null)
+            {
+                return;
+            }
+
+            if (entry.Layout is { IsValid: true } layout)
+            {
+                SlotByHandle.Remove(layout.Handle);
+                layout.AcceptInput("Kill");
+            }
+            else if (entry.Layout is { } stale)
+            {
+                SlotByHandle.Remove(stale.Handle);
+            }
+
+            Slots[slot] = null;
+            Queued[slot] = false;
+        }
+
+        private static void ClearAll()
+        {
+            for (int slot = 0; slot < MaxSlots; slot++)
+            {
+                Slots[slot] = null;
+                Queued[slot] = false;
+            }
+
+            SlotByHandle.Clear();
+            SpawnQueue.Clear();
+        }
+
+        private static bool ShouldTransmit(PlayerHud entry) =>
+            entry.VisiblePanels.Count > 0 || DateTime.UtcNow < entry.ClosingUntil;
+
+        private static void MarkClosing(PlayerHud entry) =>
+            entry.ClosingUntil = DateTime.UtcNow + CloseTransmitGrace;
+
+        private static void ClearClosingRoot(PlayerHud entry) => entry.ClosingUntil = default;
+
+        private static void ExpireClosingRoots()
+        {
+            DateTime now = DateTime.UtcNow;
+            for (int slot = 0; slot < MaxSlots; slot++)
+            {
+                PlayerHud? entry = Slots[slot];
+                if (entry is null || entry.ClosingUntil == default || now < entry.ClosingUntil)
                 {
                     continue;
                 }
 
-                if (ShouldTransmit(viewer.Slot))
+                entry.ClosingUntil = default;
+                if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player)
                 {
-                    info.TransmitEntities.Add(index);
-                }
-                else
-                {
-                    info.TransmitEntities.Remove(index);
+                    SetHasClass(player, VoteHud.Panel, "is-off", true);
+                    SetHasClass(player, VoteHud.Panel, "is-fading", false);
                 }
             }
         }
@@ -485,237 +546,71 @@ namespace MapVote.Utils
             });
         }
 
-        private static void ForgetVisible(int slot, string panelId)
+        private static void RestorePlayerDefaults(CCSPlayerController player)
         {
-            if (!VisibleBySlot.TryGetValue(slot, out HashSet<string>? set))
+            if (!TryEntry(player, out PlayerHud entry))
             {
                 return;
             }
 
-            set.Remove(panelId);
-            if (set.Count == 0)
+            foreach ((string panelId, Dictionary<string, bool> classes) in entry.Class)
             {
-                VisibleBySlot.Remove(slot);
-            }
-        }
-
-        private static bool TryGetCached<T>(
-            Dictionary<int, Dictionary<string, Dictionary<string, T>>> store,
-            int slot,
-            string panelId,
-            string key,
-            out T value)
-        {
-            value = default!;
-            return store.TryGetValue(slot, out Dictionary<string, Dictionary<string, T>>? byPanel)
-                && byPanel.TryGetValue(panelId, out Dictionary<string, T>? map)
-                && map.TryGetValue(key, out value!);
-        }
-
-        private static void SetCached<T>(
-            Dictionary<int, Dictionary<string, Dictionary<string, T>>> store,
-            int slot,
-            string panelId,
-            string key,
-            T value)
-        {
-            if (!store.TryGetValue(slot, out Dictionary<string, Dictionary<string, T>>? byPanel))
-            {
-                store[slot] = byPanel = new(StringComparer.Ordinal);
-            }
-
-            if (!byPanel.TryGetValue(panelId, out Dictionary<string, T>? map))
-            {
-                byPanel[panelId] = map = new(StringComparer.Ordinal);
-            }
-
-            map[key] = value;
-        }
-
-        private static bool EnsureLayout()
-        {
-            if (_layout is { IsValid: true } existing && LayoutPath(existing) == LayoutResource)
-            {
-                return true;
-            }
-
-            if (_layout is { IsValid: true } stale)
-            {
-                stale.AcceptInput("Kill");
-                _layout = null;
-            }
-
-            foreach (CCSCustomHudLayout found in
-                     Utilities.FindAllEntitiesByDesignerName<CCSCustomHudLayout>("custom_hud_layout"))
-            {
-                if (found is { IsValid: true } && LayoutPath(found) == LayoutResource)
+                foreach ((string className, bool enabled) in classes.ToList())
                 {
-                    _layout = found;
-                    return true;
-                }
-            }
-
-            return CreateLayout();
-        }
-
-        private static bool CreateLayout()
-        {
-            try
-            {
-                CCSCustomHudLayout? hud = Utilities.CreateEntityByName<CCSCustomHudLayout>("custom_hud_layout");
-                if (hud is null || hud.Handle == IntPtr.Zero)
-                {
-                    PluginLog.Info($"[CustomHud] CreateEntityByName failed for {LayoutResource}");
-                    return false;
-                }
-
-                using (CEntityKeyValues kv = new())
-                {
-                    kv.SetVector("origin", 0f, 0f, 0f);
-                    kv.SetString("layout", LayoutResource);
-                    kv.SetBool("observable", false);
-                    hud.DispatchSpawn(kv);
-                }
-
-                if (hud is not { IsValid: true })
-                {
-                    PluginLog.Info($"[CustomHud] DispatchSpawn left entity invalid for {LayoutResource}");
-                    return false;
-                }
-
-                _layout = hud;
-                // A fresh entity starts at the XML defaults, so cached values
-                // from the previous entity are no longer the client's state.
-                ClassBySlot.Clear();
-                TextBySlot.Clear();
-                ImageClassBySlot.Clear();
-                Array.Fill(Pristine, true);
-                ClearGlobalState();
-                PluginLog.Debug($"[CustomHud] Spawned #{hud.Index} → {LayoutResource}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                PluginLog.Info($"[CustomHud] Spawn failed for {LayoutResource}: {ex.Message}");
-                return false;
-            }
-        }
-
-        private static bool TryWrite(CCSPlayerController player, out CCSCustomHudLayout hud)
-        {
-            hud = null!;
-            if (!EnsureSpawned(player) || _layout is not { IsValid: true } layout)
-            {
-                return false;
-            }
-
-            hud = layout;
-            try
-            {
-                return player.Slot >= 0 && player.Slot < hud.PlayerLayoutStates.Count;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static void RestorePlayerDefaults(CCSPlayerController player, bool writeDefaults = true)
-        {
-            if (player is not { IsValid: true })
-            {
-                return;
-            }
-
-            int slot = player.Slot;
-            bool dirty = ClassBySlot.ContainsKey(slot)
-                || TextBySlot.ContainsKey(slot)
-                || VisibleBySlot.ContainsKey(slot)
-                || ImageClassBySlot.ContainsKey(slot);
-            if (!dirty)
-            {
-                MarkPristine(slot);
-                return;
-            }
-
-            ClassBySlot.TryGetValue(slot, out Dictionary<string, Dictionary<string, bool>>? classes);
-            TextBySlot.TryGetValue(slot, out Dictionary<string, Dictionary<string, string>>? texts);
-
-            if (classes is not null)
-            {
-                foreach ((string panelId, Dictionary<string, bool> map) in classes)
-                {
-                    foreach ((string className, bool enabled) in map.ToList())
+                    // Back to the XML default: off for state classes, on for the authored-on ones
+                    // (a lingering per-player is-off=false would be a ghost card after the reset).
+                    bool authored = AuthoredOn.Contains(className);
+                    if (enabled != authored)
                     {
-                        // Back to the XML default: off for state classes, on for the authored-on ones
-                        // (a lingering per-player is-off=false would be a ghost card after the reset).
-                        bool authored = PlayerAuthoredOn.Contains(className);
-                        if (enabled != authored)
-                        {
-                            SetHasClass(player, panelId, className, authored);
-                        }
+                        SetHasClass(player, panelId, className, authored);
                     }
                 }
             }
 
-            if (texts is not null)
+            foreach ((string panelId, Dictionary<string, string> vars) in entry.Text)
             {
-                foreach ((string panelId, Dictionary<string, string> vars) in texts)
+                foreach ((string name, string value) in vars.Where(static kv => kv.Value.Length > 0).ToList())
                 {
-                    foreach ((string name, string value) in vars.Where(static kv => kv.Value.Length > 0))
-                    {
-                        SetText(player, panelId, name, string.Empty);
-                    }
+                    SetText(player, panelId, name, string.Empty);
                 }
             }
 
             SetHasClass(player, VoteHud.Panel, "is-fading", false);
             SetHasClass(player, VoteHud.Panel, "is-off", true);
-            MarkClosingRoot(slot);
-            if (writeDefaults)
-            {
-                VoteHud.WriteDefaults(player);
-            }
+            MarkClosing(entry);
+            VoteHud.WriteDefaults(player);
 
-            ClearSlotCaches(slot);
+            entry.Text.Clear();
+            entry.Class.Clear();
+            entry.ImageClass.Clear();
+            entry.VisiblePanels.Clear();
             // Everything we wrote is back at the XML default now.
-            MarkPristine(slot);
+            entry.Pristine = true;
         }
 
-        private static void ClearSlotCaches(int slot)
+        private static bool TryGetCached<T>(
+            Dictionary<string, Dictionary<string, T>> store,
+            string panelId,
+            string key,
+            out T value)
         {
-            VisibleBySlot.Remove(slot);
-            ClassBySlot.Remove(slot);
-            TextBySlot.Remove(slot);
-            ImageClassBySlot.Remove(slot);
+            value = default!;
+            return store.TryGetValue(panelId, out Dictionary<string, T>? map)
+                && map.TryGetValue(key, out value!);
         }
 
-        private static void PurgeOrphans(HashSet<int> liveSlots)
+        private static void SetCached<T>(
+            Dictionary<string, Dictionary<string, T>> store,
+            string panelId,
+            string key,
+            T value)
         {
-            static void Purge<T>(Dictionary<int, T> map, HashSet<int> live)
+            if (!store.TryGetValue(panelId, out Dictionary<string, T>? map))
             {
-                foreach (int slot in map.Keys.Where(s => !live.Contains(s)).ToList())
-                {
-                    map.Remove(slot);
-                }
+                store[panelId] = map = new(StringComparer.Ordinal);
             }
 
-            Purge(VisibleBySlot, liveSlots);
-            Purge(ClassBySlot, liveSlots);
-            Purge(TextBySlot, liveSlots);
-            Purge(ImageClassBySlot, liveSlots);
-            Purge(ClosingRootsBySlot, liveSlots);
-        }
-
-        private static void ClearAllSlotState()
-        {
-            VisibleBySlot.Clear();
-            ClosingRootsBySlot.Clear();
-            ClassBySlot.Clear();
-            TextBySlot.Clear();
-            ImageClassBySlot.Clear();
-            Array.Fill(Pristine, true);
-            ClearGlobalState();
+            map[key] = value;
         }
 
         private static string? LayoutPath(CCSCustomHudLayout layout)
@@ -727,40 +622,6 @@ namespace MapVote.Utils
             catch
             {
                 return null;
-            }
-        }
-
-        private static bool ShouldTransmit(int slot)
-        {
-            if (VisibleBySlot.TryGetValue(slot, out HashSet<string>? set) && set.Contains(VoteHud.Panel))
-            {
-                return true;
-            }
-
-            return ClosingRootsBySlot.TryGetValue(slot, out DateTime until) && DateTime.UtcNow < until;
-        }
-
-        private static void MarkClosingRoot(int slot) =>
-            ClosingRootsBySlot[slot] = DateTime.UtcNow + CloseTransmitGrace;
-
-        private static void ClearClosingRoot(int slot) => ClosingRootsBySlot.Remove(slot);
-
-        private static void ExpireClosingRoots()
-        {
-            if (ClosingRootsBySlot.Count == 0)
-            {
-                return;
-            }
-
-            DateTime now = DateTime.UtcNow;
-            foreach (int slot in ClosingRootsBySlot.Keys.Where(s => now >= ClosingRootsBySlot[s]).ToList())
-            {
-                ClosingRootsBySlot.Remove(slot);
-                if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player)
-                {
-                    SetHasClass(player, VoteHud.Panel, "is-off", true);
-                    SetHasClass(player, VoteHud.Panel, "is-fading", false);
-                }
             }
         }
     }

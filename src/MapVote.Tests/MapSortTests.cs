@@ -23,8 +23,7 @@ public class MapSortTests
             Catalog,
             new SortConfig { Id = "most_played", By = "plays", Order = "desc" },
             m => plays.GetValueOrDefault(m),
-            _ => 0,
-            favorites: new HashSet<string>(StringComparer.Ordinal));
+            _ => 0);
 
         Assert.Equal(["de_mirage", "de_dust2", "de_inferno", "cs_office"], result);
     }
@@ -43,8 +42,7 @@ public class MapSortTests
             Catalog,
             new SortConfig { Id = "least_played", By = "plays", Order = "asc" },
             m => plays.GetValueOrDefault(m),
-            _ => 0,
-            favorites: new HashSet<string>(StringComparer.Ordinal));
+            _ => 0);
 
         Assert.Equal(["cs_office", "de_inferno", "de_dust2", "de_mirage"], result);
     }
@@ -57,8 +55,7 @@ public class MapSortTests
             Catalog,
             new SortConfig { Id = "alpha", By = "name", Order = "asc" },
             _ => 0,
-            _ => 0,
-            favorites: new HashSet<string>(StringComparer.Ordinal));
+            _ => 0);
 
         Assert.Equal(["cs_office", "de_dust2", "de_inferno", "de_mirage"], result);
     }
@@ -72,46 +69,13 @@ public class MapSortTests
             new SortConfig { Id = "alpha", By = "name", Order = "asc" },
             _ => 0,
             _ => 0,
-            favorites: new HashSet<string>(StringComparer.Ordinal),
             nameKey: MapNameDisplay.Format);
 
         Assert.Equal(["de_dust2", "de_inferno", "de_mirage", "cs_office"], result);
     }
 
     [Fact]
-    public void Apply_Favorite_OrdersFavoritesFirst()
-    {
-        HashSet<string> favorites = new(StringComparer.Ordinal) { "de_inferno", "cs_office" };
-
-        List<string> result = MapSort.Apply(
-            Catalog,
-            Catalog,
-            new SortConfig { Id = "fav_sort", By = "favorite", Order = "desc" },
-            _ => 0,
-            _ => 0,
-            favorites);
-
-        Assert.Equal(["cs_office", "de_inferno", "de_dust2", "de_mirage"], result);
-    }
-
-    [Fact]
-    public void Apply_Only_FiltersToFavorites()
-    {
-        HashSet<string> favorites = new(StringComparer.Ordinal) { "de_mirage" };
-
-        List<string> result = MapSort.Apply(
-            Catalog,
-            Catalog,
-            new SortConfig { Id = "favorites", By = "favorite", Order = "desc", Only = true },
-            _ => 0,
-            _ => 0,
-            favorites);
-
-        Assert.Equal(["de_mirage"], result);
-    }
-
-    [Fact]
-    public void Apply_MostLiked_OrdersByRatingScoreDesc()
+    public void Apply_MostPositive_OrdersByRatingScoreDesc()
     {
         Assert.Equal(
             ["cs_office", "de_mirage", "de_dust2", "de_inferno"],
@@ -124,7 +88,7 @@ public class MapSortTests
     }
 
     [Fact]
-    public void Apply_LeastLiked_OrdersByRatingScoreAsc()
+    public void Apply_MostNegative_OrdersByRatingScoreAsc()
     {
         Assert.Equal(
             ["de_inferno", "de_dust2", "de_mirage", "cs_office"],
@@ -136,23 +100,53 @@ public class MapSortTests
             }));
     }
 
+    [Fact]
+    public void Apply_KeepsEveryMap()
+    {
+        List<string> result = MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "most_negative", By = "rating", Order = "asc" },
+            _ => 0,
+            m => m == "de_dust2" ? 10 : 0);
+
+        Assert.Equal(Catalog.Count, result.Count);
+        Assert.Equal(Catalog.OrderBy(static m => m, StringComparer.Ordinal), result.OrderBy(static m => m, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void Apply_UnknownBy_KeepsCatalogOrder()
+    {
+        List<string> reordered = ["de_inferno", "cs_office", "de_mirage", "de_dust2"];
+
+        List<string> result = MapSort.Apply(
+            reordered,
+            reordered,
+            new SortConfig { Id = "custom", By = "something", Order = "desc" },
+            _ => 0,
+            _ => 0);
+
+        Assert.Equal(reordered, result);
+    }
+
+    [Fact]
+    public void Apply_TieBreaksByCatalogOrder()
+    {
+        List<string> result = MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "most_positive", By = "rating", Order = "desc" },
+            _ => 0,
+            _ => 0);
+
+        Assert.Equal(Catalog, result);
+    }
+
     private static List<string> ApplyRatingSort(string order, Dictionary<string, int> scores) =>
         MapSort.Apply(
             Catalog,
             Catalog,
             new SortConfig { Id = "rating", By = "rating", Order = order },
             _ => 0,
-            m => scores.GetValueOrDefault(m),
-            favorites: new HashSet<string>(StringComparer.Ordinal));
-
-    [Fact]
-    public void ChipEnabled_OnlyRequiresFavorites()
-    {
-        SortConfig only = new() { Id = "favorites", Only = true };
-        Assert.False(MapSort.ChipEnabled(only, new HashSet<string>(StringComparer.Ordinal)));
-        Assert.True(MapSort.ChipEnabled(only, new HashSet<string>(StringComparer.Ordinal) { "de_dust2" }));
-        Assert.True(MapSort.ChipEnabled(
-            new SortConfig { Id = "most_played", Only = false },
-            new HashSet<string>(StringComparer.Ordinal)));
-    }
+            m => scores.GetValueOrDefault(m));
 }
