@@ -21,8 +21,10 @@ namespace MapVote.Players
 
         internal void LoadFile(string path, Action<string>? warn = null)
         {
+            Dictionary<string, int>? unsaved;
             lock (_gate)
             {
+                unsaved = _dirty ? new Dictionary<string, int>(_counts, StringComparer.Ordinal) : null;
                 _counts = new Dictionary<string, int>(StringComparer.Ordinal);
                 _dirty = false;
                 _revision = 0;
@@ -30,39 +32,78 @@ namespace MapVote.Players
 
             if (!File.Exists(path))
             {
+                RestoreUnsaved(unsaved);
                 return;
             }
 
+            Dictionary<string, int> counts = new(StringComparer.Ordinal);
+            bool loaded = false;
             try
             {
-                Dictionary<string, int>? loaded =
+                Dictionary<string, int>? parsed =
                     JsonSerializer.Deserialize<Dictionary<string, int>>(File.ReadAllBytes(path), PlayerFiles.JsonOptions);
-                if (loaded is null)
+                if (parsed is not null)
                 {
-                    return;
-                }
-
-                Dictionary<string, int> counts = new(StringComparer.Ordinal);
-                foreach ((string rawName, int count) in loaded)
-                {
-                    if (count < 0 || !MapNameFilter.TryNormalizePlayableMapId(rawName, out string name))
+                    foreach ((string rawName, int count) in parsed)
                     {
-                        continue;
+                        if (count < 0 || !MapNameFilter.TryNormalizePlayableMapId(rawName, out string name))
+                        {
+                            continue;
+                        }
+
+                        counts[name] = counts.TryGetValue(name, out int existing)
+                            ? Math.Max(existing, count)
+                            : count;
                     }
 
-                    counts[name] = counts.TryGetValue(name, out int existing)
-                        ? Math.Max(existing, count)
-                        : count;
-                }
-
-                lock (_gate)
-                {
-                    _counts = counts;
+                    loaded = true;
                 }
             }
             catch (Exception ex)
             {
                 warn?.Invoke($"failed to load map_plays.json: {ex.Message}");
+            }
+
+            if (!loaded)
+            {
+                RestoreUnsaved(unsaved);
+                return;
+            }
+
+            lock (_gate)
+            {
+                // Counts that could not be saved before the reload are newer than the file.
+                if (unsaved is not null)
+                {
+                    foreach ((string map, int count) in unsaved)
+                    {
+                        counts[map] = counts.TryGetValue(map, out int existing)
+                            ? Math.Max(existing, count)
+                            : count;
+                    }
+                }
+
+                _counts = counts;
+                if (unsaved is { Count: > 0 })
+                {
+                    _dirty = true;
+                    _revision = 1;
+                }
+            }
+        }
+
+        private void RestoreUnsaved(Dictionary<string, int>? unsaved)
+        {
+            if (unsaved is null or { Count: 0 })
+            {
+                return;
+            }
+
+            lock (_gate)
+            {
+                _counts = unsaved;
+                _dirty = true;
+                _revision = 1;
             }
         }
 

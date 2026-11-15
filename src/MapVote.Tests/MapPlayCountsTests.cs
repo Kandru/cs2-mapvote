@@ -77,6 +77,27 @@ public sealed class MapPlayCountsTests : IDisposable
     }
 
     [Fact]
+    public void LoadFile_KeepsUnsavedIncrementsNewerThanDisk()
+    {
+        MapPlayCounts writer = new();
+        writer.Increment("de_dust2");
+        writer.Increment("de_dust2");
+        writer.SaveFile(FilePath);
+
+        MapPlayCounts plays = new();
+        plays.LoadFile(FilePath);
+        plays.Increment("de_dust2");
+
+        // Simulate a reload after the save failed: the in-memory count must survive.
+        plays.LoadFile(FilePath);
+        plays.SaveFile(FilePath);
+
+        MapPlayCounts reloaded = new();
+        reloaded.LoadFile(FilePath);
+        Assert.Equal(3, reloaded.CountOf("de_dust2"));
+    }
+
+    [Fact]
     public void Increment_DoesNotOverflowAtIntMax()
     {
         File.WriteAllText(
