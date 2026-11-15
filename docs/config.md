@@ -5,7 +5,7 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `debug` | `false` | Extra console logging |
-| `clean_map_names` | `true` | Show `de_dust2` as `Dust2` and `de_cache_night` as `Cache Night`: drop a leading type prefix (`de_`, `cs_`, ...), turn remaining underscores into spaces, and capitalize each word. Also the key for name sorting. `false` keeps raw map ids |
+| `clean_map_names` | `true` | Show `de_dust2` as `Dust2` and `de_cache_night` as `Cache Night`: drop a leading type token of at most 4 characters (`de_`, `cs_`, `rush_`, `surf_`, ...), turn remaining underscores into spaces, and capitalize each word. A longer leading token is part of the name (`mymapname_1` stays `Mymapname 1`). Also the key for name sorting. `false` keeps raw map ids |
 | `endmatch.exclude_current_map` | `true` | Hide the map just played |
 | `endmatch.vote_seconds` | `null` | Menu length. `null` uses the server's `mp_endmatch_votenextleveltime` as first read. The engine timer is then written longer (vote length + 4s) so it does not change the map before the plugin |
 | `endmatch.max_maps` | grid pool size (`VoteIds.SlotCount`, currently 200) | Most maps offered in the vote, clamped to 1…`VoteIds.SlotCount`. Above that many votable maps, the maps at the end of the configured base order are left out each vote; nominations are always kept and `!maps` lists up to the same limit |

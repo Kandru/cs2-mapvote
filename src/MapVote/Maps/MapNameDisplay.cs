@@ -7,9 +7,18 @@ namespace MapVote.Maps
     public static class MapNameDisplay
     {
         /// <summary>
-        /// Drops a leading type token ("de_", "cs_", "fy_", ...), turns the
-        /// remaining underscores into spaces and capitalizes each word.
-        /// Names without a prefix are only word-separated and capitalized.
+        /// Longest leading token still treated as a map type. Covers "de_",
+        /// "cs_", "fy_", "aim_", "rush_", "surf_" and similar. A longer token
+        /// belongs to the name ("mymapname_1" is a name, not a type).
+        /// </summary>
+        private const int MaxTypePrefixLength = 4;
+
+        /// <summary>
+        /// Drops a leading type token of at most <see cref="MaxTypePrefixLength"/>
+        /// characters ("de_", "cs_", "rush_", ...), turns the remaining underscores
+        /// into spaces and capitalizes each word. A longer leading token is part of
+        /// the name and is kept; names without a prefix are only word-separated
+        /// and capitalized.
         /// </summary>
         public static string Format(string map)
         {
@@ -19,9 +28,11 @@ namespace MapVote.Maps
             }
 
             int separator = map.IndexOf('_');
-            string name = separator > 0 && separator + 1 < map.Length
-                ? map[(separator + 1)..]
-                : map;
+            string name = separator > 0
+                && separator <= MaxTypePrefixLength
+                && separator + 1 < map.Length
+                    ? map[(separator + 1)..]
+                    : map;
 
             // Single-word names (the common case) need no splitting at all.
             if (!name.Contains('_'))
