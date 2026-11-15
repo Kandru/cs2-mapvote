@@ -210,7 +210,7 @@ namespace MapVote
             }
         }
 
-        /// <summary>Map start / warmup / match start / new match: !maps is available again.</summary>
+        /// <summary>Warmup / match start / new match: !maps is available again.</summary>
         private void OpenMapsForNewMatch(string reason, bool clearPending = false)
         {
             if (clearPending)
@@ -227,7 +227,7 @@ namespace MapVote
             PluginLog.Debug($"maps: browser opened ({reason})");
         }
 
-        /// <summary>Intermission / map end: close the browser and reject !maps until the next match.</summary>
+        /// <summary>Intermission: close the browser and reject !maps until the next match or map start.</summary>
         private void CloseMapsForMatchEnd()
         {
             _mapsPendingOpen.Clear();

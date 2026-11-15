@@ -13,8 +13,6 @@ namespace MapVote.Runtime
         public const int CatalogBudgetSeconds = 1;
         public const int DecisionOffsetSeconds = 2;
         public const int DefaultVoteSeconds = 20;
-        /// <summary>After changelevel, reopen RTV/maps if the map has not ended.</summary>
-        public const int ChangelevelWatchdogSeconds = 15;
 
         // Catalog worker.
         public const int BrowseCatalogBudgetSeconds = 3;

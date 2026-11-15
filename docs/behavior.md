@@ -55,8 +55,6 @@ Deferred HUD opens use [`SlotActionTokens`](../src/MapVote/Runtime/SlotActionTok
 
 Disconnects release resources by slot without writing to the controller: the slot token is cleared, the pending map-browser waiter is removed, queued vote/nomination HUD state is dropped, the layout entity and menu session are killed, and vote/nomination/RTV entries are removed before the player archive is saved. The slot → SteamID fallback map is reconciled on map start, and an invalid controller slot falls back to a reverse identity lookup so cleanup still finds the right slot.
 
-After `changelevel`, a flow-epoch timer acts as a watchdog. If no map end arrives within 15 seconds, the plugin logs it and reopens RTV and `!maps` on the current map instead of staying closed forever. The same epoch bump on map end/start, a new intermission, or unload cancels the watchdog.
-
 ## Localization
 
 Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.json`](../src/MapVote/lang/de.json). Filter/sort chip labels use `filter.{id}` / `sort.{id}` matching config ids. Type chips append the matching map count as `Label (n)` - for example `All (95)` - and the Favorites chip counts only the viewer's favorites that are in the currently displayed map list, including `Favorites (0)`. Favorites for maps that left the rotation stay saved and reappear if the map returns. Every HUD text is written on the viewer's private layout entity, so each player sees it in their own language.

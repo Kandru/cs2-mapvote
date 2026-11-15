@@ -473,36 +473,7 @@ namespace MapVote
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
             PluginLog.Info($"changing map to {winner} ({origin.ToString().ToLowerInvariant()})");
             PluginLog.Debug($"changelevel: command={command} origin={origin}");
-            try
-            {
-                Server.ExecuteCommand(command);
-            }
-            catch (Exception ex)
-            {
-                PluginLog.Info($"changelevel: command failed for {winner}: {ex.Message}");
-            }
-
-            ArmChangeWatchdog(winner);
-        }
-
-        /// <summary>
-        /// If no map end follows the changelevel, the next map never resets RTV and the
-        /// browser, so recovery must not depend on a successful map transition.
-        /// </summary>
-        private void ArmChangeWatchdog(string winner)
-        {
-            AddFlowTimer(GameConstants.ChangelevelWatchdogSeconds, () =>
-            {
-                if (_unloaded || _leaveMap)
-                {
-                    return;
-                }
-
-                PluginLog.Info(
-                    $"changelevel: map still '{Server.MapName}' {GameConstants.ChangelevelWatchdogSeconds}s after requesting {winner}; reopening RTV and !maps");
-                OpenRtvForNewMatch("changelevel watchdog");
-                OpenMapsForNewMatch("changelevel watchdog");
-            });
+            Server.ExecuteCommand(command);
         }
 
         private void EndVoteUi(bool closeHud = true)
