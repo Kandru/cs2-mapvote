@@ -32,8 +32,6 @@ namespace MapVote
             _pendingCandidates = null;
             _intermissionEpochUtc = DateTime.UtcNow;
             _catalogGeneration = _catalog.Generation;
-            // A stale changelevel watchdog must not reopen RTV/browser for the new flow.
-            _changeWatchdogToken++;
 
             int budget = VoteClock.CatalogTimeoutSeconds();
             PluginLog.Debug(() =>
@@ -493,10 +491,9 @@ namespace MapVote
         /// </summary>
         private void ArmChangeWatchdog(string winner)
         {
-            int token = ++_changeWatchdogToken;
-            AddTimer(GameConstants.ChangelevelWatchdogSeconds, () =>
+            AddFlowTimer(GameConstants.ChangelevelWatchdogSeconds, () =>
             {
-                if (token != _changeWatchdogToken || _unloaded || _leaveMap)
+                if (_unloaded || _leaveMap)
                 {
                     return;
                 }

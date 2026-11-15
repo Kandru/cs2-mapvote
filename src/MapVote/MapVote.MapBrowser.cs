@@ -169,12 +169,6 @@ namespace MapVote
             return _nominationSession ??= new VoteSession(maps);
         }
 
-        /// <summary>Nominations belong to one map only.</summary>
-        private void ResetNominations()
-        {
-            _nominationSession = null;
-        }
-
         /// <summary>Very first !maps after a load: opens everyone who was waiting once RCON answers.</summary>
         private void OnMapsCatalogSettled(IReadOnlyList<MapEntry> maps, int generation)
         {

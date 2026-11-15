@@ -32,7 +32,6 @@ namespace MapVote
         // Timers are cancelled by bumping these tokens, never by Kill() (ruleset §1.3).
         private int _flowEpoch;
         private int _rtvToken;
-        private int _changeWatchdogToken;
         // Deferred HUD opens are superseded per slot; never touch a dictionary indexer directly.
         private readonly SlotActionTokens _hudOpenTokens = new();
         private DateTime _scheduleEpochUtc;
@@ -79,7 +78,7 @@ namespace MapVote
             PluginLog.Info($"plugin loading{(hotReload ? " (hot reload)" : string.Empty)}");
             PluginLog.Debug($"debug logging enabled; hotReload={hotReload}");
             _unloaded = false;
-            ResetRuntimeState("load");
+            InitializeRuntimeState("load");
 
             _catalog = new MapCatalog(PluginLog.Info, PluginLog.Debug, OnCatalogLoaded);
             _archive = new PlayerArchive();
@@ -101,12 +100,12 @@ namespace MapVote
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
 
             MapOrder.Configure(Config.Display?.Order);
-            CustomHud.Initialize();
 
-            if (hotReload)
-            {
-                ArmEngineHold();
-            }
+            // OnMapStart may not fire for a hot reload or a plugin loaded mid-map:
+            // rebuild the live session immediately, and arm the engine hold for the next intermission.
+            ReconcileSteamSlots();
+            CustomHud.ResetRound();
+            ArmEngineHold();
         }
 
         public override void Unload(bool hotReload)
@@ -115,27 +114,29 @@ namespace MapVote
             _unloaded = true;
             try
             {
-                StopRtvWindow();
-                _catalog?.Invalidate();
-                EndVoteUi(closeHud: false);
                 SavePersistence();
             }
             finally
             {
-                ResetRuntimeState("unload");
-                CustomHud.Shutdown();
-                RemoveListener<Listeners.OnMapStart>(OnMapStart);
-                RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
-                RemoveListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
-                RemoveListener<Listeners.OnTick>(OnTick);
-                RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
-                DeregisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
-                DeregisterEventHandler<EventCsIntermission>(OnCsIntermission);
-                DeregisterEventHandler<EventRoundAnnounceWarmup>(OnRoundAnnounceWarmup);
-                DeregisterEventHandler<EventRoundAnnounceMatchStart>(OnRoundAnnounceMatchStart);
-                DeregisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
-                DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
-                DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+                try
+                {
+                    ShutdownRuntimeState("unload");
+                }
+                finally
+                {
+                    RemoveListener<Listeners.OnMapStart>(OnMapStart);
+                    RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
+                    RemoveListener<Listeners.CheckTransmit>(CustomHud.OnCheckTransmit);
+                    RemoveListener<Listeners.OnTick>(OnTick);
+                    RemoveListener<Listeners.OnCustomHudClicked>(OnCustomHudClicked);
+                    DeregisterEventHandler<EventCsWinPanelMatch>(OnWinPanelMatch);
+                    DeregisterEventHandler<EventCsIntermission>(OnCsIntermission);
+                    DeregisterEventHandler<EventRoundAnnounceWarmup>(OnRoundAnnounceWarmup);
+                    DeregisterEventHandler<EventRoundAnnounceMatchStart>(OnRoundAnnounceMatchStart);
+                    DeregisterEventHandler<EventBeginNewMatch>(OnBeginNewMatch);
+                    DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+                    DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+                }
             }
         }
 
@@ -226,63 +227,36 @@ namespace MapVote
         private void OnMapStart(string mapName)
         {
             PluginLog.Info($"map start: {mapName}");
-            _catalog.Invalidate();
-            _leaveMap = false;
-            _changeWatchdogToken++;
+            InitializeRuntimeState("map start");
             ReconcileSteamSlots();
-            MapOrder.ResetMatch();
-            EndVoteUi();
-            ResetMapScopedState("map start");
-            ResetRtv();
-            OpenMapsForNewMatch("map start", clearPending: true);
             CustomHud.ResetRound();
             LoadPersistence();
             ArmEngineHold();
-            PluginLog.Debug("map start: state reset, nominations/rtv cleared, persistence loaded");
+            PluginLog.Debug("map start: runtime initialized, slots reconciled, persistence loaded");
         }
 
         private void OnMapEnd()
         {
             PluginLog.Info("map end: saving player data");
-            _leaveMap = true;
-            _changeWatchdogToken++;
             try
             {
-                _catalog.Invalidate();
-                EndVoteUi(closeHud: false);
-                CloseRtvForMatchEnd();
-                CloseMapsForMatchEnd();
-                ResetMapScopedState("map end");
                 SavePersistence();
             }
             finally
             {
-                // Entity cleanup must run even if a save or reset step throws.
-                CustomHud.Shutdown();
+                ShutdownRuntimeState("map end");
             }
         }
 
         /// <summary>
-        /// State that belongs to exactly one map: deferred opens, catalog generation,
-        /// nominations and the vote clock. Safe to call from both map end and map start.
+        /// Resets every piece of runtime state to its startup default. Used on plugin load
+        /// (including hot reload) and on map start, so neither path depends on the other.
         /// </summary>
-        private void ResetMapScopedState(string reason)
+        private void InitializeRuntimeState(string reason)
         {
-            _catalogGeneration = 0;
-            _scheduleEpochUtc = default;
-            _intermissionEpochUtc = default;
-            _voteSeconds = VoteClock.DefaultVoteSeconds;
-            _timing = default;
-            _hudOpenTokens.ClearAll();
-            _mapsPendingOpen.Clear();
-            ResetNominations();
-            PluginLog.Debug($"map-scoped state reset ({reason})");
-        }
-
-        /// <summary>Full in-memory reset for plugin load and unload, including hot reload.</summary>
-        private void ResetRuntimeState(string reason)
-        {
+            _catalog?.Invalidate();
             _leaveMap = false;
+            _mapsClosed = false;
             _session = null;
             _pendingCandidates = null;
             _pendingWinner = null;
@@ -293,20 +267,63 @@ namespace MapVote
             _intermissionEpochUtc = default;
             _voteSeconds = VoteClock.DefaultVoteSeconds;
             _timing = default;
+            _flowEpoch++;
+            _flow.Reset();
             _rtvToken++;
             _rtvDeadlineUtc = null;
             _rtvVoters.Clear();
             _rtvPassed = false;
             _rtvClosed = false;
-            _changeWatchdogToken++;
             _hudOpenTokens.ClearAll();
             _mapsPendingOpen.Clear();
             _nominationSession = null;
-            _mapsClosed = false;
             _steamBySlot.Clear();
+            VoteHud.ResetView();
+            CustomHud.Initialize();
+            MapOrder.ResetMatch();
+            PluginLog.Debug($"runtime initialized ({reason})");
+        }
+
+        /// <summary>
+        /// De-initializes everything that can outlive a map: timers, votes, RTV, browser
+        /// state, pending HUD opens, slot identities and layout entities. Used on map end
+        /// and on plugin unload; both leave the plugin in a closed, inert state.
+        /// </summary>
+        private void ShutdownRuntimeState(string reason)
+        {
+            _leaveMap = true;
+            _mapsClosed = true;
+            _rtvClosed = true;
+            _session = null;
+            _pendingCandidates = null;
+            _pendingWinner = null;
+            _pendingOrigin = MapOrigin.Local;
+            _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
+            _catalogGeneration = 0;
+            _scheduleEpochUtc = default;
+            _intermissionEpochUtc = default;
+            _voteSeconds = VoteClock.DefaultVoteSeconds;
+            _timing = default;
             _flowEpoch++;
             _flow.Reset();
-            PluginLog.Debug($"runtime state reset ({reason})");
+            _rtvToken++;
+            _rtvDeadlineUtc = null;
+            _rtvVoters.Clear();
+            _rtvPassed = false;
+            _hudOpenTokens.ClearAll();
+            _mapsPendingOpen.Clear();
+            _nominationSession = null;
+            _steamBySlot.Clear();
+            try
+            {
+                _catalog?.Invalidate();
+            }
+            finally
+            {
+                VoteHud.ResetView();
+                CustomHud.Shutdown();
+                PluginLog.Debug($"runtime shut down ({reason})");
+            }
         }
 
         /// <summary>
