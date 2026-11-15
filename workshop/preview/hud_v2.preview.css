@@ -2417,4 +2417,34 @@ button { pointer-events: auto; }
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_wm_usaf_2.png");
 }
 
+.mv-map-ws_de_luna
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_luna.png");
+}
+
+.mv-map-ws_de_pripyat
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_pripyat.png");
+}
+
+.mv-map-ws_de_rashid
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_rashid.png");
+}
+
+.mv-map-ws_de_seaport
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_seaport.png");
+}
+
+.mv-map-ws_de_vale
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_vale.png");
+}
+
+.mv-map-ws_krygina_1
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_krygina_1.png");
+}
+
 /* END mv-map-palette */
