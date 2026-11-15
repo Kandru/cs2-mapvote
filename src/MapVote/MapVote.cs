@@ -116,7 +116,7 @@ namespace MapVote
             {
                 StopRtvWindow();
                 _catalog?.Invalidate();
-                EndVoteUi();
+                EndVoteUi(closeHud: false);
                 SavePersistence();
             }
             finally
@@ -246,7 +246,7 @@ namespace MapVote
             try
             {
                 _catalog.Invalidate();
-                EndVoteUi();
+                EndVoteUi(closeHud: false);
                 CloseRtvForMatchEnd();
                 CloseMapsForMatchEnd();
                 ResetMapScopedState("map end");

@@ -476,7 +476,7 @@ namespace MapVote
             Server.ExecuteCommand(command);
         }
 
-        private void EndVoteUi()
+        private void EndVoteUi(bool closeHud = true)
         {
             PluginLog.Debug($"vote UI reset: epoch {_flowEpoch} -> {_flowEpoch + 1}, phase={_flow.Phase}");
             _flowEpoch++;
@@ -486,7 +486,15 @@ namespace MapVote
             _pendingWinner = null;
             _pendingOrigin = MapOrigin.Local;
             _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
-            VoteHud.CloseAll();
+            if (closeHud)
+            {
+                VoteHud.CloseAll();
+            }
+            else
+            {
+                // Map end / unload: entities are destroyed by CustomHud.Shutdown.
+                VoteHud.ResetView();
+            }
         }
 
         /// <summary>One-shot flow timer; <see cref="EndVoteUi"/> cancels it by bumping the epoch.</summary>

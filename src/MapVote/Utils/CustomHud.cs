@@ -544,6 +544,8 @@ namespace MapVote.Utils
             }
 
             SpawnQueue.Clear();
+            _writesTick = -1;
+            _writes = 0;
         }
 
         private static bool ShouldTransmit(PlayerHud entry) =>

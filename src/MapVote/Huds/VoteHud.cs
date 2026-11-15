@@ -227,14 +227,17 @@ namespace MapVote.Huds
 
         public static void ReleaseSlot(int slot)
         {
-            if (IsSlot(slot))
+            if (!IsSlot(slot))
             {
-                ResetSlotState(slot);
-                if (SlotAt(slot).Pending)
-                {
-                    SlotAt(slot).Pending = false;
-                    PendingOpens.Remove(slot);
-                }
+                return;
+            }
+
+            ResetSlotState(slot);
+            SlotAt(slot).PendingCapture = false;
+            if (SlotAt(slot).Pending)
+            {
+                SlotAt(slot).Pending = false;
+                PendingOpens.RemoveAll(queued => queued == slot);
             }
         }
 
@@ -457,6 +460,12 @@ namespace MapVote.Huds
             _winner = winner;
             ForEachOpen(ApplyRevealPaint);
         }
+
+        /// <summary>
+        /// Drops all shared and per-slot view state without closing overlays or writing
+        /// anything to players. Use when the layout entities will be destroyed next.
+        /// </summary>
+        public static void ResetView() => Clear();
 
         public static void CloseAll()
         {
