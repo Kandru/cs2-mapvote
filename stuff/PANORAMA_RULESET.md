@@ -316,7 +316,7 @@ Server fade grace before `is-off` ≥ the longest exit duration. Animate only to
 | Case | Pattern | Rules |
 | --- | --- | --- |
 | **List** | pool of N rows + pager `‹ i / n ›` | N fixed (4–8); rows of equal height; unused slots `is-off`; pager buttons `is-disabled` at the ends; empty-state label |
-| **Long list** (catalogue, all players) | one scroll list (§2) over a pool of up to ~64 single-line rows | pool ≥ the largest realistic count, rest `is-off`; paint under a write budget (§10); filters/sort narrow the same pool; the scroll position stays when the content changes – keep the list short enough to reread |
+| **Long list** (catalogue, all players) | one scroll list (§2) over a pool of up to ~64 single-line rows | pool ≥ the largest realistic count, rest `is-off`; paint under a write budget (§10); filters narrow the same pool, sorts only reorder it; the scroll position stays when the content changes – keep the list short enough to reread |
 | **Search** | chat command `!cmd <text>`; the menu shows the active search as an accent chip with a clear button | search before filters (the filter counts follow it); empty result has its own empty text; clear resets only the search |
 | **Two columns** (teams) | two scroll lists side by side, each its own row pool and head (name + count, team colour) | split on the server; team colour plus text, never colour alone; players without a column are left out deliberately |
 | **Tabs / filters / button group** | `flow-children: right`, buttons with exclusive `is-active` | ≤ 5 entries; counts in the label (`OPEN 3`); switching resets to page 1 |

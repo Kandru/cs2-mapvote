@@ -88,6 +88,17 @@ namespace MapVote.Utils
             SetCapture(player, enabled: false);
         }
 
+        /// <summary>Drop sessions without touching layout entities (used before a full layout reset).</summary>
+        public static void ResetSessions()
+        {
+            foreach (Session session in Sessions.Values)
+            {
+                InvalidateCapture(session);
+            }
+
+            Sessions.Clear();
+        }
+
         public static void Shutdown()
         {
             foreach (int slot in Sessions.Keys.ToList())

@@ -259,7 +259,7 @@ namespace MapVote
             int humans = Humans.GetHumans().Count();
             int shown = Math.Min(unique.Count, VoteHud.SlotCount);
             PluginLog.Info(
-                $"map voting started ({unique.Count} maps total -> {humans} players -> {shown} shown, shared grid, {carried} nominations carried)");
+                $"map voting started ({unique.Count} maps total -> {humans} players -> {shown} shown, per-player layouts, {carried} nominations carried)");
             PluginLog.Debug(() =>
                 $"vote armed: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
 

@@ -46,7 +46,7 @@ The command triggers a short catalog refresh when the list is still empty after 
 
 ## Localization
 
-Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.json`](../src/MapVote/lang/de.json). Filter/sort chip labels use `filter.{id}` / `sort.{id}` matching config ids. Shared texts (title, status, reveal) are written in the server language; players with another language get per-player overrides.
+Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.json`](../src/MapVote/lang/de.json). Filter/sort chip labels use `filter.{id}` / `sort.{id}` matching config ids. Every HUD text is written on the viewer's private layout entity, so each player sees it in their own language.
 
 ## Entry points (partials)
 

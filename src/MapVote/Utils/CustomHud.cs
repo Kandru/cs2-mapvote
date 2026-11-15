@@ -16,7 +16,7 @@ namespace MapVote.Utils
     {
         public const double FadeSeconds = 0.5;
         private const int MaxSlots = 65;
-        private const int SpawnsPerTick = 2;
+        private const int SpawnsPerTick = 1;
 
         private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(FadeSeconds);
         private static readonly string LayoutResource =
@@ -36,7 +36,6 @@ namespace MapVote.Utils
         }
 
         private static readonly PlayerHud?[] Slots = new PlayerHud?[MaxSlots];
-        private static readonly Dictionary<IntPtr, int> SlotByHandle = [];
         private static readonly Queue<int> SpawnQueue = new();
         private static readonly bool[] Queued = new bool[MaxSlots];
 
@@ -83,11 +82,9 @@ namespace MapVote.Utils
                 }
 
                 // Slot was reused before the disconnect cleanup ran: never hand over stale state.
-                Kill(player.Slot);
-                if (!TryEntry(player, out entry))
-                {
-                    return false;
-                }
+                // Reset in place so callers holding this entry keep a valid object.
+                entry.Layout.AcceptInput("Kill");
+                entry.Layout = null;
             }
 
             return CreateLayout(player.Slot, entry, steamId);
@@ -98,7 +95,7 @@ namespace MapVote.Utils
         /// <summary>Hot reload / plugin start: drop stale layouts and prepare one per connected human.</summary>
         public static void Initialize()
         {
-            HudMenu.Shutdown();
+            HudMenu.ResetSessions();
             foreach (CCSCustomHudLayout found in
                      Utilities.FindAllEntitiesByDesignerName<CCSCustomHudLayout>("custom_hud_layout"))
             {
@@ -221,6 +218,11 @@ namespace MapVote.Utils
                 return;
             }
 
+            if (entry.Layout is not { IsValid: true } && !EnsureSpawned(player))
+            {
+                return;
+            }
+
             bool cached = TryGetCached(entry.Text, panelId, name, out string? prev);
             if (cached && prev == value)
             {
@@ -234,7 +236,7 @@ namespace MapVote.Utils
                 return;
             }
 
-            if (!EnsureSpawned(player) || entry.Layout is not { IsValid: true } layout)
+            if (entry.Layout is not { IsValid: true } layout)
             {
                 return;
             }
@@ -247,6 +249,11 @@ namespace MapVote.Utils
         public static bool SetHasClass(CCSPlayerController player, string panelId, string className, bool enabled)
         {
             if (string.IsNullOrEmpty(className) || !TryEntry(player, out PlayerHud entry))
+            {
+                return false;
+            }
+
+            if (entry.Layout is not { IsValid: true } && !EnsureSpawned(player))
             {
                 return false;
             }
@@ -266,7 +273,7 @@ namespace MapVote.Utils
                 return true;
             }
 
-            if (!EnsureSpawned(player) || entry.Layout is not { IsValid: true } layout)
+            if (entry.Layout is not { IsValid: true } layout)
             {
                 return false;
             }
@@ -282,7 +289,7 @@ namespace MapVote.Utils
         {
             enabled = false;
             return player is { Slot: >= 0 and < MaxSlots }
-                && Slots[player.Slot] is { } entry
+                && Slots[player.Slot] is { Layout: { IsValid: true } } entry
                 && TryGetCached(entry.Class, panelId, className, out enabled);
         }
 
@@ -296,7 +303,8 @@ namespace MapVote.Utils
             string? mapName,
             MapOrigin origin = MapOrigin.Local)
         {
-            if (!TryEntry(player, out PlayerHud entry))
+            if (!TryEntry(player, out PlayerHud entry)
+                || (entry.Layout is not { IsValid: true } && !EnsureSpawned(player)))
             {
                 return;
             }
@@ -430,11 +438,12 @@ namespace MapVote.Utils
 
         private static bool CreateLayout(int slot, PlayerHud entry, ulong ownerSteamId)
         {
-            if (entry.Layout is { } stale)
+            if (entry.Layout is { IsValid: true } stale)
             {
-                SlotByHandle.Remove(stale.Handle);
-                entry.Layout = null;
+                stale.AcceptInput("Kill");
             }
+
+            entry.Layout = null;
 
             try
             {
@@ -467,7 +476,6 @@ namespace MapVote.Utils
                 entry.Text.Clear();
                 entry.Class.Clear();
                 entry.ImageClass.Clear();
-                SlotByHandle[hud.Handle] = slot;
                 PluginLog.Debug($"[CustomHud] slot {slot} → #{hud.Index} {LayoutResource}");
                 return true;
             }
@@ -493,12 +501,7 @@ namespace MapVote.Utils
 
             if (entry.Layout is { IsValid: true } layout)
             {
-                SlotByHandle.Remove(layout.Handle);
                 layout.AcceptInput("Kill");
-            }
-            else if (entry.Layout is { } stale)
-            {
-                SlotByHandle.Remove(stale.Handle);
             }
 
             Slots[slot] = null;
@@ -513,7 +516,6 @@ namespace MapVote.Utils
                 Queued[slot] = false;
             }
 
-            SlotByHandle.Clear();
             SpawnQueue.Clear();
         }
 
@@ -537,6 +539,11 @@ namespace MapVote.Utils
                 }
 
                 entry.ClosingUntil = default;
+                if (entry.Layout is not { IsValid: true })
+                {
+                    continue;
+                }
+
                 if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player)
                 {
                     SetHasClass(player, VoteHud.Panel, "is-off", true);
@@ -566,31 +573,36 @@ namespace MapVote.Utils
                 return;
             }
 
-            foreach ((string panelId, Dictionary<string, bool> classes) in entry.Class)
+            bool live = entry.Layout is { IsValid: true };
+            if (live)
             {
-                foreach ((string className, bool enabled) in classes.ToList())
+                foreach ((string panelId, Dictionary<string, bool> classes) in entry.Class)
                 {
-                    // Back to the XML default: off for state classes, on for the authored-on ones
-                    // (a lingering per-player is-off=false would be a ghost card after the reset).
-                    bool authored = AuthoredOn.Contains(className);
-                    if (enabled != authored)
+                    foreach ((string className, bool enabled) in classes.ToList())
                     {
-                        SetHasClass(player, panelId, className, authored);
+                        // Back to the XML default: off for state classes, on for the authored-on ones
+                        // (a lingering per-player is-off=false would be a ghost card after the reset).
+                        bool authored = AuthoredOn.Contains(className);
+                        if (enabled != authored)
+                        {
+                            SetHasClass(player, panelId, className, authored);
+                        }
                     }
                 }
-            }
 
-            foreach ((string panelId, Dictionary<string, string> vars) in entry.Text)
-            {
-                foreach ((string name, string value) in vars.Where(static kv => kv.Value.Length > 0).ToList())
+                foreach ((string panelId, Dictionary<string, string> vars) in entry.Text)
                 {
-                    SetText(player, panelId, name, string.Empty);
+                    foreach ((string name, string value) in vars.Where(static kv => kv.Value.Length > 0).ToList())
+                    {
+                        SetText(player, panelId, name, string.Empty);
+                    }
                 }
+
+                SetHasClass(player, VoteHud.Panel, "is-fading", false);
+                SetHasClass(player, VoteHud.Panel, "is-off", true);
+                MarkClosing(entry);
             }
 
-            SetHasClass(player, VoteHud.Panel, "is-fading", false);
-            SetHasClass(player, VoteHud.Panel, "is-off", true);
-            MarkClosing(entry);
             VoteHud.WriteDefaults(player);
 
             entry.Text.Clear();

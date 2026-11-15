@@ -49,7 +49,6 @@ namespace MapVote.Huds
 
         // Base grid order for the bound list. Sorting is per player on top of it.
         private static List<string> _grid = [];
-        private static readonly Dictionary<string, int> SlotOf = new(StringComparer.Ordinal);
         private static readonly Dictionary<string, int> Masks = new(StringComparer.Ordinal);
         private static readonly int[] TypeCounts = new int[FilterTypeSlots];
         private static int _typeChips;
@@ -175,12 +174,11 @@ namespace MapVote.Huds
             RebuildGrid();
         }
 
-        /// <summary>Base grid order, slot table and type masks. Per-player sorts are built on demand.</summary>
+        /// <summary>Base grid order, map type masks and counts. Per-player sorts are built on demand.</summary>
         private static void RebuildGrid()
         {
             List<string> grid = _source.Count > SlotCount ? _source.GetRange(0, SlotCount) : [.. _source];
             _grid = grid;
-            SlotOf.Clear();
             Masks.Clear();
             _typeChips = _filters.Enabled ? Math.Min(_filters.Types.Count, FilterTypeSlots - 1) : 0;
             Array.Fill(TypeCounts, 0);
@@ -188,7 +186,6 @@ namespace MapVote.Huds
             for (int i = 0; i < grid.Count; i++)
             {
                 string map = grid[i];
-                SlotOf[map] = i;
                 int mask = 1;
                 for (int t = 0; t < _typeChips; t++)
                 {
@@ -300,12 +297,17 @@ namespace MapVote.Huds
         {
             ResetSlotState(player.Slot);
             Paint(player);
-            HudMenu.Open(player, new HudMenuOpenOptions
+            if (!HudMenu.Open(player, new HudMenuOpenOptions
+                {
+                    OnButton = OnButton,
+                    OnClosed = OnClosed,
+                    CaptureMouse = captureMouse,
+                }))
             {
-                OnButton = OnButton,
-                OnClosed = OnClosed,
-                CaptureMouse = captureMouse,
-            });
+                PluginLog.Info($"hud open failed: {Humans.Label(player)} slot={player.Slot}");
+                return;
+            }
+
             StartTimer(player);
             PluginLog.Debug($"hud open: {Humans.Label(player)} slot={player.Slot}");
         }
@@ -1030,10 +1032,10 @@ namespace MapVote.Huds
             _deadlineUtc is { } deadline
             && VoteView.SecondsLeft((deadline - DateTime.UtcNow).TotalSeconds) <= UrgentSeconds;
 
-        /// <summary>Second boundary: let PaintDirty rewrite the countdown for every open viewer.</summary>
+        /// <summary>Second boundary: one text write per open viewer; budget overflow defers to PaintDirty.</summary>
         private static void TickCountdown()
         {
-            if (_deadlineUtc is not { } deadline || CustomHud.TickWrites >= PaintWriteBudget)
+            if (_deadlineUtc is not { } deadline)
             {
                 return;
             }
@@ -1045,7 +1047,24 @@ namespace MapVote.Huds
             }
 
             _lastSecond = seconds;
-            ForEachOpen(SetDirtyOpen);
+            string text = VoteView.FormatTime(seconds);
+            bool urgent = IsUrgent();
+            foreach (CCSPlayerController player in Humans.GetHumans())
+            {
+                if (!HudMenu.IsOpen(player) || player.Slot is < 0 or >= MaxSlots)
+                {
+                    continue;
+                }
+
+                if (CustomHud.TickWrites >= PaintWriteBudget)
+                {
+                    SetDirty(player.Slot, true);
+                    continue;
+                }
+
+                CustomHud.SetText(player, Panel, VoteIds.TimeVar, text);
+                CustomHud.SetHasClass(player, VoteIds.Timer, "is-urgent", urgent);
+            }
         }
 
         // The reveal drains its own fresh panel; resetting the vote bar mid-transition would refill slowly.
