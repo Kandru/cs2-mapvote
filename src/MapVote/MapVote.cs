@@ -32,6 +32,7 @@ namespace MapVote
         // Timers are cancelled by bumping these tokens, never by Kill() (ruleset §1.3).
         private int _flowEpoch;
         private int _rtvToken;
+        private int _changeWatchdogToken;
         // Deferred HUD opens are superseded per slot; never touch a dictionary indexer directly.
         private readonly SlotActionTokens _hudOpenTokens = new();
         private DateTime _scheduleEpochUtc;
@@ -227,6 +228,7 @@ namespace MapVote
             PluginLog.Info($"map start: {mapName}");
             _catalog.Invalidate();
             _leaveMap = false;
+            _changeWatchdogToken++;
             ReconcileSteamSlots();
             MapOrder.ResetMatch();
             EndVoteUi();
@@ -243,6 +245,7 @@ namespace MapVote
         {
             PluginLog.Info("map end: saving player data");
             _leaveMap = true;
+            _changeWatchdogToken++;
             try
             {
                 _catalog.Invalidate();
@@ -295,6 +298,7 @@ namespace MapVote
             _rtvVoters.Clear();
             _rtvPassed = false;
             _rtvClosed = false;
+            _changeWatchdogToken++;
             _hudOpenTokens.ClearAll();
             _mapsPendingOpen.Clear();
             _nominationSession = null;

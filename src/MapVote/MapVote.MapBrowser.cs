@@ -36,7 +36,7 @@ namespace MapVote
 
             string label = Humans.Label(player, id);
 
-            if (_mapsClosed)
+            if (_mapsClosed || _leaveMap)
             {
                 PluginLog.Info($"maps: {label} requested but the browser is closed until next match");
                 info.ReplyToCommand(Chat(Localizer["maps.closed"]));
@@ -90,6 +90,7 @@ namespace MapVote
             AddTimer(HudOpenDelaySeconds, () =>
             {
                 if (_unloaded
+                    || _leaveMap
                     || !_hudOpenTokens.IsCurrent(slot, token)
                     || _mapsClosed
                     || VoteBusy
@@ -114,7 +115,7 @@ namespace MapVote
         /// </summary>
         private void OpenMapBrowserFor(CCSPlayerController player)
         {
-            if (_unloaded || _mapsClosed || VoteBusy || !Humans.IsHumanViewer(player))
+            if (_unloaded || _leaveMap || _mapsClosed || VoteBusy || !Humans.IsHumanViewer(player))
             {
                 PluginLog.Debug(
                     () => $"maps: browser open ignored for {Humans.Label(player)} (unloaded={_unloaded}, closed={_mapsClosed}, busy={VoteBusy}, human={Humans.IsHumanViewer(player)})");
@@ -182,7 +183,7 @@ namespace MapVote
                 return;
             }
 
-            if (_unloaded || _mapsClosed || VoteBusy || generation != _catalog.Generation)
+            if (_unloaded || _leaveMap || _mapsClosed || VoteBusy || generation != _catalog.Generation)
             {
                 PluginLog.Debug(
                     $"maps: pending opens dropped (unloaded={_unloaded}, closed={_mapsClosed}, busy={VoteBusy}, "

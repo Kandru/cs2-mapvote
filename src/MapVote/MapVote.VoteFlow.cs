@@ -32,6 +32,8 @@ namespace MapVote
             _pendingCandidates = null;
             _intermissionEpochUtc = DateTime.UtcNow;
             _catalogGeneration = _catalog.Generation;
+            // A stale changelevel watchdog must not reopen RTV/browser for the new flow.
+            _changeWatchdogToken++;
 
             int budget = VoteClock.CatalogTimeoutSeconds();
             PluginLog.Debug(() =>
@@ -60,7 +62,7 @@ namespace MapVote
         /// <summary>Main-thread settle. Decides immediately when the query beats the 2s deadline.</summary>
         private void OnCatalogSettled(IReadOnlyList<MapEntry> maps, int generation)
         {
-            if (_unloaded || generation != _catalogGeneration || _flow.Phase != EndMatchPhase.Preparing)
+            if (_unloaded || _leaveMap || generation != _catalogGeneration || _flow.Phase != EndMatchPhase.Preparing)
             {
                 PluginLog.Debug(
                     $"end-match: catalog settle ignored (unloaded={_unloaded}, generation={generation}/{_catalogGeneration}, phase={_flow.Phase})");
@@ -473,7 +475,37 @@ namespace MapVote
             string command = EngineVotePrep.ChangelevelCommand(origin, winner);
             PluginLog.Info($"changing map to {winner} ({origin.ToString().ToLowerInvariant()})");
             PluginLog.Debug($"changelevel: command={command} origin={origin}");
-            Server.ExecuteCommand(command);
+            try
+            {
+                Server.ExecuteCommand(command);
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Info($"changelevel: command failed for {winner}: {ex.Message}");
+            }
+
+            ArmChangeWatchdog(winner);
+        }
+
+        /// <summary>
+        /// If no map end follows the changelevel, the next map never resets RTV and the
+        /// browser, so recovery must not depend on a successful map transition.
+        /// </summary>
+        private void ArmChangeWatchdog(string winner)
+        {
+            int token = ++_changeWatchdogToken;
+            AddTimer(GameConstants.ChangelevelWatchdogSeconds, () =>
+            {
+                if (token != _changeWatchdogToken || _unloaded || _leaveMap)
+                {
+                    return;
+                }
+
+                PluginLog.Info(
+                    $"changelevel: map still '{Server.MapName}' {GameConstants.ChangelevelWatchdogSeconds}s after requesting {winner}; reopening RTV and !maps");
+                OpenRtvForNewMatch("changelevel watchdog");
+                OpenMapsForNewMatch("changelevel watchdog");
+            });
         }
 
         private void EndVoteUi(bool closeHud = true)
@@ -523,6 +555,7 @@ namespace MapVote
             AddFlowTimer(JoinerOpenDelaySeconds, () =>
             {
                 if (_unloaded
+                    || _leaveMap
                     || !_hudOpenTokens.IsCurrent(slot, token)
                     || Utilities.GetPlayerFromSlot(slot) is not { IsValid: true } player
                     || !Humans.TryGetSteamId(player, out ulong liveSteamId)
