@@ -86,8 +86,6 @@ namespace MapVote.Utils
             return CreateLayout(player.Slot, entry, steamId);
         }
 
-        public static void Prewarm() => QueueHumans();
-
         /// <summary>Hot reload / plugin start: drop stale layouts and prepare one per connected human.</summary>
         public static void Initialize()
         {
@@ -355,6 +353,8 @@ namespace MapVote.Utils
                     Kill(slot);
                 }
             }
+
+            QueueHumans();
         }
 
         public static void ReleasePlayer(CCSPlayerController? player)

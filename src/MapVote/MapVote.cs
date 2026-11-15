@@ -215,7 +215,6 @@ namespace MapVote
             ResetRtv();
             OpenMapsForNewMatch("map start", clearPending: true);
             CustomHud.ResetRound();
-            CustomHud.Prewarm();
             LoadPersistence();
             ArmEngineHold();
             PluginLog.Debug(() => $"map start {mapName}");
