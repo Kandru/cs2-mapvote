@@ -349,7 +349,7 @@ namespace MapVote
         /// <summary>
         /// Shown catalog maps in catalog order, capped at the HUD slot count.
         /// The browser keeps the current map; the vote path optionally excludes it.
-        /// Priority names are kept ahead of the random fill when the limit is exceeded.
+        /// Every caller sees the same trimmed list, and priority names always survive the trim.
         /// </summary>
         private List<MapEntry> SelectMaps(bool excludeCurrent, IReadOnlyList<string>? priority = null)
         {
@@ -366,21 +366,61 @@ namespace MapVote
             int limit = excludeCurrent
                 ? Math.Clamp(Config.Endmatch.MaxMaps, 1, MapCatalog.MaxMaps)
                 : MapCatalog.MaxMaps;
-            int original = maps.Count;
-            maps = priority is { Count: > 0 }
-                ? MapSample.TakeWithPriority(maps, priority, limit, Random.Shared)
-                : MapSample.Take(maps, limit, Random.Shared);
-            if (maps.Count < original)
+            if (maps.Count > limit)
             {
-                PluginLog.Debug(() => $"map list truncated from {original} to {maps.Count}");
-            }
-
-            if (Config.CleanMapNames)
-            {
-                maps = MapNameDisplay.OrderByDisplayName(maps);
+                PluginLog.Debug(() => $"map list truncated from {maps.Count} to {limit}");
+                maps = TakeInBaseOrder(maps, priority, limit);
             }
 
             return maps;
+        }
+
+        /// <summary>
+        /// Keeps priority maps first, then the start of the stable base order. The source list
+        /// keeps catalog order; the HUD applies the same base order to every viewer.
+        /// </summary>
+        private static List<MapEntry> TakeInBaseOrder(
+            List<MapEntry> maps,
+            IReadOnlyList<string>? priority,
+            int limit)
+        {
+            if (maps.Count <= limit)
+            {
+                return maps;
+            }
+
+            HashSet<string> available = new(maps.ConvertAll(static map => map.Name), StringComparer.Ordinal);
+            HashSet<string> keep = new(StringComparer.Ordinal);
+            if (priority is { Count: > 0 })
+            {
+                foreach (string name in priority)
+                {
+                    if (keep.Count >= limit)
+                    {
+                        break;
+                    }
+
+                    if (available.Contains(name))
+                    {
+                        keep.Add(name);
+                    }
+                }
+            }
+
+            if (keep.Count < limit)
+            {
+                foreach (string name in MapOrder.Sort([.. available], MapNameDisplay.Format))
+                {
+                    if (keep.Count >= limit)
+                    {
+                        break;
+                    }
+
+                    keep.Add(name);
+                }
+            }
+
+            return maps.FindAll(map => keep.Contains(map.Name));
         }
 
         private static List<MapEntry> DistinctCandidates(List<MapEntry> maps)

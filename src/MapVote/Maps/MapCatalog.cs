@@ -1,10 +1,12 @@
+using MapVote.Huds;
 using MapVote.Utils;
 
 namespace MapVote.Maps
 {
     public sealed class MapCatalog
     {
-        public const int MaxMaps = 100;
+        /// <summary>Selection cap, tied to the HUD's fixed grid pool.</summary>
+        public const int MaxMaps = VoteIds.SlotCount;
         public const int RetryPauseMilliseconds = 400;
         public const int MaxCommandTimeoutMilliseconds = 3000;
 

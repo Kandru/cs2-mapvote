@@ -137,8 +137,9 @@ namespace MapVote.Huds
             _text = text;
             _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
             _formatMapName = cleanMapNames ? MapNameDisplay.Format : static name => name;
-            List<string> ordered = MapOrder.Sort(source, _formatMapName);
-            _grid = ordered.Count > SlotCount ? ordered.GetRange(0, SlotCount) : ordered;
+            // Selection already caps the source at MapCatalog.MaxMaps (= SlotCount); keep it
+            // whole so every sort (especially rating) sees the complete list, not a prefix.
+            _grid = MapOrder.Sort(source, _formatMapName);
             _currentMap = string.IsNullOrWhiteSpace(currentMap) ? null : currentMap;
             _currentOrigin = currentOrigin;
             _revealing = false;

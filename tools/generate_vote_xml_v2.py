@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Generate layout v2: workshop/content/.../vote_v2.xml and the generated ladders in hud_v2.vcss.
+"""Generate the current Panorama layout XML and its generated CSS ladders.
 
-T6 CONTRACT (layout v2) - the list the C# view (T8) codes against. Spelled once in VoteIds.cs.
+LAYOUT CONTRACT - the list the C# view codes against. Spelled once in VoteIds.cs.
 "G" = write globally (same for every viewer), "P" = write per player. Never both on one name.
 Every pool slot is authored in its default state; XML default = C# default.
 
@@ -33,7 +33,7 @@ Current map (also in browse)
   #mv-like / #mv-dislike  Buttons, is-active (P) = own rating (like: success surface, dislike: danger) + check
   mv_like, mv_dislike     (G) labels "Gefällt mir" / "Gefällt mir nicht"
   mv_like_n, mv_dislike_n (G) counters "12" / "3"
-Ranking (pool V2_RANK_SLOTS = 6)
+Ranking (pool RANK_SLOTS = 6)
   mv_rank_title (G) "Vorne"
   #mv-rank-empty          is-off (G, XML off: visible = no votes yet)
   mv_rank_empty (G) "Noch keine Stimmen – wähl unten eine Map"
@@ -52,7 +52,7 @@ Filters
   mv_favonly    (G) "Favoriten"
   #mv-fs-{i}    Button    sort chips, browse only: is-off (G, XML on), is-active (G - order is global)
   fs{i}         (G) label
-Grid (pool V2_GRID_SLOTS = 100 = VoteIds.SlotCount)
+Grid (pool GRID_SLOTS = VoteIds.SlotCount)
   #mv-slot-{i}            is-off (P, XML on) = filter/visibility, is-self (P) = own vote
   #mv-{i}       Button    vote group votes-none | votes-some (G, XML votes-none); badge only when > 0
   #mv-shot-{i}            mv-map-* (G)
@@ -65,8 +65,6 @@ Reveal (visible with view-reveal)
   #mv-win-shot            mv-map-* (G)
   mv_win_name   (G) name
   mv_win_votes  (G) "4 Stimmen"
-Dropped against v1: per-tile rating badge (r*), voted strip (mv-voted-*, vw-*), is-done/is-lost on tiles
-(the reveal card shows the winner, the grid is dimmed as a whole), mv-sort-fav (now #mv-fav-only).
 """
 from __future__ import annotations
 
@@ -78,27 +76,27 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from mapvote_layout import (
-    HUD_V2_VCSS_NAME,
+    HUD_VCSS_NAME,
     MAPS_VCSS_NAME,
-    V2_FILTER_SORT_SLOTS,
-    V2_FILTER_TYPE_SLOTS,
-    V2_GRID_SLOTS,
-    V2_RANK_SLOTS,
-    V2_SHARE_STEP,
-    V2_SPAN_MAX,
-    V2_SPAN_MIN,
-    V2_VERSION,
-    VOTE_V2_XML_NAME,
+    FILTER_SORT_SLOTS,
+    FILTER_TYPE_SLOTS,
+    GRID_SLOTS,
+    RANK_SLOTS,
+    SHARE_STEP,
+    SPAN_MAX,
+    SPAN_MIN,
+    PANORAMA_VERSION,
+    VOTE_XML_NAME,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "workshop" / "content" / "panorama" / "layout" / "custom_game" / "mapvote" / VOTE_V2_XML_NAME
-HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_V2_VCSS_NAME
+OUT = ROOT / "workshop" / "content" / "panorama" / "layout" / "custom_game" / "mapvote" / VOTE_XML_NAME
+HUD_VCSS = ROOT / "workshop" / "content" / "panorama" / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
 CREDIT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 LAYOUT_TAG = (
-    f"{V2_VERSION} grid={V2_GRID_SLOTS} rank={V2_RANK_SLOTS} "
-    f"filter_types={V2_FILTER_TYPE_SLOTS} filter_sorts={V2_FILTER_SORT_SLOTS} "
-    f"span={V2_SPAN_MIN}-{V2_SPAN_MAX} share_step={V2_SHARE_STEP}"
+    f"{PANORAMA_VERSION} grid={GRID_SLOTS} rank={RANK_SLOTS} "
+    f"filter_types={FILTER_TYPE_SLOTS} filter_sorts={FILTER_SORT_SLOTS} "
+    f"span={SPAN_MIN}-{SPAN_MAX} share_step={SHARE_STEP}"
 )
 
 
@@ -197,7 +195,7 @@ def ranking(x: Xml) -> None:
     x.open("Panel", "mv-rank", "Ranking")
     x.leaf("Label", cls="RankTitle", text="{s:mv_rank_title}")
     x.leaf("Label", "mv-rank-empty", "RankEmpty", "{s:mv_rank_empty}")
-    for i in range(V2_RANK_SLOTS):
+    for i in range(RANK_SLOTS):
         x.open("Button", f"mv-rank-{i}", "RankRow is-off")
         x.open("Panel", f"mv-rank-self-{i}", "RankSelf")
         x.open("Panel", cls="RankSelfMark")
@@ -224,7 +222,7 @@ def filters(x: Xml) -> None:
     # Hit-enabled: shields the chips from scrolled grid cards underneath.
     x.open("Panel", "mv-filters", "FilterBar", hit=True)
     x.open("Panel", cls="FilterRow")
-    for i in range(V2_FILTER_TYPE_SLOTS):
+    for i in range(FILTER_TYPE_SLOTS):
         chip(x, f"mv-ft-{i}", f"ft{i}")
     x.leaf("Panel", cls="FilterGap")
     x.open("Button", "mv-fav-only", "FilterChip FavChip")
@@ -233,7 +231,7 @@ def filters(x: Xml) -> None:
     x.close("Button")
     x.close("Panel")
     x.open("Panel", cls="SortRow")
-    for i in range(V2_FILTER_SORT_SLOTS):
+    for i in range(FILTER_SORT_SLOTS):
         chip(x, f"mv-fs-{i}", f"fs{i}")
     x.close("Panel")
     x.close("Panel")
@@ -260,7 +258,7 @@ def grid_slot(x: Xml, i: int) -> None:
 def grid(x: Xml) -> None:
     x.open("Panel", cls="GridHost")
     x.open("Panel", "mv-catalog", "MapCatalog", hit=True)
-    for i in range(V2_GRID_SLOTS):
+    for i in range(GRID_SLOTS):
         grid_slot(x, i)
     x.close("Panel")
     x.leaf("Panel", cls="GridFade")
@@ -282,7 +280,7 @@ def build() -> str:
         "<root>",
         "\t<styles>",
         '\t\t<include src="s2r://panorama/styles/csgostyles.vcss" />',
-        f'\t\t<include src="s2r://panorama/styles/custom_game/mapvote/{HUD_V2_VCSS_NAME}" />',
+        f'\t\t<include src="s2r://panorama/styles/custom_game/mapvote/{HUD_VCSS_NAME}" />',
         f'\t\t<include src="s2r://panorama/styles/custom_game/mapvote/{MAPS_VCSS_NAME}" />',
         "\t</styles>",
         "",
@@ -327,9 +325,9 @@ def _replace_block(text: str, name: str, lines: list[str]) -> str:
 
 def ladders(text: str) -> str:
     """Countdown span ladder and ranking share ladder, generated from the pool constants."""
-    spans = [f".TimerFill.span-{s} {{ transition-duration: {s}.0s; }}" for s in range(V2_SPAN_MIN, V2_SPAN_MAX + 1)]
+    spans = [f".TimerFill.span-{s} {{ transition-duration: {s}.0s; }}" for s in range(SPAN_MIN, SPAN_MAX + 1)]
     shares = [
-        f".RankFill.p{p} {{ clip: rect( 0%, {p}%, 100%, 0% ); }}" for p in range(0, 101, V2_SHARE_STEP)
+        f".RankFill.p{p} {{ clip: rect( 0%, {p}%, 100%, 0% ); }}" for p in range(0, 101, SHARE_STEP)
     ]
     return _replace_block(_replace_block(text, "span-ladder", spans), "share-ladder", shares)
 

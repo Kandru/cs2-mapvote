@@ -16,7 +16,7 @@ When the match ends, players should pick the next map the way Valve never intend
 ## Installation
 
 1. Install [Metamod:Source](https://www.metamodsource.net/downloads.php?branch=dev).
-2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (HUD and map pictures), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`. This plugin release needs the addon version that contains the v2 HUD files.
+2. Install [MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager/releases) and load workshop item [3827322946](https://steamcommunity.com/sharedfiles/filedetails/?id=3827322946) (HUD and map pictures), for example `mm_extra_addons "3827322946"` in `game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`. This plugin release needs the addon version that contains the HUD files for its `PanoramaVersion`.
 3. Install [CounterStrikeSharp](https://docs.cssharp.dev/). CounterStrikeSharp 1.0.379 or newer is required.
 4. Download the latest release from the [GitHub releases page](https://github.com/Kandru/cs2-mapvote/releases/) and copy the `MapVote` folder into `/game/csgo/addons/counterstrikesharp/plugins/`.
 5. Set a non-empty `rcon_password` (the plugin loads the map list over localhost RCON).
@@ -30,7 +30,7 @@ We publish [that addon](https://steamcommunity.com/sharedfiles/filedetails/?id=3
 
 ## How to use it
 
-- At the end of a match, the vote screen opens with up to 100 maps from the catalog in the configured base order; players click a map, and the "Leading" ranking shows the 6 maps with the most votes.
+- At the end of a match, the vote screen opens with up to 200 maps from the catalog in the configured base order; players click a map, and the "Leading" ranking shows the 6 maps with the most votes.
 - In chat, type `!rtv` (or `css_rtv` / `rtv`). By default about 60% of humans must agree; then the match ends early so this vote can run.
 - Type `!maps` (or `!nom` / `!nominate` / `css_maps` / `maps`) to browse the server map list at any time before intermission. Filter, sort your own view (A-Z, most positive rated, most negative rated; all maps stay listed), rate the current map, and manage favorites; with nominations enabled you can also pick your map for the next vote. Use the Close button to leave. The browser closes automatically when the match ends and reopens with the next match or map.
 - Config file: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`. Useful knobs: vote length, base list order (`display.order`), whether to hide the map just played, RTV on/off and ratio, and which maps appear (`maps_votable`). Full key list: [docs/config.md](docs/config.md).

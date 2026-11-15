@@ -30,19 +30,4 @@ public class MapNameDisplayTests
     {
         Assert.Equal(string.Empty, MapNameDisplay.ForHud(string.Empty));
     }
-
-    [Fact]
-    public void OrderByDisplayName_OrdersByCleanedName()
-    {
-        List<MapEntry> maps =
-        [
-            new("de_mirage", MapOrigin.Local),
-            new("cs_office", MapOrigin.Local),
-            new("de_ancient", MapOrigin.Local),
-        ];
-
-        List<MapEntry> sorted = MapNameDisplay.OrderByDisplayName(maps);
-
-        Assert.Equal(["de_ancient", "de_mirage", "cs_office"], sorted.ConvertAll(static m => m.Name));
-    }
 }

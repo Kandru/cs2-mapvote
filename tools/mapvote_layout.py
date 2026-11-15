@@ -1,37 +1,47 @@
-"""Shared layout pool sizes and versioned asset names (keep in sync with VoteIds.cs / Version.cs)."""
+"""Layout names and pool sizes read from the C# source of truth.
 
-# Must match MapVote.PanoramaVersion in src/MapVote/Version.cs
-PANORAMA_VERSION = "v2"
-# Legacy layout v1 stays built and validated under its own name until it is deleted.
-V1_VERSION = "v1"
+`Version.cs` owns the layout version; `VoteIds.cs` owns every panel/dialog pool
+size and generated ladder. No pool value is duplicated in Python.
+"""
+from __future__ import annotations
 
-# Panel pools, not catalog size. The grid is written globally; the voted
-# strip only shows the best-voted maps.
-GRID_SLOT_COUNT = 100
-VOTED_SLOT_COUNT = 10
-FILTER_TYPE_SLOTS = 8
-FILTER_SORT_SLOTS = 4
+import re
+from pathlib import Path
 
-# Catalog and voted strip share one card metric. The catalog wraps by viewport width.
-SLOT_WIDTH_PX = 110
-SLOT_MARGIN_PX = 8
-SLOT_PITCH_PX = SLOT_WIDTH_PX + SLOT_MARGIN_PX * 2  # 126
+ROOT = Path(__file__).resolve().parents[1]
+VERSION_CS = ROOT / "src" / "MapVote" / "Version.cs"
+VOTE_IDS_CS = ROOT / "src" / "MapVote" / "Huds" / "VoteIds.cs"
 
-VOTE_XML_NAME = f"vote_{V1_VERSION}.xml"
-HUD_VCSS_NAME = f"hud_{V1_VERSION}.vcss"
-HUD_CSS_NAME = f"hud_{V1_VERSION}.css"
-# Map image classes (mv-map-*) stay in maps_v1 for every layout version, so image packs keep working.
+
+def _int_const(path: Path, name: str) -> int:
+    text = path.read_text(encoding="utf-8")
+    match = re.search(rf"public const int {name} = (\d+);", text)
+    if not match:
+        raise RuntimeError(f"missing public const int {name} in {path.relative_to(ROOT)}")
+    return int(match.group(1))
+
+
+def _string_const(path: Path, name: str) -> str:
+    text = path.read_text(encoding="utf-8")
+    match = re.search(rf'public const string {name} = "([^"]+)";', text)
+    if not match:
+        raise RuntimeError(f"missing public const string {name} in {path.relative_to(ROOT)}")
+    return match.group(1)
+
+
+PANORAMA_VERSION = _string_const(VERSION_CS, "PanoramaVersion")
+
+VOTE_XML_NAME = f"vote_{PANORAMA_VERSION}.xml"
+HUD_VCSS_NAME = f"hud_{PANORAMA_VERSION}.vcss"
+HUD_CSS_NAME = f"hud_{PANORAMA_VERSION}.css"
+# Map image classes keep their own version so image packs survive layout bumps.
 MAPS_VCSS_NAME = "maps_v1.vcss"
 MAPS_CSS_NAME = "maps_v1.css"
 
-# ---- Layout v2 (T6): the layout the plugin spawns (PANORAMA_VERSION). ----
-V2_VERSION = "v2"
-VOTE_V2_XML_NAME = f"vote_{V2_VERSION}.xml"
-HUD_V2_VCSS_NAME = f"hud_{V2_VERSION}.vcss"
-V2_GRID_SLOTS = GRID_SLOT_COUNT  # = VoteIds.SlotCount
-V2_RANK_SLOTS = 6
-V2_FILTER_TYPE_SLOTS = FILTER_TYPE_SLOTS  # = VoteIds.FilterTypeSlots
-V2_FILTER_SORT_SLOTS = FILTER_SORT_SLOTS  # = VoteIds.FilterSortSlots
-V2_SPAN_MIN = 3  # countdown classes span-3 … span-90 (seconds)
-V2_SPAN_MAX = 90
-V2_SHARE_STEP = 10  # ranking share ladder p0, p10 … p100
+GRID_SLOTS = _int_const(VOTE_IDS_CS, "SlotCount")
+RANK_SLOTS = _int_const(VOTE_IDS_CS, "RankSlots")
+FILTER_TYPE_SLOTS = _int_const(VOTE_IDS_CS, "FilterTypeSlots")
+FILTER_SORT_SLOTS = _int_const(VOTE_IDS_CS, "FilterSortSlots")
+SPAN_MIN = _int_const(VOTE_IDS_CS, "SpanMin")
+SPAN_MAX = _int_const(VOTE_IDS_CS, "SpanMax")
+SHARE_STEP = _int_const(VOTE_IDS_CS, "ShareStep")

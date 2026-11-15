@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using CounterStrikeSharp.API.Core;
+using MapVote.Maps;
 
 namespace MapVote.Config
 {
@@ -51,7 +52,7 @@ namespace MapVote.Config
         public int WinnerRevealSeconds { get; set; } = 5;
 
         [JsonPropertyName("max_maps")]
-        public int MaxMaps { get; set; } = 100;
+        public int MaxMaps { get; set; } = MapCatalog.MaxMaps;
     }
 
     public sealed class NominationsConfig

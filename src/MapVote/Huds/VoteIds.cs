@@ -1,9 +1,9 @@
 namespace MapVote.Huds
 {
     /// <summary>
-    /// Layout v2 contract (tools/generate_vote_xml_v2.py docstring): every panel id, dialog
-    /// variable and ladder class spelled once. Each viewer has a private layout entity, so
-    /// every value is written on the viewer's own entity.
+    /// Current Panorama contract (tools/generate_vote_xml_v2.py docstring): every panel id,
+    /// pool size, dialog variable and ladder class spelled once. Each viewer has a private
+    /// layout entity, so every value is written on the viewer's own entity.
     /// </summary>
     public static class VoteIds
     {
@@ -59,13 +59,14 @@ namespace MapVote.Huds
         public const string WinVotesVar = "mv_win_votes";
 
         /// <summary>Grid panel pool (catalog max).</summary>
-        public const int SlotCount = 100;
+        public const int SlotCount = 200;
         public const int RankSlots = 6;
         public const int FilterTypeSlots = 8;
         public const int FilterSortSlots = 4;
         /// <summary>Generated countdown ladder span-3 … span-90.</summary>
         public const int SpanMin = 3;
         public const int SpanMax = 90;
+        public const int ShareStep = 10;
 
         public static readonly string[] Views = ["view-vote", "view-reveal", "view-browse"];
         public static readonly string[] VotesClasses = ["votes-none", "votes-some"];
@@ -90,7 +91,7 @@ namespace MapVote.Huds
         public static readonly string[] SortVars = BuildIndexed("fs", FilterSortSlots);
 
         /// <summary>Share ladder p0, p10 … p100.</summary>
-        public static readonly string[] ShareClasses = BuildIndexed("p", 11, step: 10);
+        public static readonly string[] ShareClasses = BuildIndexed("p", (100 / ShareStep) + 1, step: ShareStep);
         public static readonly string[] SpanClasses = BuildIndexed("span-", SpanMax + 1);
 
         private static string[] BuildIndexed(string prefix, int count, int step = 1)

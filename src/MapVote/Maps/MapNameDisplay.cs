@@ -34,11 +34,5 @@ namespace MapVote.Maps
             text.Length == 0 ? text : $"{NonBreakingSpace}{text}{NonBreakingSpace}";
 
         public const char NonBreakingSpace = (char)0xA0;
-
-        /// <summary>Alphabetical by the cleaned display name, raw id as tie-break.</summary>
-        public static List<MapEntry> OrderByDisplayName(IReadOnlyList<MapEntry> maps) =>
-            [.. maps
-                .OrderBy(static m => Format(m.Name), StringComparer.Ordinal)
-                .ThenBy(static m => m.Name, StringComparer.Ordinal)];
     }
 }

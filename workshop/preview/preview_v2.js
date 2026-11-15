@@ -1,19 +1,20 @@
 // Browser stand-in for the C# view of layout v2 (T8). Writes the same ids / classes / dialog
 // variables as the contract in tools/generate_vote_xml_v2.py, so the preview shows what the
-// server would paint. URL: ?n=8|45|100 &state=vote|voted|reveal|empty|browse &clean=1 (no tool bar).
+// server would paint. URL: ?n=8|45|all &state=vote|voted|reveal|empty|browse &clean=1 (no tool bar).
 (() => {
   const q = new URLSearchParams(location.search);
   const BROWSE = document.body.dataset.browse === "1";
-  const N = [8, 45, 100].includes(Number(q.get("n"))) ? Number(q.get("n")) : 45;
+  const SLOTS = document.querySelectorAll('[id^="mv-slot-"]').length;
+  const N_OPTIONS = [8, 45, SLOTS];
+  const N = N_OPTIONS.includes(Number(q.get("n"))) ? Number(q.get("n")) : 45;
   const STATE = BROWSE ? "browse" : q.get("state") || "vote";
-  const SLOTS = 100;
   const RANKS = 6;
 
-  // Sample catalog: maps that have a preview image, then workshop stand-ins up to 100 (images reused).
+  // Sample catalog: maps that have a preview image, then workshop stand-ins up to the XML pool.
   const LONG = ["ws_ancient_night_extended_edition", "ws_aim_redline_training_complex", "ws_surf_kitsune_reborn"];
   const base = window.PV_MAPS.slice();
   const maps = [];
-  for (let i = 0; maps.length < 100; i++) {
+  for (let i = 0; maps.length < SLOTS; i++) {
     if (i < base.length) maps.push({ id: base[i], img: base[i] });
     else maps.push({ id: LONG[i - base.length] || `ws_community_map_${i - base.length + 1}`, img: base[i % base.length] });
   }
@@ -217,7 +218,7 @@
     const link = (label, params, active) =>
       `<a class="${active ? "is-active" : ""}" href="${params.browse ? "maps_v2.html" : "vote_v2.html"}?n=${params.n}&state=${params.state}">${label}</a>`;
     bar.innerHTML =
-      [8, 45, 100].map((n) => link(`${n} maps`, { n, state: STATE, browse: BROWSE }, n === N)).join("") +
+      N_OPTIONS.map((n) => link(`${n} maps`, { n, state: STATE, browse: BROWSE }, n === N)).join("") +
       '<span class="pv-sep"></span>' +
       ["vote", "voted", "reveal", "empty"].map((st) => link(st, { n: N, state: st }, st === STATE)).join("") +
       link("browse", { n: N, state: "browse", browse: true }, BROWSE);

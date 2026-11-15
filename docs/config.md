@@ -8,7 +8,7 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | `clean_map_names` | `true` | Show `de_dust2` as `Dust2`: drop a leading type prefix (`de_`, `cs_`, ...) and capitalize the first letter. Also the key for name sorting. `false` keeps raw map ids |
 | `endmatch.exclude_current_map` | `true` | Hide the map just played |
 | `endmatch.vote_seconds` | `null` | Menu length. `null` uses the server's `mp_endmatch_votenextleveltime` as first read. The engine timer is then written longer (vote length + 4s) so it does not change the map before the plugin |
-| `endmatch.max_maps` | `100` | Most maps offered in the vote (1 to 100). Above that many votable maps, a random subset is offered each vote; `!maps` always lists up to 100 |
+| `endmatch.max_maps` | grid pool size (`VoteIds.SlotCount`, currently 200) | Most maps offered in the vote, clamped to 1…`VoteIds.SlotCount`. Above that many votable maps, the maps at the end of the configured base order are left out each vote; nominations are always kept and `!maps` lists up to the same limit |
 | `endmatch.winner_reveal_seconds` | `5` | Locked-winner hold after our vote (custom menu only); taken off the end of the time after the 6s match-results hold |
 | `nominations.enabled` | `true` | Allow map picks through `!maps` / `!nom` / `!nominate` during the round. Nominated maps are guaranteed candidates in the end-match vote and the nominator's vote is prefilled there |
 | `rtv.enabled` | `true` | `!rtv` / `css_rtv` / `rtv` |

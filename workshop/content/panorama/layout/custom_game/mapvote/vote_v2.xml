@@ -6,7 +6,7 @@
 		<include src="s2r://panorama/styles/custom_game/mapvote/maps_v1.vcss" />
 	</styles>
 
-	<!-- MapVote:mapvote v2 grid=100 rank=6 filter_types=8 filter_sorts=4 span=3-90 share_step=10 -->
+	<!-- MapVote:mapvote v2 grid=200 rank=6 filter_types=8 filter_sorts=4 span=3-90 share_step=10 -->
 	<Panel class="HudScreen" hittest="false">
 		<Panel id="Vote" class="VoteRoot is-off view-vote" hittest="false">
 			<Panel class="mv-glass" hittest="false" />
@@ -1938,6 +1938,1706 @@
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-99" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-100" class="MapSlot is-off">
+								<Button id="mv-100" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-100" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v100}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n100}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-100" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-101" class="MapSlot is-off">
+								<Button id="mv-101" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-101" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v101}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n101}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-101" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-102" class="MapSlot is-off">
+								<Button id="mv-102" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-102" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v102}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n102}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-102" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-103" class="MapSlot is-off">
+								<Button id="mv-103" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-103" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v103}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n103}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-103" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-104" class="MapSlot is-off">
+								<Button id="mv-104" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-104" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v104}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n104}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-104" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-105" class="MapSlot is-off">
+								<Button id="mv-105" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-105" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v105}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n105}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-105" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-106" class="MapSlot is-off">
+								<Button id="mv-106" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-106" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v106}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n106}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-106" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-107" class="MapSlot is-off">
+								<Button id="mv-107" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-107" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v107}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n107}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-107" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-108" class="MapSlot is-off">
+								<Button id="mv-108" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-108" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v108}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n108}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-108" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-109" class="MapSlot is-off">
+								<Button id="mv-109" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-109" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v109}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n109}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-109" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-110" class="MapSlot is-off">
+								<Button id="mv-110" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-110" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v110}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n110}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-110" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-111" class="MapSlot is-off">
+								<Button id="mv-111" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-111" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v111}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n111}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-111" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-112" class="MapSlot is-off">
+								<Button id="mv-112" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-112" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v112}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n112}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-112" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-113" class="MapSlot is-off">
+								<Button id="mv-113" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-113" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v113}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n113}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-113" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-114" class="MapSlot is-off">
+								<Button id="mv-114" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-114" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v114}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n114}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-114" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-115" class="MapSlot is-off">
+								<Button id="mv-115" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-115" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v115}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n115}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-115" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-116" class="MapSlot is-off">
+								<Button id="mv-116" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-116" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v116}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n116}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-116" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-117" class="MapSlot is-off">
+								<Button id="mv-117" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-117" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v117}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n117}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-117" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-118" class="MapSlot is-off">
+								<Button id="mv-118" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-118" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v118}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n118}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-118" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-119" class="MapSlot is-off">
+								<Button id="mv-119" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-119" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v119}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n119}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-119" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-120" class="MapSlot is-off">
+								<Button id="mv-120" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-120" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v120}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n120}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-120" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-121" class="MapSlot is-off">
+								<Button id="mv-121" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-121" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v121}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n121}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-121" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-122" class="MapSlot is-off">
+								<Button id="mv-122" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-122" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v122}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n122}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-122" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-123" class="MapSlot is-off">
+								<Button id="mv-123" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-123" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v123}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n123}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-123" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-124" class="MapSlot is-off">
+								<Button id="mv-124" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-124" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v124}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n124}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-124" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-125" class="MapSlot is-off">
+								<Button id="mv-125" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-125" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v125}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n125}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-125" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-126" class="MapSlot is-off">
+								<Button id="mv-126" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-126" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v126}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n126}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-126" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-127" class="MapSlot is-off">
+								<Button id="mv-127" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-127" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v127}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n127}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-127" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-128" class="MapSlot is-off">
+								<Button id="mv-128" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-128" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v128}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n128}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-128" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-129" class="MapSlot is-off">
+								<Button id="mv-129" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-129" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v129}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n129}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-129" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-130" class="MapSlot is-off">
+								<Button id="mv-130" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-130" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v130}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n130}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-130" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-131" class="MapSlot is-off">
+								<Button id="mv-131" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-131" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v131}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n131}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-131" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-132" class="MapSlot is-off">
+								<Button id="mv-132" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-132" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v132}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n132}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-132" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-133" class="MapSlot is-off">
+								<Button id="mv-133" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-133" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v133}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n133}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-133" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-134" class="MapSlot is-off">
+								<Button id="mv-134" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-134" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v134}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n134}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-134" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-135" class="MapSlot is-off">
+								<Button id="mv-135" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-135" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v135}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n135}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-135" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-136" class="MapSlot is-off">
+								<Button id="mv-136" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-136" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v136}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n136}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-136" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-137" class="MapSlot is-off">
+								<Button id="mv-137" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-137" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v137}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n137}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-137" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-138" class="MapSlot is-off">
+								<Button id="mv-138" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-138" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v138}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n138}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-138" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-139" class="MapSlot is-off">
+								<Button id="mv-139" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-139" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v139}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n139}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-139" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-140" class="MapSlot is-off">
+								<Button id="mv-140" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-140" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v140}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n140}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-140" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-141" class="MapSlot is-off">
+								<Button id="mv-141" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-141" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v141}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n141}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-141" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-142" class="MapSlot is-off">
+								<Button id="mv-142" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-142" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v142}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n142}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-142" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-143" class="MapSlot is-off">
+								<Button id="mv-143" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-143" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v143}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n143}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-143" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-144" class="MapSlot is-off">
+								<Button id="mv-144" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-144" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v144}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n144}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-144" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-145" class="MapSlot is-off">
+								<Button id="mv-145" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-145" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v145}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n145}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-145" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-146" class="MapSlot is-off">
+								<Button id="mv-146" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-146" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v146}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n146}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-146" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-147" class="MapSlot is-off">
+								<Button id="mv-147" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-147" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v147}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n147}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-147" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-148" class="MapSlot is-off">
+								<Button id="mv-148" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-148" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v148}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n148}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-148" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-149" class="MapSlot is-off">
+								<Button id="mv-149" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-149" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v149}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n149}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-149" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-150" class="MapSlot is-off">
+								<Button id="mv-150" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-150" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v150}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n150}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-150" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-151" class="MapSlot is-off">
+								<Button id="mv-151" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-151" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v151}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n151}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-151" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-152" class="MapSlot is-off">
+								<Button id="mv-152" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-152" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v152}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n152}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-152" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-153" class="MapSlot is-off">
+								<Button id="mv-153" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-153" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v153}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n153}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-153" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-154" class="MapSlot is-off">
+								<Button id="mv-154" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-154" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v154}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n154}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-154" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-155" class="MapSlot is-off">
+								<Button id="mv-155" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-155" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v155}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n155}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-155" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-156" class="MapSlot is-off">
+								<Button id="mv-156" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-156" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v156}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n156}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-156" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-157" class="MapSlot is-off">
+								<Button id="mv-157" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-157" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v157}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n157}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-157" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-158" class="MapSlot is-off">
+								<Button id="mv-158" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-158" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v158}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n158}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-158" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-159" class="MapSlot is-off">
+								<Button id="mv-159" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-159" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v159}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n159}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-159" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-160" class="MapSlot is-off">
+								<Button id="mv-160" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-160" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v160}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n160}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-160" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-161" class="MapSlot is-off">
+								<Button id="mv-161" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-161" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v161}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n161}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-161" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-162" class="MapSlot is-off">
+								<Button id="mv-162" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-162" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v162}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n162}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-162" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-163" class="MapSlot is-off">
+								<Button id="mv-163" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-163" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v163}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n163}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-163" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-164" class="MapSlot is-off">
+								<Button id="mv-164" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-164" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v164}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n164}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-164" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-165" class="MapSlot is-off">
+								<Button id="mv-165" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-165" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v165}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n165}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-165" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-166" class="MapSlot is-off">
+								<Button id="mv-166" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-166" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v166}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n166}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-166" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-167" class="MapSlot is-off">
+								<Button id="mv-167" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-167" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v167}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n167}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-167" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-168" class="MapSlot is-off">
+								<Button id="mv-168" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-168" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v168}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n168}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-168" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-169" class="MapSlot is-off">
+								<Button id="mv-169" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-169" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v169}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n169}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-169" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-170" class="MapSlot is-off">
+								<Button id="mv-170" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-170" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v170}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n170}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-170" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-171" class="MapSlot is-off">
+								<Button id="mv-171" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-171" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v171}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n171}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-171" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-172" class="MapSlot is-off">
+								<Button id="mv-172" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-172" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v172}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n172}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-172" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-173" class="MapSlot is-off">
+								<Button id="mv-173" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-173" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v173}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n173}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-173" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-174" class="MapSlot is-off">
+								<Button id="mv-174" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-174" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v174}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n174}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-174" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-175" class="MapSlot is-off">
+								<Button id="mv-175" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-175" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v175}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n175}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-175" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-176" class="MapSlot is-off">
+								<Button id="mv-176" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-176" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v176}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n176}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-176" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-177" class="MapSlot is-off">
+								<Button id="mv-177" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-177" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v177}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n177}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-177" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-178" class="MapSlot is-off">
+								<Button id="mv-178" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-178" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v178}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n178}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-178" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-179" class="MapSlot is-off">
+								<Button id="mv-179" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-179" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v179}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n179}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-179" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-180" class="MapSlot is-off">
+								<Button id="mv-180" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-180" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v180}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n180}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-180" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-181" class="MapSlot is-off">
+								<Button id="mv-181" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-181" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v181}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n181}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-181" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-182" class="MapSlot is-off">
+								<Button id="mv-182" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-182" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v182}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n182}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-182" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-183" class="MapSlot is-off">
+								<Button id="mv-183" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-183" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v183}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n183}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-183" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-184" class="MapSlot is-off">
+								<Button id="mv-184" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-184" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v184}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n184}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-184" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-185" class="MapSlot is-off">
+								<Button id="mv-185" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-185" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v185}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n185}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-185" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-186" class="MapSlot is-off">
+								<Button id="mv-186" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-186" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v186}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n186}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-186" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-187" class="MapSlot is-off">
+								<Button id="mv-187" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-187" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v187}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n187}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-187" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-188" class="MapSlot is-off">
+								<Button id="mv-188" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-188" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v188}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n188}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-188" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-189" class="MapSlot is-off">
+								<Button id="mv-189" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-189" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v189}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n189}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-189" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-190" class="MapSlot is-off">
+								<Button id="mv-190" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-190" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v190}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n190}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-190" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-191" class="MapSlot is-off">
+								<Button id="mv-191" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-191" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v191}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n191}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-191" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-192" class="MapSlot is-off">
+								<Button id="mv-192" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-192" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v192}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n192}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-192" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-193" class="MapSlot is-off">
+								<Button id="mv-193" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-193" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v193}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n193}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-193" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-194" class="MapSlot is-off">
+								<Button id="mv-194" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-194" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v194}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n194}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-194" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-195" class="MapSlot is-off">
+								<Button id="mv-195" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-195" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v195}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n195}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-195" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-196" class="MapSlot is-off">
+								<Button id="mv-196" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-196" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v196}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n196}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-196" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-197" class="MapSlot is-off">
+								<Button id="mv-197" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-197" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v197}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n197}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-197" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-198" class="MapSlot is-off">
+								<Button id="mv-198" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-198" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v198}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n198}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-198" class="FavBtn CardFav">
+									<Panel class="FavIcon" hittest="false" />
+								</Button>
+							</Panel>
+							<Panel id="mv-slot-199" class="MapSlot is-off">
+								<Button id="mv-199" class="MapCard votes-none">
+									<Panel class="CardImage" hittest="false">
+										<Panel class="MapShot mv-map-default" hittest="false" />
+										<Panel id="mv-shot-199" class="MapShot" hittest="false" />
+										<Label class="VoteBadge" hittest="false" text="{s:v199}" />
+										<Panel class="SelfBadge" hittest="false">
+											<Panel class="CheckIcon" hittest="false" />
+										</Panel>
+									</Panel>
+									<Label class="CardName" hittest="false" text="{s:n199}" />
+								</Button>
+								<Panel class="CardFrame" hittest="false" />
+								<Button id="mv-fav-199" class="FavBtn CardFav">
 									<Panel class="FavIcon" hittest="false" />
 								</Button>
 							</Panel>

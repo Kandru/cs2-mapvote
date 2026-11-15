@@ -101,6 +101,25 @@ public class MapSortTests
     }
 
     [Fact]
+    public void Apply_RatingSort_OrdersEveryMapBeyondTheOldGridLimit()
+    {
+        List<string> maps = Enumerable.Range(0, 150)
+            .Select(static i => $"de_map{i:000}")
+            .ToList();
+
+        List<string> result = MapSort.Apply(
+            maps,
+            maps,
+            new SortConfig { Id = "most_positive", By = "rating", Order = "desc" },
+            _ => 0,
+            m => int.Parse(m.AsSpan("de_map".Length)));
+
+        Assert.Equal(150, result.Count);
+        Assert.Equal("de_map149", result[0]);
+        Assert.Equal("de_map000", result[^1]);
+    }
+
+    [Fact]
     public void Apply_KeepsEveryMap()
     {
         List<string> result = MapSort.Apply(
