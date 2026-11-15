@@ -155,6 +155,19 @@ namespace MapVote.Utils
 
             if (Slots[player.Slot]?.Layout is { IsValid: true } layout)
             {
+                // Input capture is stored in the per-player vector; keep the old guard.
+                try
+                {
+                    if (player.Slot >= layout.PlayerLayoutStates.Count)
+                    {
+                        return false;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+
                 hud = layout;
                 return true;
             }

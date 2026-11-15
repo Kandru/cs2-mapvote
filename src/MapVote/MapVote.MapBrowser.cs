@@ -95,8 +95,8 @@ namespace MapVote
         }
 
         /// <summary>
-        /// Opens the shared overlay in browse mode for one human. The map list is bound
-        /// once per browse session so one player's filters do not reset another's.
+        /// Opens the browser for one human. The shared context is bound once per browse
+        /// session; each viewer has a private layout entity and its own sort/filter state.
         /// </summary>
         private void OpenMapBrowserFor(CCSPlayerController player)
         {

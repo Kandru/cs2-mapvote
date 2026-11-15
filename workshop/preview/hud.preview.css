@@ -2176,4 +2176,64 @@ button {
 	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_wg_catains.png");
 }
 
+.mv-map-ws_de_brisa
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_brisa.png");
+}
+
+.mv-map-ws_de_outback_day
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_outback_day.png");
+}
+
+.mv-map-ws_bullyfest
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_bullyfest.png");
+}
+
+.mv-map-ws_de_overstreet
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_overstreet.png");
+}
+
+.mv-map-ws_de_techno
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_de_techno.png");
+}
+
+.mv-map-ws_ernesto
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_ernesto.png");
+}
+
+.mv-map-ws_fy_pool_day_cuba
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_fy_pool_day_cuba.png");
+}
+
+.mv-map-ws_he_tennis
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_he_tennis.png");
+}
+
+.mv-map-ws_oasis
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_oasis.png");
+}
+
+.mv-map-ws_ryspai
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_ryspai.png");
+}
+
+.mv-map-ws_ttt_apehouse
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_ttt_apehouse.png");
+}
+
+.mv-map-ws_wm_usaf_2
+{
+	background-image: url("../content/panorama/images/custom_game/mapvote/maps/ws_wm_usaf_2.png");
+}
+
 /* END mv-map-palette */

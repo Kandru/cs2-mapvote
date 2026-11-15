@@ -2,7 +2,9 @@ namespace MapVote.Huds
 {
     /// <summary>
     /// Layout v2 contract (tools/generate_vote_xml_v2.py docstring): every panel id, dialog
-    /// variable and ladder class spelled once. G = written globally, P = per player.
+    /// variable and ladder class spelled once. Each viewer has a private layout entity, so
+    /// the historical G/P markers are only a reminder of the old shared-entity scope; both
+    /// are now written on the viewer's own entity.
     /// </summary>
     public static class VoteIds
     {
@@ -85,7 +87,7 @@ namespace MapVote.Huds
 
         public static readonly string[] TypeChipIds = BuildIndexed("mv-ft-", FilterTypeSlots);  // is-off G, is-active P, is-disabled G
         public static readonly string[] TypeVars = BuildIndexed("ft", FilterTypeSlots);         // G
-        public static readonly string[] SortChipIds = BuildIndexed("mv-fs-", FilterSortSlots);  // is-off G, is-active G
+        public static readonly string[] SortChipIds = BuildIndexed("mv-fs-", FilterSortSlots);  // is-off, is-active
         public static readonly string[] SortVars = BuildIndexed("fs", FilterSortSlots);         // G
 
         /// <summary>Share ladder p0, p10 … p100.</summary>
