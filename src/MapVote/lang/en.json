@@ -16,6 +16,7 @@
   "hud.hide": "Hide",
   "hud.show": "Show",
   "hud.close": "Close",
+  "hud.open_failed": "Could not open the map vote overlay. Please try again.",
   "hud.status_hint": "Click a map to vote",
   "hud.status_voted": "Your vote: {0} – click another map to switch",
   "hud.status_closed": "Voting closed",

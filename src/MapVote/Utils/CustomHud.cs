@@ -86,21 +86,16 @@ namespace MapVote.Utils
             return CreateLayout(player.Slot, entry, steamId);
         }
 
-        /// <summary>Hot reload / plugin start: drop stale layouts and prepare one per connected human.</summary>
+        /// <summary>
+        /// Plugin start / hot reload: forget in-memory HUD state. Never touch the entity
+        /// system here: Load can run before it is initialized, and the layout entities only
+        /// exist per player. They are created on connect full (or by the next map's
+        /// <see cref="ResetRound"/>) and removed on disconnect, map end and unload.
+        /// </summary>
         public static void Initialize()
         {
             HudMenu.ResetSessions();
-            foreach (CCSCustomHudLayout found in
-                     Utilities.FindAllEntitiesByDesignerName<CCSCustomHudLayout>("custom_hud_layout"))
-            {
-                if (found is { IsValid: true } && LayoutPath(found) == LayoutResource)
-                {
-                    found.AcceptInput("Kill");
-                }
-            }
-
             ClearAll();
-            QueueHumans();
         }
 
         /// <summary>Queue an entity for this slot; <see cref="OnTick"/> creates it outside the connect tick.</summary>
@@ -634,18 +629,6 @@ namespace MapVote.Utils
             }
 
             map[key] = value;
-        }
-
-        private static string? LayoutPath(CCSCustomHudLayout layout)
-        {
-            try
-            {
-                return layout.StrLayout;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

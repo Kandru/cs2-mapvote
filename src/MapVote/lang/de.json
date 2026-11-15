@@ -16,6 +16,7 @@
   "hud.hide": "Ausblenden",
   "hud.show": "Einblenden",
   "hud.close": "Schließen",
+  "hud.open_failed": "Die Map-Vote-Anzeige konnte nicht geöffnet werden. Bitte versuche es erneut.",
   "hud.status_hint": "Klick auf eine Map, um abzustimmen",
   "hud.status_voted": "Deine Stimme: {0} – klick eine andere Map, um zu wechseln",
   "hud.status_closed": "Abstimmung beendet",

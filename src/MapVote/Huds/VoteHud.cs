@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Translations;
 using MapVote.Config;
 using MapVote.Maps;
 using MapVote.Players;
@@ -285,6 +286,14 @@ namespace MapVote.Huds
 
         private static void OpenNow(CCSPlayerController player, bool captureMouse)
         {
+            // The layout entity can be missing after a map change or a failed spawn: do not
+            // call anything on it and tell the viewer that the overlay could not open.
+            if (!CustomHud.EnsureSpawned(player))
+            {
+                ReportOpenFailure(player);
+                return;
+            }
+
             ResetSlotState(player.Slot);
             Paint(player);
             if (!HudMenu.Open(player, new HudMenuOpenOptions
@@ -294,12 +303,24 @@ namespace MapVote.Huds
                     CaptureMouse = captureMouse,
                 }))
             {
-                PluginLog.Info($"hud open failed: {Humans.Label(player)} slot={player.Slot}");
+                ReportOpenFailure(player);
                 return;
             }
 
             StartTimer(player);
             PluginLog.Debug($"hud open: {Humans.Label(player)} slot={player.Slot}");
+        }
+
+        private static void ReportOpenFailure(CCSPlayerController player)
+        {
+            PluginLog.Info($"hud open failed: {Humans.Label(player)} slot={player.Slot}");
+            if (player is not { IsValid: true })
+            {
+                return;
+            }
+
+            string message = T(player, "hud.open_failed");
+            player.PrintToChat(("{green}[MAPVOTE]{default} " + message).ReplaceColorTags());
         }
 
         private static void OnClosed(CCSPlayerController player)
