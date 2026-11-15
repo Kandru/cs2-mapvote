@@ -14,11 +14,10 @@ namespace MapVote.Utils
     /// </summary>
     public static class CustomHud
     {
-        public const double FadeSeconds = 0.5;
         private const int MaxSlots = 65;
         private const int SpawnsPerTick = 1;
 
-        private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(FadeSeconds);
+        private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(0.5);
         private static readonly string LayoutResource =
             $"panorama/layout/custom_game/mapvote/vote_{MapVote.PanoramaVersion}.vxml_c";
 
@@ -26,10 +25,8 @@ namespace MapVote.Utils
         {
             public CCSCustomHudLayout? Layout;
             public ulong OwnerSteamId;
-            /// <summary>Slot still matches the XML defaults (never written, or explicitly restored).</summary>
-            public bool Pristine = true;
+            public bool Visible;
             public DateTime ClosingUntil;
-            public readonly HashSet<string> VisiblePanels = new(StringComparer.Ordinal);
             public readonly Dictionary<string, Dictionary<string, string>> Text = new(StringComparer.Ordinal);
             public readonly Dictionary<string, Dictionary<string, bool>> Class = new(StringComparer.Ordinal);
             public readonly Dictionary<string, string> ImageClass = new(StringComparer.Ordinal);
@@ -60,11 +57,10 @@ namespace MapVote.Utils
             _writesTick = now;
         }
 
-        public static bool IsPanelVisible(CCSPlayerController player, string panelId) =>
+        private static bool IsVisible(CCSPlayerController player) =>
             player is { IsValid: true }
             && player.Slot is >= 0 and < MaxSlots
-            && Slots[player.Slot] is { } entry
-            && entry.VisiblePanels.Contains(panelId);
+            && Slots[player.Slot] is { Visible: true };
 
         public static bool EnsureSpawned(CCSPlayerController player)
         {
@@ -178,37 +174,37 @@ namespace MapVote.Utils
             && Slots[player.Slot]?.Layout is { IsValid: true } owned
             && owned.Handle == layout.Handle;
 
-        public static void ShowPanel(CCSPlayerController player, string panelId)
+        public static void ShowPanel(CCSPlayerController player)
         {
             if (!TryEntry(player, out PlayerHud entry) || !EnsureSpawned(player))
             {
                 return;
             }
 
-            bool wasVisible = entry.VisiblePanels.Contains(panelId);
-            entry.VisiblePanels.Add(panelId);
+            bool wasVisible = entry.Visible;
+            entry.Visible = true;
             ClearClosingRoot(entry);
-            SetHasClass(player, panelId, "is-off", false);
+            SetHasClass(player, VoteHud.Panel, "is-off", false);
             if (wasVisible)
             {
-                SetHasClass(player, panelId, "is-fading", false);
+                SetHasClass(player, VoteHud.Panel, "is-fading", false);
             }
             else
             {
-                ScheduleFadeIn(player, panelId);
+                ScheduleFadeIn(player);
             }
         }
 
-        public static void HidePanel(CCSPlayerController player, string panelId)
+        public static void HidePanel(CCSPlayerController player)
         {
             if (!TryEntry(player, out PlayerHud entry))
             {
                 return;
             }
 
-            SetHasClass(player, panelId, "is-fading", true);
+            SetHasClass(player, VoteHud.Panel, "is-fading", true);
             MarkClosing(entry);
-            entry.VisiblePanels.Remove(panelId);
+            entry.Visible = false;
         }
 
         public static void SetText(CCSPlayerController player, string panelId, string name, string value)
@@ -229,9 +225,9 @@ namespace MapVote.Utils
                 return;
             }
 
-            if (!cached && value.Length == 0 && entry.Pristine)
+            if (!cached && value.Length == 0)
             {
-                // A pristine slot already shows the XML default for this var.
+                // Never written: the client still shows the XML default for this var.
                 SetCached(entry.Text, panelId, name, value);
                 return;
             }
@@ -265,9 +261,8 @@ namespace MapVote.Utils
             }
 
             // Only the AuthoredOn classes can be true in the XML; every other
-            // state class starts absent. On a pristine slot a false write would
-            // be a no-op that only bloats the per-player vectors.
-            if (!cached && !enabled && !AuthoredOn.Contains(className) && entry.Pristine)
+            // state class starts absent, so an unwritten false is already the default.
+            if (!cached && !enabled && !AuthoredOn.Contains(className))
             {
                 SetCached(entry.Class, panelId, className, false);
                 return true;
@@ -343,7 +338,14 @@ namespace MapVote.Utils
                 liveSlots.Add(player.Slot);
                 // The client rebuilt the layout from XML on round restart.
                 HudMenu.ReleasePlayer(player);
-                RestorePlayerDefaults(player);
+                if (player.Slot is >= 0 and < MaxSlots && Slots[player.Slot] is not null)
+                {
+                    RestorePlayerDefaults(player);
+                }
+                else
+                {
+                    VoteHud.WriteDefaults(player);
+                }
             }
 
             for (int slot = 0; slot < MaxSlots; slot++)
@@ -470,9 +472,8 @@ namespace MapVote.Utils
 
                 entry.Layout = hud;
                 entry.OwnerSteamId = ownerSteamId;
-                entry.Pristine = true;
                 entry.ClosingUntil = default;
-                entry.VisiblePanels.Clear();
+                entry.Visible = false;
                 entry.Text.Clear();
                 entry.Class.Clear();
                 entry.ImageClass.Clear();
@@ -520,7 +521,7 @@ namespace MapVote.Utils
         }
 
         private static bool ShouldTransmit(PlayerHud entry) =>
-            entry.VisiblePanels.Count > 0 || DateTime.UtcNow < entry.ClosingUntil;
+            entry.Visible || DateTime.UtcNow < entry.ClosingUntil;
 
         private static void MarkClosing(PlayerHud entry) =>
             entry.ClosingUntil = DateTime.UtcNow + CloseTransmitGrace;
@@ -552,16 +553,15 @@ namespace MapVote.Utils
             }
         }
 
-        private static void ScheduleFadeIn(CCSPlayerController player, string panelId)
+        private static void ScheduleFadeIn(CCSPlayerController player)
         {
-            SetHasClass(player, panelId, "is-fading", true);
+            SetHasClass(player, VoteHud.Panel, "is-fading", true);
             int slot = player.Slot;
-            string id = panelId;
             Server.NextFrame(() =>
             {
-                if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } live && IsPanelVisible(live, id))
+                if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } live && IsVisible(live))
                 {
-                    SetHasClass(live, id, "is-fading", false);
+                    SetHasClass(live, VoteHud.Panel, "is-fading", false);
                 }
             });
         }
@@ -608,9 +608,7 @@ namespace MapVote.Utils
             entry.Text.Clear();
             entry.Class.Clear();
             entry.ImageClass.Clear();
-            entry.VisiblePanels.Clear();
-            // Everything we wrote is back at the XML default now.
-            entry.Pristine = true;
+            entry.Visible = false;
         }
 
         private static bool TryGetCached<T>(

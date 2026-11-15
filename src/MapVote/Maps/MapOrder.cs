@@ -12,8 +12,6 @@ namespace MapVote.Maps
         private static readonly Dictionary<string, int> Rank = new(StringComparer.Ordinal);
         private static string _mode = Shuffle;
 
-        public static string Mode => _mode;
-
         public static void Configure(string? order)
         {
             string mode = IsAlphabetical(order) ? Alphabetical : Shuffle;

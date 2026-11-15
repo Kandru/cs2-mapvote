@@ -14,7 +14,6 @@ namespace MapVote
     [MinimumApiVersion(379)]
     public partial class MapVote : BasePlugin, IPluginConfig<PluginConfig>
     {
-        private const float PrewarmDelaySeconds = 2f;
         private const float HudOpenDelaySeconds = 0.2f;
         private const float JoinerOpenDelaySeconds = 0.5f;
 
@@ -32,7 +31,6 @@ namespace MapVote
         // Timers are cancelled by bumping these tokens, never by Kill() (ruleset §1.3).
         private int _flowEpoch;
         private int _rtvToken;
-        private int _prewarmToken;
         private readonly int[] _hudOpenTokens = new int[65];
         private DateTime _scheduleEpochUtc;
         private DateTime _intermissionEpochUtc;
@@ -217,16 +215,9 @@ namespace MapVote
             ResetRtv();
             OpenMapsForNewMatch("map start", clearPending: true);
             CustomHud.ResetRound();
+            CustomHud.Prewarm();
             LoadPersistence();
             ArmEngineHold();
-            int prewarm = ++_prewarmToken;
-            AddTimer(PrewarmDelaySeconds, () =>
-            {
-                if (!_unloaded && !_leaveMap && prewarm == _prewarmToken)
-                {
-                    CustomHud.Prewarm();
-                }
-            });
             PluginLog.Debug(() => $"map start {mapName}");
         }
 

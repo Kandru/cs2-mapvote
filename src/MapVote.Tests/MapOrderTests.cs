@@ -42,16 +42,4 @@ public class MapOrderTests
         Assert.Equal(first, withExtra.Where(first.Contains));
         Assert.Contains("de_nuke", withExtra);
     }
-
-    [Fact]
-    public void ChangingMode_ClearsRanks()
-    {
-        MapOrder.Configure(MapOrder.Shuffle);
-        MapOrder.ResetMatch();
-        _ = MapOrder.Sort(Maps, MapNameDisplay.Format);
-
-        MapOrder.Configure(MapOrder.Alphabetical);
-
-        Assert.Equal(MapOrder.Alphabetical, MapOrder.Mode);
-    }
 }

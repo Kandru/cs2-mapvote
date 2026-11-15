@@ -43,7 +43,7 @@ namespace MapVote.Utils
 
             Session session = new() { Options = options };
             Sessions[player.Slot] = session;
-            CustomHud.ShowPanel(player, PanelId);
+            CustomHud.ShowPanel(player);
             if (options.CaptureMouse)
             {
                 ScheduleCapture(player.Slot, session);
@@ -143,7 +143,7 @@ namespace MapVote.Utils
             InvalidateCapture(session);
             Sessions.Remove(player.Slot);
             SetCapture(player, enabled: false);
-            CustomHud.HidePanel(player, PanelId);
+            CustomHud.HidePanel(player);
 
             if (invokeClosed && player.IsValid && session.Options.OnClosed is { } onClosed)
             {

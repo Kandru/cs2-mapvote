@@ -16,23 +16,20 @@ namespace MapVote.Maps
         {
             bool descending = !string.Equals(sort.Order, "asc", StringComparison.OrdinalIgnoreCase);
             string by = (sort.By ?? string.Empty).Trim().ToLowerInvariant();
+            Dictionary<string, int> order = CatalogOrder(catalogOrder);
 
             // Unknown `by` keeps catalog order; known keys use catalog index as a stable tie-break.
             return by switch
             {
-                "plays" => OrderBy(maps, playCount, descending)
-                    .ThenBy(m => CatalogIndex(catalogOrder, m))
-                    .ToList(),
-                "rating" => OrderBy(maps, ratingScore, descending)
-                    .ThenBy(m => CatalogIndex(catalogOrder, m))
-                    .ToList(),
+                "plays" => OrderBy(maps, playCount, descending).ThenBy(m => Index(order, m)).ToList(),
+                "rating" => OrderBy(maps, ratingScore, descending).ThenBy(m => Index(order, m)).ToList(),
                 "name" => OrderBy(maps, nameKey ?? (static m => m), descending, StringComparer.Ordinal)
-                    .ThenBy(m => CatalogIndex(catalogOrder, m))
+                    .ThenBy(m => Index(order, m))
                     .ToList(),
                 "favorite" => OrderBy(maps, m => favorites?.Contains(m) == true ? 1 : 0, descending)
-                    .ThenBy(m => CatalogIndex(catalogOrder, m))
+                    .ThenBy(m => Index(order, m))
                     .ToList(),
-                _ => maps.OrderBy(m => CatalogIndex(catalogOrder, m)).ToList(),
+                _ => maps.OrderBy(m => Index(order, m)).ToList(),
             };
         }
 
@@ -45,17 +42,18 @@ namespace MapVote.Maps
                 ? maps.OrderByDescending(key, comparer)
                 : maps.OrderBy(key, comparer);
 
-        private static int CatalogIndex(IReadOnlyList<string> catalogOrder, string map)
+        private static Dictionary<string, int> CatalogOrder(IReadOnlyList<string> catalogOrder)
         {
+            Dictionary<string, int> order = new(catalogOrder.Count, StringComparer.Ordinal);
             for (int i = 0; i < catalogOrder.Count; i++)
             {
-                if (catalogOrder[i] == map)
-                {
-                    return i;
-                }
+                order.TryAdd(catalogOrder[i], i);
             }
 
-            return int.MaxValue;
+            return order;
         }
+
+        private static int Index(Dictionary<string, int> order, string map) =>
+            order.TryGetValue(map, out int index) ? index : int.MaxValue;
     }
 }

@@ -33,7 +33,6 @@ namespace MapVote.Huds
 
         private static Mode _mode = Mode.Vote;
         private static VoteSession? _session;
-        private static List<string> _source = [];
         private static FiltersConfig _filters = new();
         private static PlayerArchive? _archive;
         private static MapPlayCounts? _plays;
@@ -137,7 +136,8 @@ namespace MapVote.Huds
             _text = text;
             _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
             _formatMapName = cleanMapNames ? MapNameDisplay.Format : static name => name;
-            _source = MapOrder.Sort(source, _formatMapName);
+            List<string> ordered = MapOrder.Sort(source, _formatMapName);
+            _grid = ordered.Count > SlotCount ? ordered.GetRange(0, SlotCount) : ordered;
             _currentMap = string.IsNullOrWhiteSpace(currentMap) ? null : currentMap;
             _currentOrigin = currentOrigin;
             _revealing = false;
@@ -157,7 +157,7 @@ namespace MapVote.Huds
         {
             _mode = Mode.Vote;
             _session = null;
-            _source = [];
+            _grid = [];
             _archive = null;
             _plays = null;
             _text = null;
@@ -177,15 +177,12 @@ namespace MapVote.Huds
         /// <summary>Base grid order, map type masks and counts. Per-player sorts are built on demand.</summary>
         private static void RebuildGrid()
         {
-            List<string> grid = _source.Count > SlotCount ? _source.GetRange(0, SlotCount) : [.. _source];
-            _grid = grid;
             Masks.Clear();
             _typeChips = _filters.Enabled ? Math.Min(_filters.Types.Count, FilterTypeSlots - 1) : 0;
             Array.Fill(TypeCounts, 0);
-            TypeCounts[0] = grid.Count;
-            for (int i = 0; i < grid.Count; i++)
+            TypeCounts[0] = _grid.Count;
+            foreach (string map in _grid)
             {
-                string map = grid[i];
                 int mask = 1;
                 for (int t = 0; t < _typeChips; t++)
                 {
@@ -197,13 +194,6 @@ namespace MapVote.Huds
                 }
 
                 Masks[map] = mask;
-            }
-
-            for (int slot = 0; slot < MaxSlots; slot++)
-            {
-                GridOrder[slot] = null;
-                SortSelection[slot] = -1;
-                SelfSlot[slot] = -1;
             }
         }
 
@@ -357,7 +347,7 @@ namespace MapVote.Huds
             PaintDirty();
         }
 
-        public static void Paint(CCSPlayerController player)
+        private static void Paint(CCSPlayerController player)
         {
             if (!IsBound || !Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots || Pending[player.Slot])
             {
@@ -472,7 +462,7 @@ namespace MapVote.Huds
 
         // ---------------------------------------------------------------- clicks
 
-        public static void OnButton(CCSPlayerController player, string buttonId)
+        private static void OnButton(CCSPlayerController player, string buttonId)
         {
             bool browsing = _mode == Mode.Browse;
             bool interactive = browsing || _session is { IsOpen: true };
@@ -630,7 +620,7 @@ namespace MapVote.Huds
 
             GridOrder[slot] = MapSort.Apply(
                 _grid,
-                _source,
+                _grid,
                 _filters.Sorts[index],
                 m => _plays?.CountOf(m) ?? 0,
                 m => _archive?.RatingScore(m) ?? 0,
@@ -784,7 +774,7 @@ namespace MapVote.Huds
                 }
             }
 
-            PaintFilters(player);
+            PaintFilters(player, favorites);
             if (CustomHud.TickWrites >= PaintWriteBudget)
             {
                 return;
@@ -806,18 +796,7 @@ namespace MapVote.Huds
                 PaintOwnRating(player);
             }
 
-            int shown = 0;
-            foreach (string map in order)
-            {
-                if (IsShown(slot, map, favorites))
-                {
-                    shown++;
-                }
-            }
-
-            SetPlayerClass(player, VoteIds.Empty, "is-off", shown > 0, xmlOn: true);
-            CustomHud.SetText(player, Panel, VoteIds.EmptyVar, L(player, "hud.empty"));
-
+            bool anyShown = false;
             for (int i = 0; i < SlotCount; i++)
             {
                 if (CustomHud.TickWrites >= PaintWriteBudget)
@@ -833,16 +812,21 @@ namespace MapVote.Huds
                 }
 
                 string map = order[i];
+                bool shown = IsShown(slot, map, favorites);
+                anyShown |= shown;
                 int votes = _session?.CountOf(map) ?? 0;
                 CustomHud.SetMapImage(player, VoteIds.GridShotIds[i], map, OriginOf(map));
                 CustomHud.SetText(player, Panel, VoteIds.GridNameVars[i], Display(map));
                 // The badge only shows with votes-some, so zero stays the empty XML default.
                 CustomHud.SetText(player, Panel, VoteIds.GridVoteVars[i], votes > 0 ? votes.ToString() : string.Empty);
                 SetPlayerGroup(player, VoteIds.GridTileIds[i], VoteIds.VotesClasses, votes > 0 ? 1 : 0);
-                SetPlayerClass(player, slotId, "is-off", !IsShown(slot, map, favorites), xmlOn: true);
+                SetPlayerClass(player, slotId, "is-off", !shown, xmlOn: true);
                 CustomHud.SetHasClass(player, slotId, "is-self", i == SelfSlot[slot]);
                 CustomHud.SetHasClass(player, VoteIds.GridFavIds[i], "is-active", favorites.Contains(map));
             }
+
+            SetPlayerClass(player, VoteIds.Empty, "is-off", anyShown, xmlOn: true);
+            CustomHud.SetText(player, Panel, VoteIds.EmptyVar, L(player, "hud.empty"));
         }
 
         private static void PaintCurrent(CCSPlayerController player)
@@ -907,7 +891,7 @@ namespace MapVote.Huds
             }
         }
 
-        private static void PaintFilters(CCSPlayerController player)
+        private static void PaintFilters(CCSPlayerController player, HashSet<string> favorites)
         {
             int slot = player.Slot;
             bool show = _filters.Enabled;
@@ -928,7 +912,7 @@ namespace MapVote.Huds
             }
 
             CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-active", FavoritesOnly[slot]);
-            CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-disabled", FavoritesOf(player).Count == 0);
+            CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-disabled", favorites.Count == 0);
 
             // Sort chips reorder one viewer's grid, so they only exist in browse.
             int sortChip = 0;
