@@ -54,6 +54,7 @@ namespace MapVote
             Config = config;
             Config.Display ??= new DisplayConfig();
             Config.Filters ??= new FiltersConfig();
+            Config.Catalog ??= new CatalogConfig();
             if (ConfigMigration.EnsureSortDefaults(Config.Filters))
             {
                 PluginLog.Info("config: migrated default sorts to alphabetical / most_positive / most_negative");
@@ -155,6 +156,7 @@ namespace MapVote
             }
 
             EnsureMapsVotable();
+            Config.Catalog ??= new CatalogConfig();
             if (!MapVisibility.TrySync(Config.MapsVotable, maps))
             {
                 return;

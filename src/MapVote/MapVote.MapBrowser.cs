@@ -57,7 +57,10 @@ namespace MapVote
                     PluginLog.Info($"maps pending: {label} - loading catalog");
                 }
 
-                _catalog.RequestRefresh(BrowseCatalogBudgetSeconds);
+                _catalog.RequestRefresh(
+                    BrowseCatalogBudgetSeconds,
+                    Config.Catalog.QueryLocalMaps,
+                    Config.Catalog.QueryMapGroup);
                 return;
             }
 

@@ -37,7 +37,10 @@ namespace MapVote
                 $"intermission: catalog_timeout={budget}s decision={VoteClock.DecisionOffsetSeconds}s generation={_catalogGeneration}");
 
             _flowEpoch++;
-            _catalog.RequestRefresh(budget);
+            _catalog.RequestRefresh(
+                budget,
+                Config.Catalog.QueryLocalMaps,
+                Config.Catalog.QueryMapGroup);
 
             float untilDecision = VoteClock.SecondsUntil(
                 _intermissionEpochUtc,
@@ -324,22 +327,43 @@ namespace MapVote
         /// <summary>Current map shown in the HUD. Resolved before current-map exclusion so it stays visible.</summary>
         private (string? Name, MapOrigin Origin) CurrentMap()
         {
-            string name = Server.MapName?.Trim().ToLowerInvariant() ?? string.Empty;
-            if (name.Length == 0)
+            string raw = Server.MapName?.Trim() ?? string.Empty;
+            if (raw.Length == 0)
             {
                 return (null, MapOrigin.Local);
             }
 
+            string name;
+            MapOrigin origin;
+            if (MapNameFilter.TryNormalizeMapReference(raw, out name, out origin))
+            {
+                if (origin == MapOrigin.Local
+                    && IsWorkshopId(name)
+                    && _catalog.TryGetWorkshopMapName(name, out string workshopName))
+                {
+                    name = workshopName;
+                    origin = MapOrigin.Workshop;
+                }
+            }
+            else
+            {
+                // Keep an unexpected current-map id visible even when it cannot be imaged.
+                name = raw.ToLowerInvariant();
+            }
+
             foreach (MapEntry map in _catalog.Maps)
             {
-                if (string.Equals(map.Name, name, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(map.Name, name, StringComparison.Ordinal))
                 {
                     return (map.Name, map.Origin);
                 }
             }
 
-            return (name, MapOrigin.Local);
+            return (name, origin);
         }
+
+        private static bool IsWorkshopId(string mapName) =>
+            mapName.Length > 0 && mapName.All(char.IsAsciiDigit);
 
         private List<MapEntry> SelectCandidates() =>
             SelectMaps(
@@ -360,7 +384,7 @@ namespace MapVote
             }
 
             string? exclude = excludeCurrent && Config.Endmatch.ExcludeCurrentMap
-                ? Server.MapName.ToLowerInvariant()
+                ? CurrentMap().Name
                 : null;
             List<MapEntry> maps = MapVisibility.Shown(catalog, Config.MapsVotable, exclude);
             int limit = excludeCurrent

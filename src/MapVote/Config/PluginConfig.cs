@@ -31,9 +31,29 @@ namespace MapVote.Config
         [JsonPropertyName("filters")]
         public FiltersConfig Filters { get; set; } = new();
 
+        [JsonPropertyName("catalog")]
+        public CatalogConfig Catalog { get; set; } = new();
+
         // Keys: map_{name} (local) / ws_{name} (workshop). true = shown; false = hidden. Stale keys kept.
         [JsonPropertyName("maps_votable")]
         public Dictionary<string, bool> MapsVotable { get; set; } = new(StringComparer.Ordinal);
+    }
+
+    /// <summary>RCON sources used to build the map catalog.</summary>
+    public sealed class CatalogConfig
+    {
+        /// <summary>
+        /// Query <c>maps *</c>. Those maps are always treated as local/internal maps.
+        /// </summary>
+        [JsonPropertyName("query_local_maps")]
+        public bool QueryLocalMaps { get; set; } = true;
+
+        /// <summary>
+        /// Query <c>print_mapgroup_sv</c>. The reply identifies workshop maps by its
+        /// <c>Map group: workshop</c> collection header or by <c>workshop/&lt;id&gt;/&lt;name&gt;</c> paths.
+        /// </summary>
+        [JsonPropertyName("query_mapgroup")]
+        public bool QueryMapGroup { get; set; } = true;
     }
 
     public sealed class EndmatchConfig

@@ -4,10 +4,28 @@ namespace MapVote.Tests;
 
 public class MapNameFilterTests
 {
-    public static TheoryData<string> JunkLines => new()
+    public static TheoryData<string> LocalJunkLines => new()
     {
         "maps/de_dust2",
         "workshop/123/de_dust2",
+        "workshop_preview_123",
+        "workshop_preview_de_dust2",
+        "lobby",
+        "lobby_mapveto",
+        "graphics_settings",
+        "error",
+        "de_foo_vanity",
+        "de_foo_skybox",
+        "bad name",
+        "de_dust2!",
+        new string('a', 50),
+    };
+
+    public static TheoryData<string> MapgroupJunkLines => new()
+    {
+        "maps/de_dust2",
+        "prefabs/de_dust2/de_dust2_skybox",
+        "workshop/de_dust2",
         "workshop_preview_123",
         "workshop_preview_de_dust2",
         "lobby",
@@ -32,7 +50,7 @@ public class MapNameFilterTests
     }
 
     [Theory]
-    [MemberData(nameof(JunkLines))]
+    [MemberData(nameof(LocalJunkLines))]
     [InlineData("")]
     [InlineData("   ")]
     public void NormalizeLocalLine_RejectsJunk(string input)
@@ -41,7 +59,7 @@ public class MapNameFilterTests
     }
 
     [Theory]
-    [MemberData(nameof(JunkLines))]
+    [MemberData(nameof(MapgroupJunkLines))]
     public void NormalizeMapgroupLine_RejectsJunk(string input)
     {
         Assert.Null(MapNameFilter.NormalizeMapgroupLine(input));
@@ -58,7 +76,57 @@ public class MapNameFilterTests
     }
 
     [Theory]
-    [MemberData(nameof(JunkLines))]
+    [InlineData("workshop/3071005299/de_assembly", "de_assembly")]
+    [InlineData("  WORKSHOP/123/AR_Shoots.vpk  ", "ar_shoots")]
+    [InlineData("workshop\\3071005299\\de_assembly", "de_assembly")]
+    public void NormalizeMapgroupLine_AcceptsWorkshopPaths(string input, string expected)
+    {
+        Assert.Equal(expected, MapNameFilter.NormalizeMapgroupLine(input));
+    }
+
+    [Theory]
+    [InlineData("workshop/3071005299/de_assembly", "de_assembly", "3071005299")]
+    [InlineData("workshop\\123\\DE_Shoots.bsp", "de_shoots", "123")]
+    public void TryParseWorkshopMapPath_ExtractsNameAndId(
+        string input,
+        string expectedName,
+        string expectedId)
+    {
+        Assert.True(MapNameFilter.TryParseWorkshopMapPath(input, out string name, out string id));
+        Assert.Equal(expectedName, name);
+        Assert.Equal(expectedId, id);
+    }
+
+    [Theory]
+    [InlineData("de_dust2")]
+    [InlineData("workshop/de_dust2")]
+    [InlineData("workshop/not-a-number/de_dust2")]
+    [InlineData("prefabs/123/de_dust2")]
+    [InlineData("workshop/123/bad name")]
+    public void TryParseWorkshopMapPath_RejectsOtherShapes(string input)
+    {
+        Assert.False(MapNameFilter.TryParseWorkshopMapPath(input, out string name, out string id));
+        Assert.Empty(name);
+        Assert.Empty(id);
+    }
+
+    [Theory]
+    [InlineData("de_dust2", "de_dust2", MapOrigin.Local)]
+    [InlineData("DE_DUST2.VPK", "de_dust2", MapOrigin.Local)]
+    [InlineData("workshop/3071005299/de_assembly", "de_assembly", MapOrigin.Workshop)]
+    [InlineData("workshop\\123\\de_assembly", "de_assembly", MapOrigin.Workshop)]
+    public void TryNormalizeMapReference_ResolvesOrigin(
+        string input,
+        string expectedName,
+        MapOrigin expectedOrigin)
+    {
+        Assert.True(MapNameFilter.TryNormalizeMapReference(input, out string name, out MapOrigin origin));
+        Assert.Equal(expectedName, name);
+        Assert.Equal(expectedOrigin, origin);
+    }
+
+    [Theory]
+    [MemberData(nameof(LocalJunkLines))]
     public void ClassifyLocalLine_SkipsJunk(string input)
     {
         Assert.Equal(MapLineKind.Skip, MapNameFilter.ClassifyLocalLine(input, out string? name));
@@ -66,7 +134,7 @@ public class MapNameFilterTests
     }
 
     [Theory]
-    [MemberData(nameof(JunkLines))]
+    [MemberData(nameof(MapgroupJunkLines))]
     public void ClassifyMapgroupLine_SkipsJunk(string input)
     {
         Assert.Equal(MapLineKind.Skip, MapNameFilter.ClassifyMapgroupLine(input, out string? name));
@@ -116,6 +184,17 @@ public class MapNameFilterTests
         {
             Assert.Null(name);
         }
+    }
+
+    [Fact]
+    public void ClassifyMapgroupLine_AcceptsWorkshopPath()
+    {
+        Assert.Equal(
+            MapLineKind.Accept,
+            MapNameFilter.ClassifyMapgroupLine(
+                "workshop/3071005299/de_assembly",
+                out string? name));
+        Assert.Equal("de_assembly", name);
     }
 
     [Theory]

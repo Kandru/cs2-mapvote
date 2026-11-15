@@ -16,6 +16,8 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | `rtv.duration_seconds` | `60` | Seconds the RTV window stays open after the first vote. `0` = no limit |
 | `rtv.announce_seconds` | `15` | Seconds between chat reminders while RTV is open. `0` = no reminders |
 | `rtv.success_command` | `mp_halftime 0; mp_maxrounds 1` | Server command after RTV passes (forces match toward end) |
+| `catalog.query_local_maps` | `true` | Query `maps *` over RCON and treat all results as local/internal maps |
+| `catalog.query_mapgroup` | `true` | Query `print_mapgroup_sv` over RCON. A `Map group: workshop` reply lists workshop maps by bare name; admin mapgroups use bare local names and `workshop/<id>/<name>` paths for workshop maps. With both switches `false` no catalog query runs and the previous list is kept |
 | `filters.enabled` | `true` | Type / sort chip bar |
 | `filters.types` | bomb/hostage/… | Chip groups: `id` + `prefixes` (map-name prefixes; empty → “other”) |
 | `display.order` | `shuffle` | Base order of the map list: `shuffle` (assigned once per match, reused by browse and the vote) or `alphabetical` |

@@ -31,6 +31,15 @@ namespace MapVote.Maps
         private static partial Regex ValidMapName();
 
         /// <summary>
+        /// Manual mapgroups reference workshop maps as <c>workshop/&lt;id&gt;/&lt;name&gt;</c>.
+        /// The id is retained so a numeric <c>Server.MapName</c> can still be resolved.
+        /// </summary>
+        [GeneratedRegex(
+            @"^workshop[/\\](?<id>[0-9]+)[/\\](?<name>[^/\\]+)$",
+            RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)]
+        private static partial Regex WorkshopMapPath();
+
+        /// <summary>
         /// True for a normalized, playable map id. Rejects paths, engine helper
         /// entries, workshop previews and vanity/skybox background maps.
         /// </summary>
@@ -78,6 +87,54 @@ namespace MapVote.Maps
             return true;
         }
 
+        /// <summary>
+        /// Extracts the map name from a manual mapgroup workshop path
+        /// (<c>workshop/&lt;id&gt;/&lt;name&gt;</c>). The path must contain a numeric
+        /// workshop id, but no other path shape is accepted.
+        /// </summary>
+        public static bool TryParseWorkshopMapPath(string? raw, out string id, out string workshopId)
+        {
+            id = string.Empty;
+            workshopId = string.Empty;
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return false;
+            }
+
+            string trimmed = raw.Trim();
+            if (!trimmed.Contains('/') && !trimmed.Contains('\\'))
+            {
+                return false;
+            }
+
+            Match match = WorkshopMapPath().Match(trimmed);
+            if (!match.Success
+                || !TryNormalizePlayableMapId(match.Groups["name"].Value, out id))
+            {
+                return false;
+            }
+
+            workshopId = match.Groups["id"].Value;
+            return true;
+        }
+
+        /// <summary>
+        /// Normalizes a current-map reference. A workshop path also identifies its origin;
+        /// a bare map id stays local until the catalog lookup decides otherwise.
+        /// </summary>
+        public static bool TryNormalizeMapReference(string? raw, out string id, out MapOrigin origin)
+        {
+            id = string.Empty;
+            origin = MapOrigin.Local;
+            if (TryParseWorkshopMapPath(raw, out id, out _))
+            {
+                origin = MapOrigin.Workshop;
+                return true;
+            }
+
+            return TryNormalizePlayableMapId(raw, out id);
+        }
+
         public static bool IsValidMapName(string mapName) => IsPlayableMapId(mapName);
 
         public static string? NormalizeLocalLine(string line) =>
@@ -108,7 +165,8 @@ namespace MapVote.Maps
 
         /// <summary>
         /// Blank, mapgroup headers (<c>:</c>), and empty-list messages → Ignore.
-        /// Paths, denied ids, invalid names → Skip. Valid map → Accept.
+        /// <c>workshop/&lt;id&gt;/&lt;name&gt;</c> paths and valid bare ids → Accept.
+        /// Other paths, denied ids and invalid names → Skip.
         /// </summary>
         public static MapLineKind ClassifyMapgroupLine(string line, out string? name)
         {
@@ -127,6 +185,12 @@ namespace MapVote.Maps
             if (trimmed.Contains("No maps in mapgroup map list", StringComparison.OrdinalIgnoreCase))
             {
                 return MapLineKind.Ignore;
+            }
+
+            if (TryParseWorkshopMapPath(trimmed, out string workshopName, out _))
+            {
+                name = workshopName;
+                return MapLineKind.Accept;
             }
 
             if (!TryNormalizePlayableMapId(trimmed, out string normalized))

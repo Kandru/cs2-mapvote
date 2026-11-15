@@ -14,8 +14,11 @@ namespace MapVote.Maps
         private readonly Action<IReadOnlyList<MapEntry>, int>? _onLoaded;
         private readonly object _gate = new();
         private IReadOnlyList<MapEntry> _maps = [];
+        private IReadOnlyDictionary<string, string> _workshopNamesById =
+            new Dictionary<string, string>(StringComparer.Ordinal);
         private bool _loading;
         private bool _loggedMissingPassword;
+        private bool _loggedSourcesDisabled;
         private int _generation;
 
         public MapCatalog(Action<string> log, Action<IReadOnlyList<MapEntry>, int>? onLoaded = null)
@@ -27,6 +30,25 @@ namespace MapVote.Maps
         public IReadOnlyList<MapEntry> Maps
         {
             get { lock (_gate) { return _maps; } }
+        }
+
+        /// <summary>
+        /// Resolves a numeric workshop id (as some servers report through
+        /// <c>Server.MapName</c>) to the map name from the last mapgroup reply.
+        /// </summary>
+        public bool TryGetWorkshopMapName(string workshopId, out string name)
+        {
+            lock (_gate)
+            {
+                if (_workshopNamesById.TryGetValue(workshopId, out string? resolved))
+                {
+                    name = resolved;
+                    return true;
+                }
+            }
+
+            name = string.Empty;
+            return false;
         }
 
         public bool IsLoading
@@ -52,11 +74,14 @@ namespace MapVote.Maps
         }
 
         /// <summary>
-        /// Background refresh that retries until both RCON replies look ready or
+        /// Background refresh that retries until the enabled RCON replies look ready or
         /// <paramref name="budgetSeconds"/> elapses. Never replaces a previous good list
         /// with an empty result. <c>0</c> budget = one attempt.
         /// </summary>
-        public void RequestRefresh(int budgetSeconds = 0)
+        public void RequestRefresh(
+            int budgetSeconds = 0,
+            bool queryLocalMaps = true,
+            bool queryMapgroup = true)
         {
             int generation;
             lock (_gate)
@@ -68,6 +93,19 @@ namespace MapVote.Maps
 
                 _loading = true;
                 generation = _generation;
+            }
+
+            if (!queryLocalMaps && !queryMapgroup)
+            {
+                if (!_loggedSourcesDisabled)
+                {
+                    _loggedSourcesDisabled = true;
+                    _log("catalog sources disabled (catalog.query_local_maps=false, catalog.query_mapgroup=false); keeping previous list.");
+                }
+
+                NotifyCurrent(generation);
+                ClearLoading(generation);
+                return;
             }
 
             if (!TryGetRconCredentials(out int port, out string password))
@@ -84,15 +122,40 @@ namespace MapVote.Maps
             }
 
             int budget = Math.Max(0, budgetSeconds);
-            _log($"catalog refresh started (budget={budget}s generation={generation})");
-            _ = Task.Run(() => LoadWorker(port, password, budget, generation));
+            string sources = DescribeSources(queryLocalMaps, queryMapgroup);
+            _log($"catalog refresh started (sources={sources}, budget={budget}s generation={generation})");
+            _ = Task.Run(() => LoadWorker(
+                port,
+                password,
+                budget,
+                generation,
+                queryLocalMaps,
+                queryMapgroup));
         }
 
-        private void LoadWorker(int port, string password, int budgetSeconds, int generation)
+        private static string DescribeSources(bool queryLocalMaps, bool queryMapgroup) =>
+            (queryLocalMaps, queryMapgroup) switch
+            {
+                (true, true) => "local+mapgroup",
+                (true, false) => "local",
+                (false, true) => "mapgroup",
+                _ => "none",
+            };
+
+        private void LoadWorker(
+            int port,
+            string password,
+            int budgetSeconds,
+            int generation,
+            bool queryLocalMaps,
+            bool queryMapgroup)
         {
             DateTime deadlineUtc = DateTime.UtcNow.AddSeconds(budgetSeconds);
             List<MapEntry>? bestMaps = null;
+            IReadOnlyDictionary<string, string> bestWorkshopNamesById =
+                MapGroupParseResult.Empty.WorkshopNamesById;
             string? bestSummary = null;
+            string sources = DescribeSources(queryLocalMaps, queryMapgroup);
 
             try
             {
@@ -113,27 +176,47 @@ namespace MapVote.Maps
                         using RconClient client = new("127.0.0.1", port, password, timeoutMs);
                         client.Connect();
 
-                        string localBody = client.SendCommand("maps *");
-                        string workshopBody = client.SendCommand("print_mapgroup_sv");
-                        bool localReady = MapListReadiness.IsLocalReady(localBody);
-                        bool workshopReady = MapListReadiness.IsMapgroupReady(workshopBody);
+                        string localBody = queryLocalMaps ? client.SendCommand("maps *") : string.Empty;
+                        string mapgroupBody = queryMapgroup
+                            ? client.SendCommand("print_mapgroup_sv")
+                            : string.Empty;
 
-                        (List<MapEntry> local, int localSkipped) = ParseMaps(
-                            localBody, MapOrigin.Local, MapNameFilter.ClassifyLocalLine);
-                        (List<MapEntry> workshop, int workshopFilterSkipped) = ParseMaps(
-                            workshopBody, MapOrigin.Workshop, MapNameFilter.ClassifyMapgroupLine);
-                        (List<MapEntry> maps, int workshopOverlapSkipped) = Merge(local, workshop);
+                        (List<MapEntry> localBodyMaps, int localBodySkipped) = queryLocalMaps
+                            ? ParseLocalMaps(localBody)
+                            : ([], 0);
+                        bool localReady = !queryLocalMaps
+                            || localBodyMaps.Count > 0
+                            || localBodySkipped > 0;
 
+                        MapGroupParseResult mapgroup = queryMapgroup
+                            ? MapGroupList.Parse(mapgroupBody)
+                            : MapGroupParseResult.Empty;
+                        bool mapgroupReady = !queryMapgroup || mapgroup.Ready;
+
+                        (List<MapEntry> local, int mapgroupLocalSkipped) =
+                            Merge(localBodyMaps, mapgroup.Local);
+                        (List<MapEntry> maps, int workshopOverlapSkipped) =
+                            Merge(local, mapgroup.Workshop);
+
+                        int localSkipped = localBodySkipped + mapgroupLocalSkipped;
+                        int workshopSkipped = mapgroup.Skipped + workshopOverlapSkipped;
                         string summary =
-                            $"local={local.Count}, local_skipped={localSkipped}, workshop={workshop.Count}, workshop_skipped={workshopFilterSkipped + workshopOverlapSkipped}";
+                            $"sources={sources}, local={local.Count}, local_skipped={localSkipped}, "
+                            + $"mapgroup_local={mapgroup.Local.Count}, workshop={mapgroup.Workshop.Count}, "
+                            + $"workshop_skipped={workshopSkipped}";
 
                         if (maps.Count > 0)
                         {
                             bestMaps = maps;
+                            if (mapgroupReady)
+                            {
+                                bestWorkshopNamesById = mapgroup.WorkshopNamesById;
+                            }
+
                             bestSummary = summary;
                         }
 
-                        if (localReady && workshopReady)
+                        if (localReady && mapgroupReady)
                         {
                             if (maps.Count == 0)
                             {
@@ -141,12 +224,17 @@ namespace MapVote.Maps
                                 break;
                             }
 
-                            Publish(maps, generation, summary, partial: false);
+                            Publish(
+                                maps,
+                                mapgroup.WorkshopNamesById,
+                                generation,
+                                summary,
+                                partial: false);
                             return;
                         }
 
                         _log(
-                            $"catalog not ready (local_ready={localReady}, workshop_ready={workshopReady}, {summary}); retrying");
+                            $"catalog not ready (local_ready={localReady}, mapgroup_ready={mapgroupReady}, {summary}); retrying");
                     }
                     catch (Exception ex)
                     {
@@ -174,7 +262,12 @@ namespace MapVote.Maps
 
                 if (bestMaps is { Count: > 0 })
                 {
-                    Publish(bestMaps, generation, bestSummary ?? "partial", partial: true);
+                    Publish(
+                        bestMaps,
+                        bestWorkshopNamesById,
+                        generation,
+                        bestSummary ?? "partial",
+                        partial: true);
                     return;
                 }
 
@@ -187,7 +280,12 @@ namespace MapVote.Maps
             }
         }
 
-        private void Publish(List<MapEntry> maps, int generation, string summary, bool partial)
+        private void Publish(
+            List<MapEntry> maps,
+            IReadOnlyDictionary<string, string> workshopNamesById,
+            int generation,
+            string summary,
+            bool partial)
         {
             lock (_gate)
             {
@@ -197,6 +295,7 @@ namespace MapVote.Maps
                 }
 
                 _maps = maps;
+                _workshopNamesById = workshopNamesById;
             }
 
             _log($"loaded {maps.Count} maps ({(partial ? "partial" : "ready")}; {summary}).");
@@ -242,8 +341,8 @@ namespace MapVote.Maps
             (int)Math.Ceiling((deadlineUtc - DateTime.UtcNow).TotalMilliseconds);
 
         /// <summary>
-        /// Local maps first (keep their order), then mapgroup-only names as workshop.
-        /// Names present in both keep Local origin.
+        /// Keeps <paramref name="local"/> first, then appends new workshop names.
+        /// Names present in both keep their local origin.
         /// </summary>
         internal static (List<MapEntry> Maps, int WorkshopSkipped) Merge(
             IReadOnlyList<MapEntry> local,
@@ -277,10 +376,7 @@ namespace MapVote.Maps
             return skipped;
         }
 
-        private static (List<MapEntry> Maps, int Skipped) ParseMaps(
-            string response,
-            MapOrigin origin,
-            ClassifyLine classify)
+        private static (List<MapEntry> Maps, int Skipped) ParseLocalMaps(string response)
         {
             if (string.IsNullOrEmpty(response))
             {
@@ -292,7 +388,7 @@ namespace MapVote.Maps
             int skipped = 0;
             foreach (string line in response.Split('\n'))
             {
-                MapLineKind kind = classify(line, out string? name);
+                MapLineKind kind = MapNameFilter.ClassifyLocalLine(line, out string? name);
                 switch (kind)
                 {
                     case MapLineKind.Ignore:
@@ -303,7 +399,7 @@ namespace MapVote.Maps
                     case MapLineKind.Accept:
                         if (name is not null && seen.Add(name))
                         {
-                            maps.Add(new MapEntry(name, origin));
+                            maps.Add(new MapEntry(name, MapOrigin.Local));
                         }
                         else
                         {
@@ -316,8 +412,6 @@ namespace MapVote.Maps
 
             return (maps, skipped);
         }
-
-        private delegate MapLineKind ClassifyLine(string line, out string? name);
 
         private static bool TryGetRconCredentials(out int port, out string password)
         {

@@ -62,4 +62,25 @@ public class MapListReadinessTests
         Assert.True(MapListReadiness.IsMapgroupReady(
             "Map group: mg_active\n\tde_dust2\n\tde_mirage"));
     }
+
+    [Fact]
+    public void IsMapgroupReady_WorkshopCollection_IsReady()
+    {
+        Assert.True(MapListReadiness.IsMapgroupReady(
+            "Map group: workshop\n\tde_assembly\n\tar_shoots"));
+    }
+
+    [Fact]
+    public void IsMapgroupReady_WorkshopPath_IsReady()
+    {
+        Assert.True(MapListReadiness.IsMapgroupReady(
+            "Map group: mg_custom\n\tworkshop/3071005299/de_assembly"));
+    }
+
+    [Fact]
+    public void IsMapgroupReady_OnlySkippedLines_IsNotReady()
+    {
+        Assert.False(MapListReadiness.IsMapgroupReady(
+            "Map group: mg_custom\n\tprefabs/de_dust2/de_dust2_skybox"));
+    }
 }

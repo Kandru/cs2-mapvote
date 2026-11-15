@@ -30,8 +30,8 @@ namespace MapVote.Maps
         }
 
         /// <summary>
-        /// Empty body → not ready. Ready when at least one map line is present, or the
-        /// explicit empty-mapgroup message. Header-only with neither stays not ready.
+        /// Empty/header-only without maps → not ready. Ready when the reply contains at least
+        /// one accepted map, a workshop path, or the explicit empty-mapgroup message.
         /// </summary>
         public static bool IsMapgroupReady(string response)
         {
@@ -40,16 +40,7 @@ namespace MapVote.Maps
                 return false;
             }
 
-            foreach (string line in response.Split('\n'))
-            {
-                if (line.Contains("No maps in mapgroup map list", StringComparison.OrdinalIgnoreCase)
-                    || MapNameFilter.ClassifyMapgroupLine(line, out _) == MapLineKind.Accept)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return MapGroupList.Parse(response).Ready;
         }
     }
 }
