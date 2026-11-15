@@ -55,7 +55,6 @@ namespace MapVote
                 if (_mapsPendingOpen.Add(id))
                 {
                     PluginLog.Info($"maps pending: {label} - loading catalog");
-                    info.ReplyToCommand(Chat(Localizer["maps.loading"]));
                 }
 
                 _catalog.RequestRefresh(BrowseCatalogBudgetSeconds);
