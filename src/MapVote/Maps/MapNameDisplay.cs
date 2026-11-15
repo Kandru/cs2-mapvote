@@ -7,8 +7,9 @@ namespace MapVote.Maps
     public static class MapNameDisplay
     {
         /// <summary>
-        /// Drops a leading type token ("de_", "cs_", "fy_", ...) and capitalizes
-        /// the first remaining character. Names without a prefix only capitalize.
+        /// Drops a leading type token ("de_", "cs_", "fy_", ...), turns the
+        /// remaining underscores into spaces and capitalizes each word.
+        /// Names without a prefix are only word-separated and capitalized.
         /// </summary>
         public static string Format(string map)
         {
@@ -22,7 +23,19 @@ namespace MapVote.Maps
                 ? map[(separator + 1)..]
                 : map;
 
-            return char.ToUpperInvariant(name[0]) + name[1..];
+            // Single-word names (the common case) need no splitting at all.
+            if (!name.Contains('_'))
+            {
+                return char.ToUpperInvariant(name[0]) + name[1..];
+            }
+
+            string[] words = name.Split('_', StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < words.Length; i++)
+            {
+                words[i] = char.ToUpperInvariant(words[i][0]) + words[i][1..];
+            }
+
+            return string.Join(' ', words);
         }
 
         /// <summary>
