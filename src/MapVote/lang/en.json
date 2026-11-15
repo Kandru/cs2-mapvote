@@ -43,5 +43,6 @@
   "filter.other": "Other",
   "sort.alphabetical": "A–Z",
   "sort.most_positive": "Most positive rated",
-  "sort.most_negative": "Most negative rated"
+  "sort.most_negative": "Most negative rated",
+  "sort.favorites": "Favorites"
 }

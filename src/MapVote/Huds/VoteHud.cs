@@ -605,13 +605,13 @@ namespace MapVote.Huds
 
             int slot = player.Slot;
             SortSelection[slot] = SortSelection[slot] == sortIndex ? -1 : sortIndex;
-            RebuildPlayerOrder(slot);
+            RebuildPlayerOrder(slot, FavoritesOf(player));
             SelfSlot[slot] = -1;
             Paint(player);
         }
 
         /// <summary>Rebuild one viewer's sorted order; the base grid itself never moves.</summary>
-        private static void RebuildPlayerOrder(int slot)
+        private static void RebuildPlayerOrder(int slot, IReadOnlySet<string>? favorites = null)
         {
             if (slot is < 0 or >= MaxSlots)
             {
@@ -634,7 +634,8 @@ namespace MapVote.Huds
                 _filters.Sorts[index],
                 m => _plays?.CountOf(m) ?? 0,
                 m => _archive?.RatingScore(m) ?? 0,
-                _formatMapName);
+                _formatMapName,
+                favorites);
         }
 
         /// <summary>Map an <c>mv-fs-*</c> chip onto the matching entry in sorts.</summary>
@@ -666,6 +667,15 @@ namespace MapVote.Huds
 
             state.Dirty = true;
             FavoriteCache[player.Slot] = null;
+            int sortIndex = SortSelection[player.Slot];
+            if (sortIndex >= 0
+                && sortIndex < _filters.Sorts.Count
+                && string.Equals(_filters.Sorts[sortIndex].By, "favorite", StringComparison.OrdinalIgnoreCase))
+            {
+                RebuildPlayerOrder(player.Slot, FavoritesOf(player));
+                SelfSlot[player.Slot] = -1;
+            }
+
             Paint(player);
         }
 

@@ -43,5 +43,6 @@
   "filter.other": "Andere",
   "sort.alphabetical": "A–Z",
   "sort.most_positive": "Best bewertet",
-  "sort.most_negative": "Schlechtest bewertet"
+  "sort.most_negative": "Schlechtest bewertet",
+  "sort.favorites": "Favoriten"
 }

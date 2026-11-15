@@ -11,7 +11,8 @@ namespace MapVote.Maps
             SortConfig sort,
             Func<string, int> playCount,
             Func<string, int> ratingScore,
-            Func<string, string>? nameKey = null)
+            Func<string, string>? nameKey = null,
+            IReadOnlySet<string>? favorites = null)
         {
             bool descending = !string.Equals(sort.Order, "asc", StringComparison.OrdinalIgnoreCase);
             string by = (sort.By ?? string.Empty).Trim().ToLowerInvariant();
@@ -26,6 +27,9 @@ namespace MapVote.Maps
                     .ThenBy(m => CatalogIndex(catalogOrder, m))
                     .ToList(),
                 "name" => OrderBy(maps, nameKey ?? (static m => m), descending, StringComparer.Ordinal)
+                    .ThenBy(m => CatalogIndex(catalogOrder, m))
+                    .ToList(),
+                "favorite" => OrderBy(maps, m => favorites?.Contains(m) == true ? 1 : 0, descending)
                     .ThenBy(m => CatalogIndex(catalogOrder, m))
                     .ToList(),
                 _ => maps.OrderBy(m => CatalogIndex(catalogOrder, m)).ToList(),

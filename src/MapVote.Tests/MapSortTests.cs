@@ -115,6 +115,22 @@ public class MapSortTests
     }
 
     [Fact]
+    public void Apply_FavoriteOrdersFavoritesFirstWithoutDroppingMaps()
+    {
+        HashSet<string> favorites = new(StringComparer.Ordinal) { "de_inferno", "cs_office" };
+
+        List<string> result = MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "favorites", By = "favorite", Order = "desc" },
+            _ => 0,
+            _ => 0,
+            favorites: favorites);
+
+        Assert.Equal(["cs_office", "de_inferno", "de_dust2", "de_mirage"], result);
+    }
+
+    [Fact]
     public void Apply_UnknownBy_KeepsCatalogOrder()
     {
         List<string> reordered = ["de_inferno", "cs_office", "de_mirage", "de_dust2"];

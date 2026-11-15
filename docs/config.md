@@ -19,7 +19,7 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | `filters.enabled` | `true` | Type / sort chip bar |
 | `filters.types` | bomb/hostage/… | Chip groups: `id` + `prefixes` (map-name prefixes; empty → “other”) |
 | `display.order` | `shuffle` | Base order of the map list: `shuffle` (assigned once per match, reused by browse and the vote) or `alphabetical` |
-| `filters.sorts` | A-Z / most positive / most negative | `id`, `by` (`plays` / `rating` / `name`), `order` (`asc` / `desc`). Sorts only reorder; they never hide maps. `rating` is net likes − dislikes |
+| `filters.sorts` | A-Z / most positive / most negative | `id`, `by` (`plays` / `rating` / `name` / `favorite`), `order` (`asc` / `desc`). Sorts only reorder; they never hide maps. `rating` is net likes − dislikes |
 | `maps_votable` | (auto) | Per-map show flags. Keys `map_{name}` (local) / `ws_{name}` (workshop). `true` shows, `false` hides. New maps default `true`; keys for removed maps stay in the file |
 
 Server cvars (not required in this file): on intermission the plugin loads the map list (1s) and by 2s either disables the Valve vote or arms it. The menu clock starts at the win panel, about 3s after intermission. The first 6 seconds are match results. The plugin opens its menu at 6s and `changelevel`s one second before the vote length elapses. On map start, and again when the custom path is chosen, `mp_endmatch_votenextleveltime` and `mp_match_restart_delay` are set to the vote length plus 4s so the engine timer expires after that `changelevel`. The plugin does not write `mp_win_panel_display_time`. A stale `win_panel_display_time` key in an existing `MapVote.json` is ignored.
