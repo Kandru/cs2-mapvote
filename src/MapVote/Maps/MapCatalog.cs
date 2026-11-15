@@ -19,10 +19,7 @@ namespace MapVote.Maps
             new Dictionary<string, string>(StringComparer.Ordinal);
         private bool _loading;
         // A request that arrived while the worker was busy is coalesced and run afterwards.
-        private bool _queued;
-        private int _queuedBudgetSeconds;
-        private bool _queuedLocalMaps;
-        private bool _queuedMapGroup;
+        private CatalogRequest? _queued;
         private bool _loggedMissingPassword;
         private bool _loggedSourcesDisabled;
         private int _generation;
@@ -76,6 +73,8 @@ namespace MapVote.Maps
             {
                 _generation++;
                 _loading = false;
+                // Work queued for the previous generation is stale too.
+                _queued = null;
             }
         }
 
@@ -89,6 +88,7 @@ namespace MapVote.Maps
             bool queryLocalMaps = true,
             bool queryMapgroup = true)
         {
+            CatalogRequest request = CatalogRequest.Create(budgetSeconds, queryLocalMaps, queryMapgroup);
             int generation;
             lock (_gate)
             {
@@ -96,10 +96,7 @@ namespace MapVote.Maps
                 {
                     // Do not drop a newer request (for example !maps during the intermission
                     // query): remember it and start it when the current worker finishes.
-                    _queued = true;
-                    _queuedBudgetSeconds = Math.Max(_queuedBudgetSeconds, Math.Max(0, budgetSeconds));
-                    _queuedLocalMaps = queryLocalMaps;
-                    _queuedMapGroup = queryMapgroup;
+                    _queued = (_queued ?? request).Coalesce(request);
                     return;
                 }
 
@@ -107,7 +104,7 @@ namespace MapVote.Maps
                 generation = _generation;
             }
 
-            if (!queryLocalMaps && !queryMapgroup)
+            if (!request.QueryLocalMaps && !request.QueryMapgroup)
             {
                 if (!_loggedSourcesDisabled)
                 {
@@ -133,171 +130,26 @@ namespace MapVote.Maps
                 return;
             }
 
-            int budget = Math.Max(0, budgetSeconds);
-            string sources = DescribeSources(queryLocalMaps, queryMapgroup);
-            _log($"catalog refresh started (sources={sources}, budget={budget}s generation={generation})");
-            _ = Task.Run(() => LoadWorker(
+            _log($"catalog refresh started (sources={request.DescribeSources()}, budget={request.BudgetSeconds}s generation={generation})");
+            _ = Task.Run(() => LoadWorker(port, password, request, generation));
+        }
+
+        private void LoadWorker(int port, string password, CatalogRequest request, int generation)
+        {
+            MapCatalogLoader loader = new(
                 port,
                 password,
-                budget,
+                request,
                 generation,
-                queryLocalMaps,
-                queryMapgroup));
+                _log,
+                IsCurrentGeneration,
+                result => Publish(result, generation),
+                NotifyCurrent,
+                ClearLoading);
+            loader.Run();
         }
 
-        private static string DescribeSources(bool queryLocalMaps, bool queryMapgroup) =>
-            (queryLocalMaps, queryMapgroup) switch
-            {
-                (true, true) => "local+mapgroup",
-                (true, false) => "local",
-                (false, true) => "mapgroup",
-                _ => "none",
-            };
-
-        private void LoadWorker(
-            int port,
-            string password,
-            int budgetSeconds,
-            int generation,
-            bool queryLocalMaps,
-            bool queryMapgroup)
-        {
-            DateTime deadlineUtc = DateTime.UtcNow.AddSeconds(budgetSeconds);
-            List<MapEntry>? bestMaps = null;
-            IReadOnlyDictionary<string, string> bestWorkshopNamesById =
-                MapGroupParseResult.Empty.WorkshopNamesById;
-            string? bestSummary = null;
-            string sources = DescribeSources(queryLocalMaps, queryMapgroup);
-
-            try
-            {
-                while (IsCurrentGeneration(generation))
-                {
-                    int remainingMs = RemainingMilliseconds(deadlineUtc);
-                    if (budgetSeconds > 0 && remainingMs <= 0)
-                    {
-                        break;
-                    }
-
-                    int timeoutMs = budgetSeconds > 0
-                        ? Math.Clamp(remainingMs, 1, MaxCommandTimeoutMilliseconds)
-                        : MaxCommandTimeoutMilliseconds;
-
-                    try
-                    {
-                        using RconClient client = new("127.0.0.1", port, password, timeoutMs);
-                        client.Connect();
-
-                        string localBody = queryLocalMaps ? client.SendCommand("maps *") : string.Empty;
-                        string mapgroupBody = queryMapgroup
-                            ? client.SendCommand("print_mapgroup_sv")
-                            : string.Empty;
-
-                        (List<MapEntry> localBodyMaps, int localBodySkipped) = queryLocalMaps
-                            ? ParseLocalMaps(localBody)
-                            : ([], 0);
-                        bool localReady = !queryLocalMaps
-                            || localBodyMaps.Count > 0
-                            || localBodySkipped > 0;
-
-                        MapGroupParseResult mapgroup = queryMapgroup
-                            ? MapGroupList.Parse(mapgroupBody)
-                            : MapGroupParseResult.Empty;
-                        bool mapgroupReady = !queryMapgroup || mapgroup.Ready;
-
-                        (List<MapEntry> local, int mapgroupLocalSkipped) =
-                            Merge(localBodyMaps, mapgroup.Local);
-                        (List<MapEntry> maps, int workshopOverlapSkipped) =
-                            Merge(local, mapgroup.Workshop);
-
-                        int localSkipped = localBodySkipped + mapgroupLocalSkipped;
-                        int workshopSkipped = mapgroup.Skipped + workshopOverlapSkipped;
-                        string summary =
-                            $"sources={sources}, local={local.Count}, local_skipped={localSkipped}, "
-                            + $"mapgroup_local={mapgroup.Local.Count}, workshop={mapgroup.Workshop.Count}, "
-                            + $"workshop_skipped={workshopSkipped}";
-
-                        if (maps.Count > 0)
-                        {
-                            bestMaps = maps;
-                            if (mapgroupReady)
-                            {
-                                bestWorkshopNamesById = mapgroup.WorkshopNamesById;
-                            }
-
-                            bestSummary = summary;
-                        }
-
-                        if (localReady && mapgroupReady)
-                        {
-                            if (maps.Count == 0)
-                            {
-                                _log($"catalog ready but empty ({summary}); keeping previous list");
-                                break;
-                            }
-
-                            Publish(
-                                maps,
-                                mapgroup.WorkshopNamesById,
-                                generation,
-                                summary,
-                                partial: false);
-                            return;
-                        }
-
-                        _log(
-                            $"catalog not ready (local_ready={localReady}, mapgroup_ready={mapgroupReady}, {summary}); retrying");
-                    }
-                    catch (Exception ex)
-                    {
-                        _log($"map load attempt failed: {ex.Message}");
-                    }
-
-                    if (budgetSeconds <= 0)
-                    {
-                        break;
-                    }
-
-                    remainingMs = RemainingMilliseconds(deadlineUtc);
-                    if (remainingMs <= 0)
-                    {
-                        break;
-                    }
-
-                    Thread.Sleep(Math.Min(RetryPauseMilliseconds, remainingMs));
-                }
-
-                if (!IsCurrentGeneration(generation))
-                {
-                    return;
-                }
-
-                if (bestMaps is { Count: > 0 })
-                {
-                    Publish(
-                        bestMaps,
-                        bestWorkshopNamesById,
-                        generation,
-                        bestSummary ?? "partial",
-                        partial: true);
-                    return;
-                }
-
-                _log("catalog refresh ended with no maps; keeping previous list");
-                NotifyCurrent(generation);
-            }
-            finally
-            {
-                ClearLoading(generation);
-            }
-        }
-
-        private void Publish(
-            List<MapEntry> maps,
-            IReadOnlyDictionary<string, string> workshopNamesById,
-            int generation,
-            string summary,
-            bool partial)
+        private void Publish(CatalogLoadResult result, int generation)
         {
             lock (_gate)
             {
@@ -306,12 +158,12 @@ namespace MapVote.Maps
                     return;
                 }
 
-                _maps = maps;
-                _workshopNamesById = workshopNamesById;
+                _maps = result.Maps;
+                _workshopNamesById = result.WorkshopNamesById;
             }
 
-            _log($"loaded {maps.Count} maps ({(partial ? "partial" : "ready")}; {summary}).");
-            _onLoaded?.Invoke(maps, generation);
+            _log($"loaded {result.Maps.Count} maps ({(result.Ready ? "ready" : "partial")}; {result.Summary}).");
+            _onLoaded?.Invoke(result.Maps, generation);
         }
 
         private void NotifyCurrent(int generation)
@@ -332,30 +184,21 @@ namespace MapVote.Maps
 
         private void ClearLoading(int generation)
         {
-            bool runQueued;
-            int budget;
-            bool localMaps;
-            bool mapgroup;
+            CatalogRequest? queued = null;
             lock (_gate)
             {
+                // A stale worker must not touch state owned by the current generation.
                 if (generation == _generation)
                 {
                     _loading = false;
+                    queued = _queued;
+                    _queued = null;
                 }
-
-                runQueued = _queued;
-                _queued = false;
-                budget = _queuedBudgetSeconds;
-                localMaps = _queuedLocalMaps;
-                mapgroup = _queuedMapGroup;
-                _queuedBudgetSeconds = 0;
-                _queuedLocalMaps = false;
-                _queuedMapGroup = false;
             }
 
-            if (runQueued)
+            if (queued is { } request)
             {
-                RequestRefresh(budget, localMaps, mapgroup);
+                RequestRefresh(request.BudgetSeconds, request.QueryLocalMaps, request.QueryMapgroup);
             }
         }
 
@@ -367,81 +210,14 @@ namespace MapVote.Maps
             }
         }
 
-        private static int RemainingMilliseconds(DateTime deadlineUtc) =>
-            (int)Math.Ceiling((deadlineUtc - DateTime.UtcNow).TotalMilliseconds);
-
         /// <summary>
         /// Keeps <paramref name="local"/> first, then appends new workshop names.
         /// Names present in both keep their local origin.
         /// </summary>
         internal static (List<MapEntry> Maps, int WorkshopSkipped) Merge(
             IReadOnlyList<MapEntry> local,
-            IReadOnlyList<MapEntry> workshop)
-        {
-            List<MapEntry> maps = new(local.Count + workshop.Count);
-            HashSet<string> seen = new(StringComparer.Ordinal);
-            AppendUnique(maps, seen, local);
-            int workshopSkipped = AppendUnique(maps, seen, workshop);
-            return (maps, workshopSkipped);
-        }
-
-        private static int AppendUnique(
-            List<MapEntry> maps,
-            HashSet<string> seen,
-            IReadOnlyList<MapEntry> source)
-        {
-            int skipped = 0;
-            foreach (MapEntry entry in source)
-            {
-                if (seen.Add(entry.Name))
-                {
-                    maps.Add(entry);
-                }
-                else
-                {
-                    skipped++;
-                }
-            }
-
-            return skipped;
-        }
-
-        private static (List<MapEntry> Maps, int Skipped) ParseLocalMaps(string response)
-        {
-            if (string.IsNullOrEmpty(response))
-            {
-                return ([], 0);
-            }
-
-            List<MapEntry> maps = [];
-            HashSet<string> seen = new(StringComparer.Ordinal);
-            int skipped = 0;
-            foreach (string line in response.Split('\n'))
-            {
-                MapLineKind kind = MapNameFilter.ClassifyLocalLine(line, out string? name);
-                switch (kind)
-                {
-                    case MapLineKind.Ignore:
-                        break;
-                    case MapLineKind.Skip:
-                        skipped++;
-                        break;
-                    case MapLineKind.Accept:
-                        if (name is not null && seen.Add(name))
-                        {
-                            maps.Add(new MapEntry(name, MapOrigin.Local));
-                        }
-                        else
-                        {
-                            skipped++;
-                        }
-
-                        break;
-                }
-            }
-
-            return (maps, skipped);
-        }
+            IReadOnlyList<MapEntry> workshop) =>
+            MapCatalogParser.Merge(local, workshop);
 
         private static bool TryGetRconCredentials(out int port, out string password)
         {
