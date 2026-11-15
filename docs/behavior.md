@@ -29,7 +29,7 @@ The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limi
 
 `css_maps` / `maps` / `css_nom` / `nom` / `css_nominate` / `nominate` (chat `!maps` / `!nom` / `!nominate`) open the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): type and Favorites chips, per-player sort chips (A-Z, most positive rated, most negative rated), the current-map card with rating, up to 200 map cards in the configured base order, and the same live ranking as the end-match vote. With `nominations.enabled` (default `true`), map tiles and ranking rows are clickable and each human can nominate one map; clicking another map moves the nomination and clicking the same map does nothing. The ranking and the vote badges on the cards show which maps already have nominations, updating for every open browser. A player can change their pick once per second; a faster click plays a blocked sound and changes nothing. Without nominations, browse has no vote target and tiles are not clickable. The Close button closes the overlay for that player.
 
-Nominated maps are guaranteed candidates in the end-match vote, subject to `maps_votable`, `endmatch.exclude_current_map`, and `endmatch.max_maps`. If there are more nominations than slots, the most-nominated maps (then earliest nominations) win. When the final vote opens, each nominator's vote is already cast for their nominated map and counts in the Leading ranking; the player can still change it, subject to the same one-second limit. Nominations reset on map start, and a disconnecting player's nomination is removed.
+Nominated maps are guaranteed candidates in the end-match vote, subject to `maps_votable`, `endmatch.exclude_current_map`, and `endmatch.max_maps`. If there are more nominations than slots, the most-nominated maps (then earliest nominations) win. When the final vote opens, each nominator's vote is already cast for their nominated map and counts in the Leading ranking; the player can still change it, subject to the same one-second limit. Nominations reset on map end and map start, and a disconnecting player's nomination is removed.
 
 The command triggers a short catalog refresh when the list is still empty after plugin load, then opens for everyone who was waiting. Intermission (`EventCsIntermission`) and map end close the browser and reject `!maps` until `OnMapStart`, warmup, match start, or a new match. An active end-match vote also rejects it (`maps.busy`).
 
@@ -44,6 +44,19 @@ The command triggers a short catalog refresh when the list is still empty after 
 - Reveal: the grid is dimmed and a centered "Next map" card shows the winner with its vote count, or "random pick - no votes".
 - Map tile classes: `mv-map-map_{name}` / `mv-map-ws_{name}` / `mv-map-default` ([images.md](images.md)).
 
+## Lifecycle and reset
+
+State is owned by two symmetric entry points in [`MapVote.cs`](../src/MapVote/MapVote.cs):
+
+- `InitializeRuntimeState` runs on `Load` (including hot reload) and `OnMapStart`. It returns every mutable runtime value to its startup default: vote flow epoch and session, pending candidates/winner/origins, timing fields, catalog generation, RTV voters/deadline/flags, deferred HUD-open tokens, pending `!maps` waiters, nominations, slot identities and the simple-map-browser flags. It then resets the HUD view, initializes `CustomHud`/`HudMenu`, and resets `MapOrder`. Map start additionally reconciles live slot identities, queues the per-player layout entities and loads persistence.
+- `ShutdownRuntimeState` runs on `OnMapEnd` and `Unload`. It bumps the flow/RTV timer epochs so every delayed callback becomes a no-op, closes the vote and browser, clears all pending/cached state, invalidates the catalog generation, resets the HUD view and shuts down `CustomHud`/`HudMenu`. Map end and unload therefore leave the same inert state; unload additionally removes listeners and event handlers. `Load` does not depend on a previous `Unload`, and `OnMapStart` does not depend on `OnMapEnd`.
+
+Deferred HUD opens use [`SlotActionTokens`](../src/MapVote/Runtime/SlotActionTokens.cs): each slot has one current generation, a newer open supersedes an older one, and clearing the slot/map invalidates anything still waiting on a timer. This is also why a first or repeated `!maps` can never hit a missing dictionary key.
+
+Disconnects release resources by slot without writing to the controller: the slot token is cleared, the pending map-browser waiter is removed, queued vote/nomination HUD state is dropped, the layout entity and menu session are killed, and vote/nomination/RTV entries are removed before the player archive is saved. The slot → SteamID fallback map is reconciled on map start, and an invalid controller slot falls back to a reverse identity lookup so cleanup still finds the right slot.
+
+After `changelevel`, a flow-epoch timer acts as a watchdog. If no map end arrives within 15 seconds, the plugin logs it and reopens RTV and `!maps` on the current map instead of staying closed forever. The same epoch bump on map end/start, a new intermission, or unload cancels the watchdog.
+
 ## Localization
 
 Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.json`](../src/MapVote/lang/de.json). Filter/sort chip labels use `filter.{id}` / `sort.{id}` matching config ids. Type chips append the matching map count as `Label (n)` - for example `All (95)` - and the Favorites chip counts only the viewer's favorites that are in the currently displayed map list, including `Favorites (0)`. Favorites for maps that left the rotation stay saved and reappear if the map returns. Every HUD text is written on the viewer's private layout entity, so each player sees it in their own language.
@@ -52,7 +65,7 @@ Chat + HUD strings: [`lang/en.json`](../src/MapVote/lang/en.json), [`lang/de.jso
 
 | File | Role |
 | --- | --- |
-| `MapVote.cs` | Load/unload, catalog/archive, config, intermission, win panel, disconnect, HUD clicks |
+| `MapVote.cs` | Load/unload, lifecycle init/shutdown, catalog/archive, config, intermission, win panel, disconnect, HUD clicks |
 | `MapVote.VoteFlow.cs` | Intermission decision, win-panel HUD, reveal, changelevel |
 | `MapVote.Commands.cs` | RTV |
 | `MapVote.MapBrowser.cs` | `!maps` browser state, deferred catalog open |
