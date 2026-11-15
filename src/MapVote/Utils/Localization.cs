@@ -13,8 +13,7 @@ namespace MapVote.Utils
         {
             try
             {
-                if (player is { IsValid: true }
-                    && player.AuthorizedSteamID is { SteamId64: > 0 })
+                if (Humans.TryGetSteamId(player, out _))
                 {
                     return localizer.ForPlayer(player, key);
                 }

@@ -1,9 +1,11 @@
+using MapVote.Runtime;
+
 namespace MapVote.Voting
 {
     public sealed class VoteSession
     {
         /// <summary>Minimum time between two successful casts by the same player.</summary>
-        public static readonly TimeSpan ChangeCooldown = TimeSpan.FromSeconds(1);
+        public static readonly TimeSpan ChangeCooldown = GameConstants.VoteChangeCooldown;
 
         private readonly string[] _maps;
         private readonly Dictionary<ulong, string> _votesByPlayer = [];

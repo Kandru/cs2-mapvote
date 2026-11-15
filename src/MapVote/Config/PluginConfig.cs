@@ -37,6 +37,39 @@ namespace MapVote.Config
         // Keys: map_{name} (local) / ws_{name} (workshop). true = shown; false = hidden. Stale keys kept.
         [JsonPropertyName("maps_votable")]
         public Dictionary<string, bool> MapsVotable { get; set; } = new(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Repairs every nullable section/list so the rest of the plugin can assume a complete
+        /// config. Idempotent; explicit empty lists keep their meaning.
+        /// </summary>
+        public void Normalize()
+        {
+            Endmatch ??= new EndmatchConfig();
+            Rtv ??= new RtvConfig();
+            Nominations ??= new NominationsConfig();
+            Display ??= new DisplayConfig();
+            Filters ??= new FiltersConfig();
+            Catalog ??= new CatalogConfig();
+            MapsVotable ??= new Dictionary<string, bool>(StringComparer.Ordinal);
+
+            Filters.Types ??= ConfigDefaults.CreateFilterTypes();
+            Filters.Sorts ??= ConfigDefaults.CreateSorts();
+
+            if (string.IsNullOrWhiteSpace(Display.Order))
+            {
+                Display.Order = ConfigDefaults.DefaultDisplayOrder;
+            }
+
+            if (string.IsNullOrWhiteSpace(Rtv.SuccessCommand))
+            {
+                Rtv.SuccessCommand = ConfigDefaults.DefaultSuccessCommand;
+            }
+
+            if (Endmatch.MaxMaps <= 0)
+            {
+                Endmatch.MaxMaps = MapCatalog.MaxMaps;
+            }
+        }
     }
 
     /// <summary>RCON sources used to build the map catalog.</summary>
@@ -106,7 +139,7 @@ namespace MapVote.Config
         public int AnnounceSeconds { get; set; } = 15;
 
         [JsonPropertyName("success_command")]
-        public string SuccessCommand { get; set; } = "mp_halftime 0; mp_maxrounds 1";
+        public string SuccessCommand { get; set; } = ConfigDefaults.DefaultSuccessCommand;
     }
 
     public sealed class FiltersConfig
@@ -115,22 +148,10 @@ namespace MapVote.Config
         public bool Enabled { get; set; } = true;
 
         [JsonPropertyName("types")]
-        public List<FilterTypeConfig> Types { get; set; } =
-        [
-            new() { Id = "bomb", Prefixes = ["de_"] },
-            new() { Id = "hostage", Prefixes = ["cs_"] },
-            new() { Id = "arms_race", Prefixes = ["ar_"] },
-            new() { Id = "danger_zone", Prefixes = ["dz_"] },
-            new() { Id = "other", Prefixes = [] },
-        ];
+        public List<FilterTypeConfig> Types { get; set; } = ConfigDefaults.CreateFilterTypes();
 
         [JsonPropertyName("sorts")]
-        public List<SortConfig> Sorts { get; set; } =
-        [
-            new() { Id = "alphabetical", By = "name", Order = "asc" },
-            new() { Id = "most_positive", By = "rating", Order = "desc" },
-            new() { Id = "most_negative", By = "rating", Order = "asc" },
-        ];
+        public List<SortConfig> Sorts { get; set; } = ConfigDefaults.CreateSorts();
     }
 
     public sealed class DisplayConfig
@@ -140,7 +161,7 @@ namespace MapVote.Config
         /// <c>alphabetical</c>. User sort chips order on top of this.
         /// </summary>
         [JsonPropertyName("order")]
-        public string Order { get; set; } = "shuffle";
+        public string Order { get; set; } = ConfigDefaults.DefaultDisplayOrder;
     }
 
     public sealed class FilterTypeConfig

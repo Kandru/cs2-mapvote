@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Commands;
 using MapVote.Utils;
+using MapVote.Voting;
 
 namespace MapVote
 {
@@ -14,8 +15,7 @@ namespace MapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void OnRtvCommand(CCSPlayerController? player, CommandInfo info)
         {
-            if (!Config.Rtv.Enabled || player is null || !Humans.IsHumanViewer(player)
-                || player.AuthorizedSteamID is not { SteamId64: var id })
+            if (!Config.Rtv.Enabled || !Humans.TryGetSteamId(player, out ulong id))
             {
                 PluginLog.Debug("rtv ignored: disabled or invalid player");
                 return;
@@ -70,12 +70,27 @@ namespace MapVote
         }
 
         private int RtvVotesNeeded(int humanCount) =>
-            Math.Max(1, (int)Math.Ceiling(humanCount * Math.Clamp(Config.Rtv.Ratio, 0.01f, 1f)));
+            RtvRule.VotesNeeded(humanCount, Config.Rtv.Ratio);
 
-        private int CountRtvHumans(ulong? excludeSteamId = null) =>
-            Humans.GetHumans().Count(human =>
-                excludeSteamId is not ulong id
-                || human.AuthorizedSteamID?.SteamId64 != id);
+        /// <summary>
+        /// Counts humans that can actually have an RTV vote (valid SteamID64), prunes
+        /// votes from players who are no longer connected, and optionally ignores one id.
+        /// </summary>
+        private int CountRtvHumans(ulong? excludeSteamId = null)
+        {
+            HashSet<ulong> eligible = [];
+            foreach (CCSPlayerController human in Humans.GetEligible())
+            {
+                if (Humans.TryGetSteamId(human, out ulong id)
+                    && id != excludeSteamId)
+                {
+                    eligible.Add(id);
+                }
+            }
+
+            _rtvVoters.RemoveWhere(id => !eligible.Contains(id));
+            return eligible.Count;
+        }
 
         /// <summary>
         /// Passes RTV when enough votes remain for the current human count.

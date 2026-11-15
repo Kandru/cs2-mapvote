@@ -25,9 +25,7 @@ namespace MapVote.Config
             }
 
             sorts.Clear();
-            sorts.Add(new SortConfig { Id = "alphabetical", By = "name", Order = "asc" });
-            sorts.Add(new SortConfig { Id = "most_positive", By = "rating", Order = "desc" });
-            sorts.Add(new SortConfig { Id = "most_negative", By = "rating", Order = "asc" });
+            sorts.AddRange(ConfigDefaults.CreateSorts());
             return true;
         }
     }

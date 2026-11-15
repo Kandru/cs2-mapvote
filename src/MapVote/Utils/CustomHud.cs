@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Extensions;
 using CounterStrikeSharp.API.Modules.Utils;
 using MapVote.Huds;
 using MapVote.Maps;
+using MapVote.Runtime;
 
 namespace MapVote.Utils
 {
@@ -14,10 +15,11 @@ namespace MapVote.Utils
     /// </summary>
     public static class CustomHud
     {
-        private const int MaxSlots = 65;
-        private const int SpawnsPerTick = 1;
+        private static readonly int MaxSlots = PlayerSlots.Capacity;
+        private const int SpawnsPerTick = GameConstants.SpawnsPerTick;
 
-        private static readonly TimeSpan CloseTransmitGrace = TimeSpan.FromSeconds(0.5);
+        private static readonly TimeSpan CloseTransmitGrace =
+            TimeSpan.FromSeconds(GameConstants.CloseTransmitGraceSeconds);
         private static readonly string LayoutResource =
             $"panorama/layout/custom_game/mapvote/vote_{MapVote.PanoramaVersion}.vxml_c";
 
@@ -59,17 +61,15 @@ namespace MapVote.Utils
 
         private static bool IsVisible(CCSPlayerController player) =>
             player is { IsValid: true }
-            && player.Slot is >= 0 and < MaxSlots
+            && PlayerSlots.IsValid(player.Slot)
             && Slots[player.Slot] is { Visible: true };
 
         public static bool EnsureSpawned(CCSPlayerController player)
         {
-            if (!TryEntry(player, out PlayerHud entry))
+            if (!Humans.TryGetSteamId(player, out ulong steamId) || !TryEntry(player, out PlayerHud entry))
             {
                 return false;
             }
-
-            ulong steamId = player.AuthorizedSteamID?.SteamId64 ?? 0;
             if (entry.Layout is { IsValid: true })
             {
                 if (entry.OwnerSteamId == steamId)
@@ -101,13 +101,12 @@ namespace MapVote.Utils
         /// <summary>Queue an entity for this slot; <see cref="OnTick"/> creates it outside the connect tick.</summary>
         public static void QueueSpawn(CCSPlayerController player)
         {
-            if (!Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
+            if (!Humans.TryGetSteamId(player, out ulong steamId) || !PlayerSlots.IsValid(player.Slot))
             {
                 return;
             }
 
             int slot = player.Slot;
-            ulong steamId = player.AuthorizedSteamID?.SteamId64 ?? 0;
             if (Queued[slot]
                 || (Slots[slot] is { Layout: { IsValid: true }, OwnerSteamId: var owner } && owner == steamId))
             {
@@ -134,7 +133,7 @@ namespace MapVote.Utils
         public static bool TryGetLayout(CCSPlayerController player, string rootPanelId, out CCSCustomHudLayout hud)
         {
             hud = null!;
-            if (rootPanelId != VoteHud.Panel || !EnsureSpawned(player) || player.Slot is < 0 or >= MaxSlots)
+            if (rootPanelId != VoteHud.Panel || !EnsureSpawned(player) || !PlayerSlots.IsValid(player.Slot))
             {
                 return false;
             }
@@ -163,7 +162,8 @@ namespace MapVote.Utils
 
         /// <summary>True when <paramref name="layout"/> is the private entity of <paramref name="player"/>.</summary>
         public static bool IsLayout(CCSPlayerController player, CCSCustomHudLayout layout) =>
-            player is { IsValid: true, Slot: >= 0 and < MaxSlots }
+            player is { IsValid: true }
+            && PlayerSlots.IsValid(player.Slot)
             && Slots[player.Slot]?.Layout is { IsValid: true } owned
             && owned.Handle == layout.Handle;
 
@@ -276,7 +276,7 @@ namespace MapVote.Utils
         public static bool TryGetPlayerClass(CCSPlayerController player, string panelId, string className, out bool enabled)
         {
             enabled = false;
-            return player is { Slot: >= 0 and < MaxSlots }
+            return PlayerSlots.IsValid(player.Slot)
                 && Slots[player.Slot] is { Layout: { IsValid: true } } entry
                 && TryGetCached(entry.Class, panelId, className, out enabled);
         }
@@ -331,7 +331,7 @@ namespace MapVote.Utils
                 liveSlots.Add(player.Slot);
                 // The client rebuilt the layout from XML on round restart.
                 HudMenu.ReleasePlayer(player);
-                if (player.Slot is >= 0 and < MaxSlots && Slots[player.Slot] is not null)
+                if (PlayerSlots.IsValid(player.Slot) && Slots[player.Slot] is not null)
                 {
                     RestorePlayerDefaults(player);
                 }
@@ -369,7 +369,7 @@ namespace MapVote.Utils
                 HudMenu.ReleaseSlot(slot);
             }
 
-            if (slot is >= 0 and < MaxSlots)
+            if (PlayerSlots.IsValid(slot))
             {
                 Kill(slot);
             }
@@ -424,7 +424,7 @@ namespace MapVote.Utils
         private static bool TryEntry(CCSPlayerController player, out PlayerHud entry)
         {
             entry = null!;
-            if (!Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
+            if (!Humans.IsHumanViewer(player) || !PlayerSlots.IsValid(player.Slot))
             {
                 return false;
             }
@@ -484,7 +484,7 @@ namespace MapVote.Utils
 
         private static void Kill(int slot)
         {
-            if (slot is < 0 or >= MaxSlots)
+            if (!PlayerSlots.IsValid(slot))
             {
                 return;
             }
@@ -523,6 +523,10 @@ namespace MapVote.Utils
 
         private static void ClearClosingRoot(PlayerHud entry) => entry.ClosingUntil = default;
 
+        /// <summary>
+        /// Ends the transmit grace window. Only state is touched here: <c>CheckTransmit</c>
+        /// must not issue Panorama writes, so the root classes are restored next frame.
+        /// </summary>
         private static void ExpireClosingRoots()
         {
             DateTime now = DateTime.UtcNow;
@@ -535,16 +539,26 @@ namespace MapVote.Utils
                 }
 
                 entry.ClosingUntil = default;
-                if (entry.Layout is not { IsValid: true })
+                if (entry.Layout is { IsValid: true })
                 {
-                    continue;
+                    int expiredSlot = slot;
+                    Server.NextFrame(() => RestoreClosedRoot(expiredSlot));
                 }
+            }
+        }
 
-                if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player)
-                {
-                    SetHasClass(player, VoteHud.Panel, "is-off", true);
-                    SetHasClass(player, VoteHud.Panel, "is-fading", false);
-                }
+        private static void RestoreClosedRoot(int slot)
+        {
+            if (!PlayerSlots.IsValid(slot) || Slots[slot] is not { Visible: false } entry
+                || entry.ClosingUntil != default)
+            {
+                return;
+            }
+
+            if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player)
+            {
+                SetHasClass(player, VoteHud.Panel, "is-off", true);
+                SetHasClass(player, VoteHud.Panel, "is-fading", false);
             }
         }
 

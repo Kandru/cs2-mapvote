@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using MapVote.Huds;
 using MapVote.Maps;
+using MapVote.Runtime;
 using MapVote.Utils;
 using MapVote.Voting;
 
@@ -12,7 +13,7 @@ namespace MapVote
     public partial class MapVote
     {
         /// <summary>RCON retry budget when !maps is the first catalog consumer after a load.</summary>
-        private const int BrowseCatalogBudgetSeconds = 3;
+        private const int BrowseCatalogBudgetSeconds = GameConstants.BrowseCatalogBudgetSeconds;
 
         private bool _mapsClosed;
         private readonly HashSet<ulong> _mapsPendingOpen = [];
@@ -27,8 +28,7 @@ namespace MapVote
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void OnMapsCommand(CCSPlayerController? player, CommandInfo info)
         {
-            if (player is null || !Humans.IsHumanViewer(player)
-                || player.AuthorizedSteamID is not { SteamId64: var id })
+            if (!Humans.TryGetSteamId(player, out ulong id))
             {
                 PluginLog.Debug("maps ignored: invalid player");
                 return;
@@ -64,7 +64,7 @@ namespace MapVote
                 return;
             }
 
-            if (player.Slot is >= 0 and < 65)
+            if (PlayerSlots.IsValid(player.Slot))
             {
                 ScheduleMapBrowserOpen(player.Slot, id);
             }
@@ -76,17 +76,23 @@ namespace MapVote
         /// </summary>
         private void ScheduleMapBrowserOpen(int slot, ulong steamId)
         {
+            if (!PlayerSlots.IsValid(slot))
+            {
+                return;
+            }
+
             int token = ++_hudOpenTokens[slot];
             AddTimer(HudOpenDelaySeconds, () =>
             {
                 if (_unloaded
-                    || _hudOpenTokens[slot] != token
+                    || !_hudOpenTokens.TryGetValue(slot, out int currentToken)
+                    || currentToken != token
                     || _mapsClosed
                     || VoteBusy
                     || _catalog.Maps.Count == 0
                     || Utilities.GetPlayerFromSlot(slot) is not { } player
-                    || !Humans.IsHumanViewer(player)
-                    || player.AuthorizedSteamID?.SteamId64 != steamId)
+                    || !Humans.TryGetSteamId(player, out ulong liveSteamId)
+                    || liveSteamId != steamId)
                 {
                     return;
                 }
@@ -173,7 +179,7 @@ namespace MapVote
             }
 
             List<CCSPlayerController> waiting = Humans.GetHumans()
-                .Where(player => player.AuthorizedSteamID is { SteamId64: var id }
+                .Where(player => Humans.TryGetSteamId(player, out ulong id)
                     && _mapsPendingOpen.Contains(id))
                 .ToList();
             _mapsPendingOpen.Clear();

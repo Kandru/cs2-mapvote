@@ -6,6 +6,7 @@ using MapVote.Config;
 using MapVote.Huds;
 using MapVote.Maps;
 using MapVote.Players;
+using MapVote.Runtime;
 using MapVote.Utils;
 using MapVote.Voting;
 
@@ -14,8 +15,8 @@ namespace MapVote
     [MinimumApiVersion(379)]
     public partial class MapVote : BasePlugin, IPluginConfig<PluginConfig>
     {
-        private const float HudOpenDelaySeconds = 0.2f;
-        private const float JoinerOpenDelaySeconds = 0.5f;
+        private const float HudOpenDelaySeconds = GameConstants.HudOpenDelaySeconds;
+        private const float JoinerOpenDelaySeconds = GameConstants.JoinerOpenDelaySeconds;
 
         public override string ModuleName => "MapVote";
         public override string ModuleAuthor => "Kandru";
@@ -31,7 +32,8 @@ namespace MapVote
         // Timers are cancelled by bumping these tokens, never by Kill() (ruleset §1.3).
         private int _flowEpoch;
         private int _rtvToken;
-        private readonly int[] _hudOpenTokens = new int[65];
+        // Keyed by slot so no fixed player-count array is required.
+        private readonly Dictionary<int, int> _hudOpenTokens = [];
         private DateTime _scheduleEpochUtc;
         private DateTime _intermissionEpochUtc;
         private DateTime? _rtvDeadlineUtc;
@@ -52,9 +54,7 @@ namespace MapVote
         public void OnConfigParsed(PluginConfig config)
         {
             Config = config;
-            Config.Display ??= new DisplayConfig();
-            Config.Filters ??= new FiltersConfig();
-            Config.Catalog ??= new CatalogConfig();
+            Config.Normalize();
             if (ConfigMigration.EnsureSortDefaults(Config.Filters))
             {
                 PluginLog.Info("config: migrated default sorts to alphabetical / most_positive / most_negative");
@@ -107,6 +107,8 @@ namespace MapVote
             _catalog?.Invalidate();
             EndVoteUi();
             SavePersistence();
+            _steamBySlot.Clear();
+            _hudOpenTokens.Clear();
             CustomHud.Shutdown();
             RemoveListener<Listeners.OnMapStart>(OnMapStart);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
@@ -210,7 +212,8 @@ namespace MapVote
         {
             _catalog.Invalidate();
             _leaveMap = false;
-            _steamBySlot.Clear();
+            // Keep _steamBySlot: on a map change the same controllers may not fire connect full
+            // again, and disconnect cleanup still needs their SteamID.
             MapOrder.ResetMatch();
             EndVoteUi();
             ResetNominations();
@@ -282,28 +285,24 @@ namespace MapVote
                 return HookResult.Continue;
             }
 
-            if (player.AuthorizedSteamID is { SteamId64: > 0 } steam)
+            if (Humans.TryGetSteamId(player, out ulong steamId))
             {
-                if (player.Slot is >= 0)
+                if (PlayerSlots.IsValid(player.Slot))
                 {
-                    _steamBySlot[player.Slot] = steam.SteamId64;
+                    _steamBySlot[player.Slot] = steamId;
                 }
 
-                PlayerState state = _archive.GetOrCreate(steam.SteamId64.ToString());
-                if (string.IsNullOrEmpty(state.Username) || state.Username == state.SteamId)
-                {
-                    state.Username = player.PlayerName ?? state.SteamId;
-                }
-
-                PluginLog.Debug($"connect: {Humans.Label(player, steam.SteamId64)} slot={player.Slot}");
+                _archive.GetOrCreate(steamId, player.PlayerName);
+                PluginLog.Debug($"connect: {Humans.Label(player, steamId)} slot={player.Slot}");
             }
 
             CustomHud.QueueSpawn(player);
 
             if (_flow.Phase is EndMatchPhase.Voting or EndMatchPhase.Revealing
-                && player.Slot is >= 0 and < 65)
+                && Humans.TryGetSteamId(player, out ulong joinerSteamId)
+                && PlayerSlots.IsValid(player.Slot))
             {
-                ScheduleVoteHudForJoiner(player.Slot, player.SteamID);
+                ScheduleVoteHudForJoiner(player.Slot, joinerSteamId);
             }
 
             return HookResult.Continue;
@@ -317,36 +316,34 @@ namespace MapVote
                 return HookResult.Continue;
             }
 
-            ulong? steamId = player.AuthorizedSteamID?.SteamId64;
-            if (steamId is null or 0
-                && player.Slot is >= 0
-                && _steamBySlot.TryGetValue(player.Slot, out ulong cached))
-            {
-                steamId = cached;
-            }
+            ulong steamId = Humans.TryGetSteamId(player, out ulong current)
+                ? current
+                : player.Slot >= 0 && _steamBySlot.TryGetValue(player.Slot, out ulong cached)
+                    ? cached
+                    : 0;
 
-            if (player.Slot is >= 0)
+            if (PlayerSlots.IsValid(player.Slot))
             {
                 _steamBySlot.Remove(player.Slot);
                 VoteHud.ReleaseSlot(player.Slot);
             }
 
-            if (steamId is > 0)
+            if (steamId > 0)
             {
                 _archive.SaveIfDirty(
                     Config,
-                    steamId.Value.ToString(),
+                    steamId.ToString(),
                     warn: msg => PluginLog.Info($"[players] {msg}"),
                     debug: msg => PluginLog.Debug($"[players] {msg}"));
 
-                _rtvVoters.Remove(steamId.Value);
+                _rtvVoters.Remove(steamId);
                 if (_rtvVoters.Count == 0)
                 {
                     StopRtvWindow();
                 }
 
-                bool votesChanged = _session is { IsOpen: true } && _session.RemovePlayer(steamId.Value);
-                if (_nominationSession is { } nominations && nominations.RemovePlayer(steamId.Value))
+                bool votesChanged = _session is { IsOpen: true } && _session.RemovePlayer(steamId);
+                if (_nominationSession is { } nominations && nominations.RemovePlayer(steamId))
                 {
                     votesChanged = true;
                 }
@@ -359,7 +356,7 @@ namespace MapVote
                 string label = Humans.Label(player, steamId);
                 PluginLog.Debug($"disconnect: {label} slot={player.Slot}");
                 TrySucceedRtv(
-                    CountRtvHumans(steamId.Value),
+                    CountRtvHumans(steamId),
                     $"after disconnect of {label}",
                     deferCommand: true);
             }

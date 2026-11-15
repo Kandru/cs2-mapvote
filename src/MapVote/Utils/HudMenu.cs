@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Extensions;
 using MapVote.Huds;
+using MapVote.Runtime;
 using CssTimer = CounterStrikeSharp.API.Modules.Timers.Timer;
 
 namespace MapVote.Utils
@@ -16,7 +17,7 @@ namespace MapVote.Utils
     public static class HudMenu
     {
         public const string PanelId = VoteHud.Panel;
-        private const float CaptureDelaySeconds = 0.5f;
+        private const float CaptureDelaySeconds = GameConstants.CaptureDelaySeconds;
 
         private sealed class Session
         {

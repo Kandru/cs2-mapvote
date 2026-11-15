@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using MapVote.Huds;
 using MapVote.Maps;
+using MapVote.Runtime;
 using MapVote.Utils;
 using MapVote.Voting;
 
@@ -538,13 +539,20 @@ namespace MapVote
         /// <summary>Opens the vote HUD for a joiner a moment after connect, never in the connect tick.</summary>
         private void ScheduleVoteHudForJoiner(int slot, ulong steamId)
         {
+            if (!PlayerSlots.IsValid(slot))
+            {
+                return;
+            }
+
             int token = ++_hudOpenTokens[slot];
             AddFlowTimer(JoinerOpenDelaySeconds, () =>
             {
                 if (_unloaded
-                    || _hudOpenTokens[slot] != token
+                    || !_hudOpenTokens.TryGetValue(slot, out int currentToken)
+                    || currentToken != token
                     || Utilities.GetPlayerFromSlot(slot) is not { IsValid: true } player
-                    || player.SteamID != steamId)
+                    || !Humans.TryGetSteamId(player, out ulong liveSteamId)
+                    || liveSteamId != steamId)
                 {
                     return;
                 }

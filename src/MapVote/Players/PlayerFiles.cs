@@ -29,15 +29,30 @@ namespace MapVote.Players
             return Path.Combine(directory, $"{fileName}.json");
         }
 
-        public static bool TrySafeFileName(string steamId, out string fileName)
+        public static bool IsValidSteamId(string? steamId) =>
+            !string.IsNullOrEmpty(steamId) && SteamId64().IsMatch(steamId);
+
+        public static bool TryNormalizeSteamId(string? steamId, out string normalized)
         {
-            fileName = string.Empty;
-            if (string.IsNullOrEmpty(steamId) || !SteamId64().IsMatch(steamId))
+            normalized = string.Empty;
+            if (!IsValidSteamId(steamId))
             {
                 return false;
             }
 
-            fileName = steamId;
+            normalized = steamId!;
+            return true;
+        }
+
+        public static bool TrySafeFileName(string steamId, out string fileName)
+        {
+            fileName = string.Empty;
+            if (!TryNormalizeSteamId(steamId, out string normalized))
+            {
+                return false;
+            }
+
+            fileName = normalized;
             return true;
         }
 

@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Translations;
 using MapVote.Config;
 using MapVote.Maps;
 using MapVote.Players;
+using MapVote.Runtime;
 using MapVote.Utils;
 using MapVote.Voting;
 
@@ -20,11 +21,11 @@ namespace MapVote.Huds
         private const int RankSlots = VoteIds.RankSlots;
         private const int FilterTypeSlots = VoteIds.FilterTypeSlots;
         private const int FilterSortSlots = VoteIds.FilterSortSlots;
-        private const int UrgentSeconds = 5;
+        private const int UrgentSeconds = GameConstants.UrgentSeconds;
 
-        private const int MaxSlots = 65;
+        private static readonly int MaxSlots = PlayerSlots.Capacity;
         /// <summary>Native writes per server tick, shared by every player and caller.</summary>
-        private const int PaintWriteBudget = 128;
+        private const int PaintWriteBudget = GameConstants.PaintWriteBudget;
 
         private enum Mode
         {
@@ -54,34 +55,48 @@ namespace MapVote.Huds
         private static int _typeChips;
         private static List<string> _ranked = [];
 
-        private static readonly int[] SortSelection = BuildFilled(-1);
-        private static readonly List<string>?[] GridOrder = new List<string>?[MaxSlots];
-        private static readonly bool[] Minimized = new bool[MaxSlots];
-        private static readonly bool[] Dirty = new bool[MaxSlots];
-        private static readonly HashSet<string>?[] FavoriteCache = new HashSet<string>?[MaxSlots];
-        private static readonly int[] TypeSelection = new int[MaxSlots];
-        private static readonly bool[] FavoritesOnly = new bool[MaxSlots];
-        /// <summary>Grid slot that carries the viewer's is-self, -1 for none.</summary>
-        private static readonly int[] SelfSlot = BuildFilled(-1);
-        /// <summary>Countdown: 0 idle/running, 1 = set span-N, 2 = set is-running; each step a later tick than <see cref="TimerTick"/>.</summary>
-        private static readonly int[] TimerStage = new int[MaxSlots];
-        private static readonly int[] TimerTick = BuildFilled(-1);
-        /// <summary>Which of the two alternating blocked-sound classes is applied per slot.</summary>
-        private static readonly bool[] BlockedSoundSecond = new bool[MaxSlots];
-        /// <summary>Reveal reached this open player while the tick budget was spent.</summary>
-        private static readonly bool[] RevealPending = new bool[MaxSlots];
+        /// <summary>All per-viewer HUD state in one place. Slots are zero-based.</summary>
+        private sealed class SlotState
+        {
+            public List<string>? GridOrder;
+            public HashSet<string>? FavoriteCache;
+            public int TypeSelection;
+            public bool FavoritesOnly;
+            public bool Minimized;
+            public bool Dirty;
+            /// <summary>Grid slot that carries the viewer's is-self, -1 for none.</summary>
+            public int SelfSlot = -1;
+            public int SortIndex = -1;
+            /// <summary>Countdown: 0 idle/running, 1 = set span-N, 2 = set is-running; each step a later tick than <see cref="TimerTick"/>.</summary>
+            public int TimerStage;
+            public int TimerTick = -1;
+            /// <summary>Which of the two alternating blocked-sound classes is applied per slot.</summary>
+            public bool BlockedSoundSecond;
+            /// <summary>Reveal reached this open player while the tick budget was spent.</summary>
+            public bool RevealPending;
+            public bool Pending;
+            public bool PendingCapture;
+        }
+
+        private static readonly SlotState[] Slots = CreateSlots();
         /// <summary>Opens waiting for tick budget, first in first out. Queued players are not open.</summary>
         private static readonly List<int> PendingOpens = [];
-        private static readonly bool[] Pending = new bool[MaxSlots];
-        private static readonly bool[] PendingCapture = new bool[MaxSlots];
         private static int _dirtyCount;
 
-        private static int[] BuildFilled(int value)
+        private static SlotState[] CreateSlots()
         {
-            int[] values = new int[MaxSlots];
-            Array.Fill(values, value);
-            return values;
+            SlotState[] slots = new SlotState[MaxSlots];
+            for (int i = 0; i < slots.Length; i++)
+            {
+                slots[i] = new SlotState();
+            }
+
+            return slots;
         }
+
+        private static bool IsSlot(int slot) => slot >= 0 && slot < Slots.Length;
+
+        private static SlotState SlotAt(int slot) => Slots[slot];
 
         public static void Bind(
             VoteSession session,
@@ -204,7 +219,7 @@ namespace MapVote.Huds
         /// <summary>CustomHud restores XML defaults itself; only the view state of the slot resets here.</summary>
         public static void WriteDefaults(CCSPlayerController player)
         {
-            if (player.Slot is >= 0 and < MaxSlots)
+            if (IsSlot(player.Slot))
             {
                 ResetSlotState(player.Slot);
             }
@@ -212,12 +227,12 @@ namespace MapVote.Huds
 
         public static void ReleaseSlot(int slot)
         {
-            if (slot is >= 0 and < MaxSlots)
+            if (IsSlot(slot))
             {
                 ResetSlotState(slot);
-                if (Pending[slot])
+                if (SlotAt(slot).Pending)
                 {
-                    Pending[slot] = false;
+                    SlotAt(slot).Pending = false;
                     PendingOpens.Remove(slot);
                 }
             }
@@ -242,21 +257,21 @@ namespace MapVote.Huds
         /// </summary>
         public static void OpenFor(CCSPlayerController player, bool captureMouse = true)
         {
-            if (!IsBound || !Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots)
+            if (!IsBound || !Humans.IsHumanViewer(player) || !IsSlot(player.Slot))
             {
                 return;
             }
 
             int slot = player.Slot;
-            PendingCapture[slot] = captureMouse;
-            if (!Pending[slot])
+            SlotAt(slot).PendingCapture = captureMouse;
+            if (!SlotAt(slot).Pending)
             {
-                Pending[slot] = true;
+                SlotAt(slot).Pending = true;
                 PendingOpens.Add(slot);
             }
 
             DrainPendingOpens();
-            if (Pending[slot])
+            if (SlotAt(slot).Pending)
             {
                 PluginLog.Debug($"hud open queued: {Humans.Label(player)} slot={slot} queue={PendingOpens.Count}");
             }
@@ -268,7 +283,7 @@ namespace MapVote.Huds
             {
                 int slot = PendingOpens[0];
                 PendingOpens.RemoveAt(0);
-                Pending[slot] = false;
+                SlotAt(slot).Pending = false;
                 if (Utilities.GetPlayerFromSlot(slot) is not { } player || !Humans.IsHumanViewer(player))
                 {
                     continue;
@@ -282,7 +297,7 @@ namespace MapVote.Huds
                 }
                 else
                 {
-                    OpenNow(player, PendingCapture[slot]);
+                    OpenNow(player, SlotAt(slot).PendingCapture);
                 }
             }
         }
@@ -328,7 +343,7 @@ namespace MapVote.Huds
 
         private static void OnClosed(CCSPlayerController player)
         {
-            if (player.Slot is >= 0 and < MaxSlots)
+            if (IsSlot(player.Slot))
             {
                 ResetSlotState(player.Slot);
             }
@@ -348,7 +363,7 @@ namespace MapVote.Huds
                 ForEachOpen(SetDirtyOpen);
             }
 
-            if (player.Slot is >= 0 and < MaxSlots && Pending[player.Slot])
+            if (IsSlot(player.Slot) && SlotAt(player.Slot).Pending)
             {
                 // Not open yet; DrainPendingOpens opens it in the reveal state.
                 return;
@@ -373,7 +388,7 @@ namespace MapVote.Huds
 
         private static void Paint(CCSPlayerController player)
         {
-            if (!IsBound || !Humans.IsHumanViewer(player) || player.Slot is < 0 or >= MaxSlots || Pending[player.Slot])
+            if (!IsBound || !Humans.IsHumanViewer(player) || !IsSlot(player.Slot) || SlotAt(player.Slot).Pending)
             {
                 return;
             }
@@ -385,7 +400,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            if (RevealPending[player.Slot])
+            if (SlotAt(player.Slot).RevealPending)
             {
                 ApplyRevealPaint(player);
                 return;
@@ -424,7 +439,7 @@ namespace MapVote.Huds
 
             ForEachOpen(player =>
             {
-                if (player.Slot is >= 0 and < MaxSlots && Dirty[player.Slot])
+                if (IsSlot(player.Slot) && SlotAt(player.Slot).Dirty)
                 {
                     Paint(player);
                 }
@@ -464,7 +479,7 @@ namespace MapVote.Huds
 
         private static void ApplyRevealPaint(CCSPlayerController player)
         {
-            if (player.Slot is < 0 or >= MaxSlots)
+            if (!IsSlot(player.Slot))
             {
                 return;
             }
@@ -472,14 +487,14 @@ namespace MapVote.Huds
             if (CustomHud.TickWrites >= PaintWriteBudget)
             {
                 // Paint (via OnTick) finishes the reveal once budget is back.
-                RevealPending[player.Slot] = true;
+                SlotAt(player.Slot).RevealPending = true;
                 SetDirty(player.Slot, true);
                 return;
             }
 
-            RevealPending[player.Slot] = false;
+            SlotAt(player.Slot).RevealPending = false;
             HudMenu.DropCapture(player);
-            Minimized[player.Slot] = false;
+            SlotAt(player.Slot).Minimized = false;
             PaintPlayer(player);
             SetDirty(player.Slot, CustomHud.TickWrites >= PaintWriteBudget);
         }
@@ -490,7 +505,7 @@ namespace MapVote.Huds
         {
             bool browsing = _mode == Mode.Browse;
             bool interactive = browsing || _session is { IsOpen: true };
-            if (!interactive || player.Slot is < 0 or >= MaxSlots)
+            if (!interactive || !IsSlot(player.Slot))
             {
                 return;
             }
@@ -504,13 +519,13 @@ namespace MapVote.Huds
                     return;
                 }
 
-                Minimized[slot] = !Minimized[slot];
-                CustomHud.SetHasClass(player, Panel, "is-minimized", Minimized[slot]);
+                SlotAt(slot).Minimized = !SlotAt(slot).Minimized;
+                CustomHud.SetHasClass(player, Panel, "is-minimized", SlotAt(slot).Minimized);
                 CustomHud.SetText(player, Panel, VoteIds.HideVar, HideText(player));
                 return;
             }
 
-            if (Minimized[slot])
+            if (SlotAt(slot).Minimized)
             {
                 return;
             }
@@ -519,7 +534,7 @@ namespace MapVote.Huds
             {
                 if (chip <= _typeChips && (chip == 0 || TypeCounts[chip] > 0))
                 {
-                    TypeSelection[slot] = TypeSelection[slot] == chip ? 0 : chip;
+                    SlotAt(slot).TypeSelection = SlotAt(slot).TypeSelection == chip ? 0 : chip;
                     Paint(player);
                 }
 
@@ -530,7 +545,7 @@ namespace MapVote.Huds
             {
                 if (_filters.Enabled && VoteView.AvailableFavoriteCount(FavoritesOf(player), _grid) > 0)
                 {
-                    FavoritesOnly[slot] = !FavoritesOnly[slot];
+                    SlotAt(slot).FavoritesOnly = !SlotAt(slot).FavoritesOnly;
                     Paint(player);
                 }
 
@@ -543,7 +558,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            if (_revealing || player.AuthorizedSteamID is null)
+            if (_revealing || !Humans.TryGetSteamId(player, out _))
             {
                 return;
             }
@@ -595,8 +610,12 @@ namespace MapVote.Huds
 
         private static void CastVote(CCSPlayerController player, string map)
         {
-            ulong steamId = player.AuthorizedSteamID!.SteamId64;
-            VoteCastResult result = _session!.Cast(steamId, map);
+            if (_session is null || !Humans.TryGetSteamId(player, out ulong steamId))
+            {
+                return;
+            }
+
+            VoteCastResult result = _session.Cast(steamId, map);
             if (result == VoteCastResult.RateLimited)
             {
                 // No visual feedback: just the blocked sound, and no repaint for anyone.
@@ -622,13 +641,13 @@ namespace MapVote.Huds
         private static void PlayBlockedSound(CCSPlayerController player)
         {
             int slot = player.Slot;
-            if (slot is < 0 or >= MaxSlots)
+            if (!IsSlot(slot))
             {
                 return;
             }
 
-            bool second = !BlockedSoundSecond[slot];
-            BlockedSoundSecond[slot] = second;
+            bool second = !SlotAt(slot).BlockedSoundSecond;
+            SlotAt(slot).BlockedSoundSecond = second;
             CustomHud.SetHasClass(player, Panel, VoteIds.BlockedSoundClasses[0], !second);
             CustomHud.SetHasClass(player, Panel, VoteIds.BlockedSoundClasses[1], second);
         }
@@ -641,31 +660,31 @@ namespace MapVote.Huds
             }
 
             int slot = player.Slot;
-            SortSelection[slot] = SortSelection[slot] == sortIndex ? -1 : sortIndex;
+            SlotAt(slot).SortIndex = SlotAt(slot).SortIndex == sortIndex ? -1 : sortIndex;
             RebuildPlayerOrder(slot, FavoritesOf(player));
-            SelfSlot[slot] = -1;
+            SlotAt(slot).SelfSlot = -1;
             Paint(player);
         }
 
         /// <summary>Rebuild one viewer's sorted order; the base grid itself never moves.</summary>
         private static void RebuildPlayerOrder(int slot, IReadOnlySet<string>? favorites = null)
         {
-            if (slot is < 0 or >= MaxSlots)
+            if (!IsSlot(slot))
             {
                 return;
             }
 
-            int index = SortSelection[slot];
+            int index = SlotAt(slot).SortIndex;
             if (_mode != Mode.Browse
                 || !_filters.Enabled
                 || index < 0
                 || index >= _filters.Sorts.Count)
             {
-                GridOrder[slot] = null;
+                SlotAt(slot).GridOrder = null;
                 return;
             }
 
-            GridOrder[slot] = MapSort.Apply(
+            SlotAt(slot).GridOrder = MapSort.Apply(
                 _grid,
                 _grid,
                 _filters.Sorts[index],
@@ -680,13 +699,13 @@ namespace MapVote.Huds
             chipIndex >= 0 && chipIndex < _filters.Sorts.Count ? chipIndex : -1;
 
         private static IReadOnlyList<string> OrderFor(int slot) =>
-            _mode == Mode.Browse && slot is >= 0 and < MaxSlots && GridOrder[slot] is { } order
+            _mode == Mode.Browse && IsSlot(slot) && SlotAt(slot).GridOrder is { } order
                 ? order
                 : _grid;
 
         private static void ToggleFavorite(CCSPlayerController player, string? map)
         {
-            if (_archive is null || player.AuthorizedSteamID is null || map is null)
+            if (_archive is null || map is null || !Humans.TryGetSteamId(player, out _))
             {
                 return;
             }
@@ -703,14 +722,14 @@ namespace MapVote.Huds
             }
 
             state.Dirty = true;
-            FavoriteCache[player.Slot] = null;
-            int sortIndex = SortSelection[player.Slot];
+            SlotAt(player.Slot).FavoriteCache = null;
+            int sortIndex = SlotAt(player.Slot).SortIndex;
             if (sortIndex >= 0
                 && sortIndex < _filters.Sorts.Count
                 && string.Equals(_filters.Sorts[sortIndex].By, "favorite", StringComparison.OrdinalIgnoreCase))
             {
                 RebuildPlayerOrder(player.Slot, FavoritesOf(player));
-                SelfSlot[player.Slot] = -1;
+                SlotAt(player.Slot).SelfSlot = -1;
             }
 
             Paint(player);
@@ -718,7 +737,7 @@ namespace MapVote.Huds
 
         private static void ToggleRating(CCSPlayerController player, PlayerRating clicked)
         {
-            if (_archive is null || player.AuthorizedSteamID is null || _currentMap is null)
+            if (_archive is null || _currentMap is null || !Humans.TryGetSteamId(player, out _))
             {
                 return;
             }
@@ -733,12 +752,12 @@ namespace MapVote.Huds
             // Rating sorts depend on the global score; rebuild only the affected viewers.
             for (int slot = 0; slot < MaxSlots; slot++)
             {
-                if (SortSelection[slot] >= 0
-                    && SortSelection[slot] < _filters.Sorts.Count
-                    && string.Equals(_filters.Sorts[SortSelection[slot]].By, "rating", StringComparison.OrdinalIgnoreCase))
+                if (SlotAt(slot).SortIndex >= 0
+                    && SlotAt(slot).SortIndex < _filters.Sorts.Count
+                    && string.Equals(_filters.Sorts[SlotAt(slot).SortIndex].By, "rating", StringComparison.OrdinalIgnoreCase))
                 {
                     RebuildPlayerOrder(slot);
-                    SelfSlot[slot] = -1;
+                    SlotAt(slot).SelfSlot = -1;
                 }
             }
 
@@ -747,32 +766,30 @@ namespace MapVote.Huds
 
         private static PlayerState StateOf(CCSPlayerController player)
         {
-            string steamId = player.AuthorizedSteamID!.SteamId64.ToString();
-            PlayerState state = _archive!.GetOrCreate(steamId);
-            if (state.Username.Length == 0 || state.Username == steamId)
+            if (_archive is null || !Humans.TryGetSteamId(player, out ulong steamId))
             {
-                state.Username = player.PlayerName ?? steamId;
+                throw new InvalidOperationException("Player has no usable SteamID64.");
             }
 
-            return state;
+            return _archive.GetOrCreate(steamId, player.PlayerName);
         }
 
         private static HashSet<string> FavoritesOf(CCSPlayerController player)
         {
-            if (player.Slot is >= 0 and < MaxSlots && FavoriteCache[player.Slot] is HashSet<string> cached)
+            if (IsSlot(player.Slot) && SlotAt(player.Slot).FavoriteCache is HashSet<string> cached)
             {
                 return cached;
             }
 
-            PlayerState? state = _archive is null || player.AuthorizedSteamID is null
+            PlayerState? state = _archive is null || !Humans.TryGetSteamId(player, out ulong steamId)
                 ? null
-                : _archive.TryGet(player.AuthorizedSteamID.SteamId64.ToString());
+                : _archive.TryGet(steamId.ToString());
             HashSet<string> built = state is null
                 ? new HashSet<string>(StringComparer.Ordinal)
                 : new HashSet<string>(state.Favorites, StringComparer.Ordinal);
-            if (player.Slot is >= 0 and < MaxSlots)
+            if (IsSlot(player.Slot))
             {
-                FavoriteCache[player.Slot] = built;
+                SlotAt(player.Slot).FavoriteCache = built;
             }
 
             return built;
@@ -789,7 +806,7 @@ namespace MapVote.Huds
             int availableFavoriteCount = VoteView.AvailableFavoriteCount(favorites, _grid);
             if (availableFavoriteCount == 0)
             {
-                FavoritesOnly[slot] = false;
+                SlotAt(slot).FavoritesOnly = false;
             }
 
             CustomHud.SetText(player, Panel, VoteIds.TitleVar, L(player, browse ? "hud.maps_title" : "hud.title"));
@@ -800,7 +817,7 @@ namespace MapVote.Huds
             }
 
             SetPlayerGroup(player, Panel, VoteIds.Views, browse ? 2 : _revealing ? 1 : 0);
-            CustomHud.SetHasClass(player, Panel, "is-minimized", Minimized[slot]);
+            CustomHud.SetHasClass(player, Panel, "is-minimized", SlotAt(slot).Minimized);
             CustomHud.SetText(player, Panel, VoteIds.HideVar, HideText(player));
             CustomHud.SetHasClass(player, VoteIds.Timer, "is-urgent", IsUrgent());
 
@@ -863,7 +880,7 @@ namespace MapVote.Huds
                 CustomHud.SetText(player, Panel, VoteIds.GridVoteVars[i], votes > 0 ? votes.ToString() : string.Empty);
                 SetPlayerGroup(player, VoteIds.GridTileIds[i], VoteIds.VotesClasses, votes > 0 ? 1 : 0);
                 SetPlayerClass(player, slotId, "is-off", !shown, xmlOn: true);
-                CustomHud.SetHasClass(player, slotId, "is-self", i == SelfSlot[slot]);
+                CustomHud.SetHasClass(player, slotId, "is-self", i == SlotAt(slot).SelfSlot);
                 CustomHud.SetHasClass(player, VoteIds.GridFavIds[i], "is-active", favorites.Contains(map));
             }
 
@@ -966,10 +983,10 @@ namespace MapVote.Huds
 
                 CustomHud.SetText(player, Panel, VoteIds.TypeVars[chip], ChipText(player, chip));
                 SetPlayerClass(player, VoteIds.TypeChipIds[chip], "is-disabled", chip > 0 && TypeCounts[chip] == 0, xmlOn: false);
-                CustomHud.SetHasClass(player, VoteIds.TypeChipIds[chip], "is-active", TypeSelection[slot] == chip);
+                CustomHud.SetHasClass(player, VoteIds.TypeChipIds[chip], "is-active", SlotAt(slot).TypeSelection == chip);
             }
 
-            CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-active", FavoritesOnly[slot]);
+            CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-active", SlotAt(slot).FavoritesOnly);
             CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-disabled", availableFavoriteCount == 0);
 
             // Sort chips reorder one viewer's grid, so they only exist in browse.
@@ -980,7 +997,7 @@ namespace MapVote.Huds
                 {
                     string chipId = VoteIds.SortChipIds[sortChip];
                     SetPlayerClass(player, chipId, "is-off", false, xmlOn: true);
-                    CustomHud.SetHasClass(player, chipId, "is-active", SortSelection[slot] == i);
+                    CustomHud.SetHasClass(player, chipId, "is-active", SlotAt(slot).SortIndex == i);
                     CustomHud.SetText(player, Panel, VoteIds.SortVars[sortChip], L(player, $"sort.{_filters.Sorts[i].Id}"));
                     sortChip++;
                 }
@@ -1010,8 +1027,8 @@ namespace MapVote.Huds
         private static void PaintSelf(CCSPlayerController player, IReadOnlyList<string> order)
         {
             int slot = player.Slot;
-            string? mine = _session is not null && player.AuthorizedSteamID is { } steam
-                ? _session.VoteOf(steam.SteamId64)
+            string? mine = _session is not null && Humans.TryGetSteamId(player, out ulong steamId)
+                ? _session.VoteOf(steamId)
                 : null;
 
             string status = _mode == Mode.Browse
@@ -1030,9 +1047,9 @@ namespace MapVote.Huds
             }
 
             int next = mine is null ? -1 : IndexOf(order, mine);
-            if (SelfSlot[slot] >= 0 && SelfSlot[slot] != next && SelfSlot[slot] < SlotCount)
+            if (SlotAt(slot).SelfSlot >= 0 && SlotAt(slot).SelfSlot != next && SlotAt(slot).SelfSlot < SlotCount)
             {
-                CustomHud.SetHasClass(player, VoteIds.GridSlotIds[SelfSlot[slot]], "is-self", false);
+                CustomHud.SetHasClass(player, VoteIds.GridSlotIds[SlotAt(slot).SelfSlot], "is-self", false);
             }
 
             if (next >= 0)
@@ -1040,7 +1057,7 @@ namespace MapVote.Huds
                 CustomHud.SetHasClass(player, VoteIds.GridSlotIds[next], "is-self", true);
             }
 
-            SelfSlot[slot] = next;
+            SlotAt(slot).SelfSlot = next;
         }
 
         private static int IndexOf(IReadOnlyList<string> order, string map)
@@ -1058,7 +1075,7 @@ namespace MapVote.Huds
 
         private static void PaintOwnRating(CCSPlayerController player)
         {
-            string? steamId = player.AuthorizedSteamID?.SteamId64.ToString();
+            string? steamId = Humans.TryGetSteamId(player, out ulong id) ? id.ToString() : null;
             PlayerRating rating = _currentMap is null ? PlayerRating.None : _archive?.RatingOf(steamId, _currentMap) ?? PlayerRating.None;
             CustomHud.SetHasClass(player, VoteIds.Rate, "is-disabled", steamId is null);
             CustomHud.SetHasClass(player, VoteIds.Like, "is-active", rating == PlayerRating.Like);
@@ -1068,12 +1085,12 @@ namespace MapVote.Huds
         private static bool IsShown(int slot, string map, HashSet<string> favorites) =>
             VoteView.IsVisible(
                 Masks.GetValueOrDefault(map, 1),
-                TypeSelection[slot],
-                FavoritesOnly[slot],
+                SlotAt(slot).TypeSelection,
+                SlotAt(slot).FavoritesOnly,
                 favorites.Contains(map));
 
         private static string HideText(CCSPlayerController player) =>
-            L(player, _mode == Mode.Browse ? "hud.close" : Minimized[player.Slot] ? "hud.show" : "hud.hide");
+            L(player, _mode == Mode.Browse ? "hud.close" : SlotAt(player.Slot).Minimized ? "hud.show" : "hud.hide");
 
         // ---------------------------------------------------------------- countdown
 
@@ -1100,7 +1117,7 @@ namespace MapVote.Huds
             bool urgent = IsUrgent();
             foreach (CCSPlayerController player in Humans.GetHumans())
             {
-                if (!HudMenu.IsOpen(player) || player.Slot is < 0 or >= MaxSlots)
+                if (!HudMenu.IsOpen(player) || !IsSlot(player.Slot))
                 {
                     continue;
                 }
@@ -1122,7 +1139,7 @@ namespace MapVote.Huds
         /// <summary>Reset the bar (remove both classes), then span-N and is-running in later ticks.</summary>
         private static void StartTimer(CCSPlayerController player)
         {
-            if (_deadlineUtc is null || player.Slot is < 0 or >= MaxSlots)
+            if (_deadlineUtc is null || !IsSlot(player.Slot))
             {
                 return;
             }
@@ -1135,8 +1152,8 @@ namespace MapVote.Huds
             }
 
             // A reset that went out needs its own tick, or span-N would animate a refill.
-            TimerTick[player.Slot] = CustomHud.TickWrites != before ? Server.TickCount : -1;
-            TimerStage[player.Slot] = 1;
+            SlotAt(player.Slot).TimerTick = CustomHud.TickWrites != before ? Server.TickCount : -1;
+            SlotAt(player.Slot).TimerStage = 1;
             StepTimer(player);
         }
 
@@ -1144,7 +1161,7 @@ namespace MapVote.Huds
         {
             for (int slot = 0; slot < MaxSlots; slot++)
             {
-                if (TimerStage[slot] != 0
+                if (SlotAt(slot).TimerStage != 0
                     && Utilities.GetPlayerFromSlot(slot) is { } player
                     && HudMenu.IsOpen(player))
                 {
@@ -1159,32 +1176,32 @@ namespace MapVote.Huds
             int now = Server.TickCount;
             if (_deadlineUtc is not { } deadline)
             {
-                TimerStage[slot] = 0;
+                SlotAt(slot).TimerStage = 0;
                 return;
             }
 
-            if (now <= TimerTick[slot] || CustomHud.TickWrites >= PaintWriteBudget)
+            if (now <= SlotAt(slot).TimerTick || CustomHud.TickWrites >= PaintWriteBudget)
             {
                 return;
             }
 
-            if (TimerStage[slot] == 1)
+            if (SlotAt(slot).TimerStage == 1)
             {
                 double remaining = (deadline - DateTime.UtcNow).TotalSeconds;
                 if (remaining <= 0)
                 {
-                    TimerStage[slot] = 0;
+                    SlotAt(slot).TimerStage = 0;
                     return;
                 }
 
                 CustomHud.SetHasClass(player, TimerFillId, VoteIds.SpanClasses[VoteView.SpanFor(remaining)], true);
-                TimerStage[slot] = 2;
-                TimerTick[slot] = now;
+                SlotAt(slot).TimerStage = 2;
+                SlotAt(slot).TimerTick = now;
             }
-            else if (TimerStage[slot] == 2)
+            else if (SlotAt(slot).TimerStage == 2)
             {
                 CustomHud.SetHasClass(player, TimerFillId, "is-running", true);
-                TimerStage[slot] = 0;
+                SlotAt(slot).TimerStage = 0;
             }
         }
 
@@ -1234,33 +1251,33 @@ namespace MapVote.Huds
 
         private static void SetDirty(int slot, bool dirty)
         {
-            if (slot is < 0 or >= MaxSlots || Dirty[slot] == dirty)
+            if (!IsSlot(slot) || SlotAt(slot).Dirty == dirty)
             {
                 return;
             }
 
-            Dirty[slot] = dirty;
+            SlotAt(slot).Dirty = dirty;
             _dirtyCount += dirty ? 1 : -1;
         }
 
         private static void ResetSlotState(int slot)
         {
-            if (slot is < 0 or >= MaxSlots)
+            if (!IsSlot(slot))
             {
                 return;
             }
 
-            Minimized[slot] = false;
+            SlotAt(slot).Minimized = false;
             SetDirty(slot, false);
-            FavoriteCache[slot] = null;
-            RevealPending[slot] = false;
-            TypeSelection[slot] = 0;
-            FavoritesOnly[slot] = false;
-            SortSelection[slot] = -1;
-            GridOrder[slot] = null;
-            SelfSlot[slot] = -1;
-            TimerStage[slot] = 0;
-            TimerTick[slot] = -1;
+            SlotAt(slot).FavoriteCache = null;
+            SlotAt(slot).RevealPending = false;
+            SlotAt(slot).TypeSelection = 0;
+            SlotAt(slot).FavoritesOnly = false;
+            SlotAt(slot).SortIndex = -1;
+            SlotAt(slot).GridOrder = null;
+            SlotAt(slot).SelfSlot = -1;
+            SlotAt(slot).TimerStage = 0;
+            SlotAt(slot).TimerTick = -1;
             // BlockedSoundSecond is intentionally not reset: its class may still be on the
             // entity, and resetting it could toggle the same class on again (no replay).
         }
@@ -1270,12 +1287,12 @@ namespace MapVote.Huds
             for (int slot = 0; slot < MaxSlots; slot++)
             {
                 ResetSlotState(slot);
+                SlotAt(slot).Pending = false;
+                SlotAt(slot).PendingCapture = false;
             }
 
-            Array.Fill(Pending, false);
             PendingOpens.Clear();
             _dirtyCount = 0;
-            Array.Fill(Dirty, false);
         }
 
         private static void ForEachOpen(Action<CCSPlayerController> action)

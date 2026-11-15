@@ -1,4 +1,5 @@
 using MapVote.Huds;
+using MapVote.Runtime;
 using MapVote.Utils;
 
 namespace MapVote.Maps
@@ -7,8 +8,8 @@ namespace MapVote.Maps
     {
         /// <summary>Selection cap, tied to the HUD's fixed grid pool.</summary>
         public const int MaxMaps = VoteIds.SlotCount;
-        public const int RetryPauseMilliseconds = 400;
-        public const int MaxCommandTimeoutMilliseconds = 3000;
+        public const int RetryPauseMilliseconds = GameConstants.CatalogRetryPauseMilliseconds;
+        public const int MaxCommandTimeoutMilliseconds = GameConstants.MaxCommandTimeoutMilliseconds;
 
         private readonly Action<string> _log;
         private readonly Action<IReadOnlyList<MapEntry>, int>? _onLoaded;
@@ -17,6 +18,11 @@ namespace MapVote.Maps
         private IReadOnlyDictionary<string, string> _workshopNamesById =
             new Dictionary<string, string>(StringComparer.Ordinal);
         private bool _loading;
+        // A request that arrived while the worker was busy is coalesced and run afterwards.
+        private bool _queued;
+        private int _queuedBudgetSeconds;
+        private bool _queuedLocalMaps;
+        private bool _queuedMapGroup;
         private bool _loggedMissingPassword;
         private bool _loggedSourcesDisabled;
         private int _generation;
@@ -88,6 +94,12 @@ namespace MapVote.Maps
             {
                 if (_loading)
                 {
+                    // Do not drop a newer request (for example !maps during the intermission
+                    // query): remember it and start it when the current worker finishes.
+                    _queued = true;
+                    _queuedBudgetSeconds = Math.Max(_queuedBudgetSeconds, Math.Max(0, budgetSeconds));
+                    _queuedLocalMaps = queryLocalMaps;
+                    _queuedMapGroup = queryMapgroup;
                     return;
                 }
 
@@ -320,12 +332,30 @@ namespace MapVote.Maps
 
         private void ClearLoading(int generation)
         {
+            bool runQueued;
+            int budget;
+            bool localMaps;
+            bool mapgroup;
             lock (_gate)
             {
                 if (generation == _generation)
                 {
                     _loading = false;
                 }
+
+                runQueued = _queued;
+                _queued = false;
+                budget = _queuedBudgetSeconds;
+                localMaps = _queuedLocalMaps;
+                mapgroup = _queuedMapGroup;
+                _queuedBudgetSeconds = 0;
+                _queuedLocalMaps = false;
+                _queuedMapGroup = false;
+            }
+
+            if (runQueued)
+            {
+                RequestRefresh(budget, localMaps, mapgroup);
             }
         }
 

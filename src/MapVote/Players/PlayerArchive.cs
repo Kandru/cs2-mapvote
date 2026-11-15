@@ -72,18 +72,27 @@ namespace MapVote.Players
                     continue;
                 }
 
-                string steamId = state.SteamId.Length > 0
-                    ? state.SteamId
-                    : Path.GetFileNameWithoutExtension(path);
-                if (steamId.Length == 0)
+                // The file name is the storage key. A content id must be empty or match it;
+                // anything else is ambiguous identity and gets quarantined instead of trusted.
+                string fileId = Path.GetFileNameWithoutExtension(path);
+                if (!PlayerFiles.IsValidSteamId(fileId)
+                    || (state.SteamId.Length > 0
+                        && !string.Equals(state.SteamId, fileId, StringComparison.Ordinal)))
                 {
                     bad++;
-                    warn?.Invoke($"player file missing steam id: {path}");
+                    QuarantineOrBlock(
+                        path,
+                        fileId,
+                        warn,
+                        debug,
+                        new InvalidDataException(
+                            $"invalid steam id (file '{fileId}', content '{state.SteamId}')"));
                     continue;
                 }
 
+                string steamId = fileId;
                 state.SteamId = steamId;
-                if (state.Username.Length == 0)
+                if (string.IsNullOrWhiteSpace(state.Username))
                 {
                     state.Username = steamId;
                 }
@@ -124,14 +133,41 @@ namespace MapVote.Players
 
         public PlayerState GetOrCreate(string steamId)
         {
-            if (_bySteam.TryGetValue(steamId, out PlayerState? state))
+            if (!PlayerFiles.TryNormalizeSteamId(steamId, out string normalized))
+            {
+                throw new ArgumentException("SteamID64 required.", nameof(steamId));
+            }
+
+            if (_bySteam.TryGetValue(normalized, out PlayerState? state))
             {
                 return state;
             }
 
-            state = new PlayerState { SteamId = steamId, Username = steamId };
-            _bySteam[steamId] = state;
+            state = new PlayerState { SteamId = normalized, Username = normalized };
+            _bySteam[normalized] = state;
             return state;
+        }
+
+        /// <summary>Get or create a player and keep the persisted display name current.</summary>
+        public PlayerState GetOrCreate(ulong steamId, string? playerName)
+        {
+            PlayerState state = GetOrCreate(steamId.ToString());
+            UpdateUsername(state, playerName);
+            return state;
+        }
+
+        /// <summary>Stores a new player name and marks it for saving. Returns whether it changed.</summary>
+        public static bool UpdateUsername(PlayerState state, string? playerName)
+        {
+            string name = playerName?.Trim() ?? string.Empty;
+            if (name.Length == 0 || string.Equals(name, state.Username, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            state.Username = name;
+            state.Dirty = true;
+            return true;
         }
 
         public PlayerRating RatingOf(string? steamId, string map) =>
@@ -230,8 +266,8 @@ namespace MapVote.Players
 
             foreach (PlayerState state in _bySteam.Values)
             {
-                repaired += Normalize(state.Likes);
-                repaired += Normalize(state.Dislikes);
+                int stateRepairs = Normalize(state.Likes);
+                stateRepairs += Normalize(state.Dislikes);
 
                 // A map may never be both liked and disliked. Likes win on legacy/corrupt files.
                 for (int i = state.Dislikes.Count - 1; i >= 0; i--)
@@ -239,8 +275,15 @@ namespace MapVote.Players
                     if (state.Likes.Contains(state.Dislikes[i], StringComparer.Ordinal))
                     {
                         state.Dislikes.RemoveAt(i);
-                        repaired++;
+                        stateRepairs++;
                     }
+                }
+
+                if (stateRepairs > 0)
+                {
+                    // Persist the repair with the next save instead of redoing it every load.
+                    state.Dirty = true;
+                    repaired += stateRepairs;
                 }
 
                 foreach (string map in state.Likes)
@@ -312,10 +355,9 @@ namespace MapVote.Players
 
         private bool TryWrite(string directory, PlayerState state, Action<string>? warn, Action<string>? debug)
         {
-            string steamId = state.SteamId;
-            if (steamId.Length == 0)
+            if (!PlayerFiles.TryNormalizeSteamId(state.SteamId, out string steamId))
             {
-                warn?.Invoke($"skip save: empty steam id (user '{state.Username}')");
+                warn?.Invoke($"skip save: invalid steam id '{state.SteamId}' (user '{state.Username}')");
                 return false;
             }
 
@@ -369,7 +411,7 @@ namespace MapVote.Players
                 return;
             }
 
-            if (steamIdFromPath.Length > 0)
+            if (PlayerFiles.IsValidSteamId(steamIdFromPath))
             {
                 _blockedWrites.Add(steamIdFromPath);
             }

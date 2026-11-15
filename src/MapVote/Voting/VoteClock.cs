@@ -1,3 +1,5 @@
+using MapVote.Runtime;
+
 namespace MapVote.Voting
 {
     /// <param name="OpenSeconds">Voting window length (custom menu, for logs).</param>
@@ -21,15 +23,15 @@ namespace MapVote.Voting
     /// </summary>
     public static class VoteClock
     {
-        public const int EngineChangelevelSlackSeconds = 1;
+        public const int EngineChangelevelSlackSeconds = GameConstants.EngineChangelevelSlackSeconds;
 
         /// <summary>Win panel arrives about this long after intermission, which is when the engine timer starts.</summary>
-        public const int WinPanelDelaySeconds = 3;
+        public const int WinPanelDelaySeconds = GameConstants.WinPanelDelaySeconds;
 
-        public const int MatchResultsSeconds = 6;
-        public const int CatalogBudgetSeconds = 1;
-        public const int DecisionOffsetSeconds = 2;
-        public const int DefaultVoteSeconds = 20;
+        public const int MatchResultsSeconds = GameConstants.MatchResultsSeconds;
+        public const int CatalogBudgetSeconds = GameConstants.CatalogBudgetSeconds;
+        public const int DecisionOffsetSeconds = GameConstants.DecisionOffsetSeconds;
+        public const int DefaultVoteSeconds = GameConstants.DefaultVoteSeconds;
 
         /// <summary>
         /// Custom-menu schedule from the win-panel epoch.

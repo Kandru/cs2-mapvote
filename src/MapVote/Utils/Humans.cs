@@ -6,8 +6,36 @@ namespace MapVote.Utils
 {
     public static class Humans
     {
+        /// <summary>A controller that can see and interact with the HUD.</summary>
         public static bool IsHumanViewer([NotNullWhen(true)] CCSPlayerController? player) =>
             player is { IsValid: true, IsBot: false, IsHLTV: false };
+
+        /// <summary>
+        /// A human with a usable SteamID64. Bots, HLTV, connecting players and players
+        /// without a positive authorized id never own votes, ratings or favorites.
+        /// </summary>
+        public static bool TryGetSteamId(
+            [NotNullWhen(true)] CCSPlayerController? player,
+            out ulong steamId)
+        {
+            steamId = 0;
+            if (!IsHumanViewer(player))
+            {
+                return false;
+            }
+
+            ulong? authorized = player.AuthorizedSteamID?.SteamId64;
+            if (authorized is not > 0)
+            {
+                return false;
+            }
+
+            steamId = authorized.Value;
+            return true;
+        }
+
+        public static bool IsEligible(CCSPlayerController? player) =>
+            TryGetSteamId(player, out _);
 
         /// <summary>Console label: "Name (steamid)". Missing name → "?", missing id → "0".</summary>
         public static string Label(CCSPlayerController? player, ulong? steamId = null)
@@ -22,5 +50,9 @@ namespace MapVote.Utils
 
         public static IEnumerable<CCSPlayerController> GetHumans() =>
             Utilities.GetPlayers().Where(IsHumanViewer);
+
+        /// <summary>Humans whose SteamID64 is usable for persisted or counted actions.</summary>
+        public static IEnumerable<CCSPlayerController> GetEligible() =>
+            Utilities.GetPlayers().Where(IsEligible);
     }
 }
