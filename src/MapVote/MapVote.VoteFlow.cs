@@ -234,6 +234,9 @@ namespace MapVote
             }
 
             _session = new VoteSession(unique.ConvertAll(static m => m.Name));
+            int carried = Config.Nominations.Enabled && _nominationSession is { } nominations
+                ? nominations.CopyVotesTo(_session)
+                : 0;
             _origins = new Dictionary<string, MapOrigin>(unique.Count, StringComparer.Ordinal);
             foreach (MapEntry map in unique)
             {
@@ -256,7 +259,7 @@ namespace MapVote
             int humans = Humans.GetHumans().Count();
             int shown = Math.Min(unique.Count, VoteHud.SlotCount);
             PluginLog.Info(
-                $"map voting started ({unique.Count} maps total -> {humans} players -> {shown} shown, shared grid)");
+                $"map voting started ({unique.Count} maps total -> {humans} players -> {shown} shown, shared grid, {carried} nominations carried)");
             PluginLog.Debug(() =>
                 $"vote armed: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
 
@@ -338,13 +341,17 @@ namespace MapVote
             return (name, MapOrigin.Local);
         }
 
-        private List<MapEntry> SelectCandidates() => SelectMaps(excludeCurrent: true);
+        private List<MapEntry> SelectCandidates() =>
+            SelectMaps(
+                excludeCurrent: true,
+                priority: Config.Nominations.Enabled ? _nominationSession?.VotedOrder() : null);
 
         /// <summary>
         /// Shown catalog maps in catalog order, capped at the HUD slot count.
         /// The browser keeps the current map; the vote path optionally excludes it.
+        /// Priority names are kept ahead of the random fill when the limit is exceeded.
         /// </summary>
-        private List<MapEntry> SelectMaps(bool excludeCurrent)
+        private List<MapEntry> SelectMaps(bool excludeCurrent, IReadOnlyList<string>? priority = null)
         {
             IReadOnlyList<MapEntry> catalog = _catalog.Maps;
             if (catalog.Count == 0)
@@ -360,7 +367,9 @@ namespace MapVote
                 ? Math.Clamp(Config.Endmatch.MaxMaps, 1, MapCatalog.MaxMaps)
                 : MapCatalog.MaxMaps;
             int original = maps.Count;
-            maps = MapSample.Take(maps, limit, Random.Shared);
+            maps = priority is { Count: > 0 }
+                ? MapSample.TakeWithPriority(maps, priority, limit, Random.Shared)
+                : MapSample.Take(maps, limit, Random.Shared);
             if (maps.Count < original)
             {
                 PluginLog.Debug(() => $"map list truncated from {original} to {maps.Count}");

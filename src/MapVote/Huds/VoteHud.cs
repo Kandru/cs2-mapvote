@@ -100,7 +100,10 @@ namespace MapVote.Huds
                 currentMap, currentOrigin, cleanMapNames);
         }
 
-        /// <summary>Binds the same overlay to a plain map list (!maps): no vote, no ranking, sort chips on.</summary>
+        /// <summary>
+        /// Binds the same overlay to a plain map list (!maps): no ranking, sort chips on.
+        /// A nomination session makes the cards clickable; null keeps browse-only.
+        /// </summary>
         public static void BindBrowse(
             FiltersConfig filters,
             PlayerArchive archive,
@@ -110,9 +113,10 @@ namespace MapVote.Huds
             IReadOnlyList<string> maps,
             string? currentMap,
             MapOrigin currentOrigin,
-            bool cleanMapNames)
+            bool cleanMapNames,
+            VoteSession? nominations)
         {
-            BindCore(Mode.Browse, null, Shuffle(maps), filters, archive, plays, text, origins,
+            BindCore(Mode.Browse, nominations, Shuffle(maps), filters, archive, plays, text, origins,
                 currentMap, currentOrigin, cleanMapNames);
         }
 
@@ -574,9 +578,9 @@ namespace MapVote.Huds
                 return;
             }
 
-            if (browsing)
+            if (browsing && _session is not { IsOpen: true })
             {
-                // Browse has no vote path: map cards are not clickable.
+                // Browse-only mode has no vote target: map cards are not clickable.
                 return;
             }
 
@@ -607,7 +611,8 @@ namespace MapVote.Huds
             }
 
             string label = Humans.Label(player, steamId);
-            PluginLog.Debug(previous is null ? $"cast {label} → {map}" : $"cast {label} {previous} → {map}");
+            string action = _mode == Mode.Browse ? "nominate" : "cast";
+            PluginLog.Debug(previous is null ? $"{action} {label} → {map}" : $"{action} {label} {previous} → {map}");
 
             // Only the two changed cards and the ranking are global news; the rest is cached.
             if (_globalDirty || CustomHud.TickWrites >= PaintWriteBudget)
@@ -616,7 +621,11 @@ namespace MapVote.Huds
             }
             else
             {
-                PaintRanking();
+                if (_mode == Mode.Vote)
+                {
+                    PaintRanking();
+                }
+
                 PaintCard(previous);
                 PaintCard(map);
             }
@@ -1099,7 +1108,10 @@ namespace MapVote.Huds
                 ? _session.VoteOf(steam.SteamId64)
                 : null;
 
-            string status = _mode == Mode.Browse ? L(player, "hud.status_browse")
+            string status = _mode == Mode.Browse
+                ? _session is null ? L(player, "hud.status_browse")
+                : mine is null ? L(player, "hud.status_nominate_hint")
+                : MapNameDisplay.ForHud(string.Format(T(player, "hud.status_nominated"), _formatMapName(mine)))
                 : _revealing ? L(player, "hud.status_closed")
                 : mine is null ? L(player, "hud.status_hint")
                 : MapNameDisplay.ForHud(string.Format(T(player, "hud.status_voted"), _formatMapName(mine)));

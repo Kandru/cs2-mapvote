@@ -21,6 +21,9 @@ namespace MapVote.Config
         [JsonPropertyName("rtv")]
         public RtvConfig Rtv { get; set; } = new();
 
+        [JsonPropertyName("nominations")]
+        public NominationsConfig Nominations { get; set; } = new();
+
         [JsonPropertyName("filters")]
         public FiltersConfig Filters { get; set; } = new();
 
@@ -46,6 +49,16 @@ namespace MapVote.Config
 
         [JsonPropertyName("max_maps")]
         public int MaxMaps { get; set; } = 100;
+    }
+
+    public sealed class NominationsConfig
+    {
+        /// <summary>
+        /// Allow picking a map through the <c>!maps</c> browser while the match is running.
+        /// Nominated maps are guaranteed end-match vote candidates and the nominator's vote is prefilled.
+        /// </summary>
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; } = true;
     }
 
     public sealed class RtvConfig

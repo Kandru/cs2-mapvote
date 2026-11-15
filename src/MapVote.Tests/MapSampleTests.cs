@@ -69,4 +69,88 @@ public class MapSampleTests
     {
         Assert.Single(MapSample.Take(Maps(20), limit, new Random(1)));
     }
+
+    [Fact]
+    public void TakeWithPriority_KeepsPriorityMapsWhenLimitTruncates()
+    {
+        List<MapEntry> maps = Maps(150);
+
+        List<MapEntry> result = MapSample.TakeWithPriority(
+            maps,
+            ["de_map149", "de_map007", "de_map042"],
+            10,
+            new Random(3));
+
+        Assert.Equal(10, result.Count);
+        Assert.Contains("de_map149", result.Select(m => m.Name));
+        Assert.Contains("de_map007", result.Select(m => m.Name));
+        Assert.Contains("de_map042", result.Select(m => m.Name));
+    }
+
+    [Fact]
+    public void TakeWithPriority_FillsRemainingSlotsWithoutDuplicates()
+    {
+        List<MapEntry> maps = Maps(20);
+
+        List<MapEntry> result = MapSample.TakeWithPriority(
+            maps,
+            ["de_map004", "de_map004", "missing", "de_map013"],
+            5,
+            new Random(9));
+
+        Assert.Equal(5, result.Count);
+        Assert.Equal(result.Count, result.Select(m => m.Name).Distinct().Count());
+        Assert.Contains("de_map004", result.Select(m => m.Name));
+        Assert.Contains("de_map013", result.Select(m => m.Name));
+    }
+
+    [Fact]
+    public void TakeWithPriority_PreservesOriginalRelativeOrder()
+    {
+        List<MapEntry> maps = Maps(150);
+
+        List<MapEntry> result = MapSample.TakeWithPriority(
+            maps,
+            ["de_map120", "de_map030"],
+            100,
+            new Random(11));
+
+        List<string> names = result.Select(m => m.Name).ToList();
+        Assert.Equal(names.OrderBy(n => n, StringComparer.Ordinal).ToList(), names);
+    }
+
+    [Fact]
+    public void TakeWithPriority_UsesPriorityOrderWhenThereAreMorePriorityMapsThanSlots()
+    {
+        List<MapEntry> maps = Maps(20);
+
+        List<MapEntry> result = MapSample.TakeWithPriority(
+            maps,
+            ["de_map010", "de_map002", "de_map015"],
+            1,
+            new Random(1));
+
+        Assert.Equal("de_map010", Assert.Single(result).Name);
+    }
+
+    [Fact]
+    public void TakeWithPriority_AllMapsFit_ReturnsSourceList()
+    {
+        List<MapEntry> maps = Maps(20);
+
+        List<MapEntry> result = MapSample.TakeWithPriority(maps, ["de_map010"], 100, new Random(1));
+
+        Assert.Equal(maps, result);
+    }
+
+    [Fact]
+    public void TakeWithPriority_EmptyPriority_FallsBackToRandomSample()
+    {
+        List<MapEntry> maps = Maps(150);
+
+        List<MapEntry> result = MapSample.TakeWithPriority(maps, [], 12, new Random(1));
+
+        Assert.Equal(12, result.Count);
+        Assert.Equal(result.Count, result.Select(m => m.Name).Distinct().Count());
+    }
 }

@@ -200,6 +200,7 @@ namespace MapVote
             _leaveMap = false;
             _steamBySlot.Clear();
             EndVoteUi();
+            ResetNominations();
             ResetRtv();
             OpenMapsForNewMatch("map start", clearPending: true);
             CustomHud.ResetRound();
@@ -336,7 +337,13 @@ namespace MapVote
                     StopRtvWindow();
                 }
 
-                if (_session is { IsOpen: true } && _session.RemovePlayer(steamId.Value))
+                bool votesChanged = _session is { IsOpen: true } && _session.RemovePlayer(steamId.Value);
+                if (_nominationSession is { } nominations && nominations.RemovePlayer(steamId.Value))
+                {
+                    votesChanged = true;
+                }
+
+                if (votesChanged)
                 {
                     VoteHud.PaintAll();
                 }

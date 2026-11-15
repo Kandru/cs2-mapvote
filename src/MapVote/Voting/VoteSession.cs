@@ -82,6 +82,25 @@ namespace MapVote.Voting
         public int CountOf(string mapName) =>
             _counts.TryGetValue(mapName, out int count) ? count : 0;
 
+        /// <summary>
+        /// Copies every vote this session holds into <paramref name="target"/>.
+        /// Votes for maps the target does not offer are skipped. Returns the number of copied votes.
+        /// </summary>
+        public int CopyVotesTo(VoteSession target)
+        {
+            ArgumentNullException.ThrowIfNull(target);
+            int copied = 0;
+            foreach ((ulong playerId, string map) in _votesByPlayer)
+            {
+                if (target.Cast(playerId, map))
+                {
+                    copied++;
+                }
+            }
+
+            return copied;
+        }
+
         /// <summary>Maps with at least one vote, highest count first (first-vote order breaks ties).</summary>
         public IReadOnlyList<string> VotedOrder()
         {

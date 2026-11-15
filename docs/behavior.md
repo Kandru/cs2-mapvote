@@ -27,7 +27,9 @@ The first vote opens a window: `rtv.duration_seconds` (default 60; `0` = no limi
 
 ## Map browser
 
-`css_maps` / `maps` (chat `!maps`) opens the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): type and Favorites chips, sort chips, the current-map card with rating, and up to 100 shuffled map cards. It has no vote target and no Leading ranking; map tiles are not clickable. The Close button closes the overlay for that player.
+`css_maps` / `maps` / `css_nom` / `nom` / `css_nominate` / `nominate` (chat `!maps` / `!nom` / `!nominate`) open the same Panorama overlay in browse mode with [`VoteHud`](../src/MapVote/Huds/VoteHud.cs): type and Favorites chips, sort chips, the current-map card with rating, and up to 100 shuffled map cards. With `nominations.enabled` (default `true`), map tiles are clickable and each human can nominate one map; clicking another map moves the nomination and clicking the same map does nothing. Without it, browse has no vote target, no Leading ranking, and tiles are not clickable. The Close button closes the overlay for that player.
+
+Nominated maps are guaranteed candidates in the end-match vote, subject to `maps_votable`, `endmatch.exclude_current_map`, and `endmatch.max_maps`. If there are more nominations than slots, the most-nominated maps (then earliest nominations) win. When the final vote opens, each nominator's vote is already cast for their nominated map and counts in the Leading ranking; the player can still change it. Nominations reset on map start, and a disconnecting player's nomination is removed.
 
 The command triggers a short catalog refresh when the list is still empty after plugin load, then opens for everyone who was waiting. Intermission (`EventCsIntermission`) and map end close the browser and reject `!maps` until `OnMapStart`, warmup, match start, or a new match. An active end-match vote also rejects it (`maps.busy`).
 

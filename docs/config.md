@@ -10,6 +10,7 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | `endmatch.vote_seconds` | `null` | Menu length. `null` uses the server's `mp_endmatch_votenextleveltime` as first read. The engine timer is then written longer (vote length + 4s) so it does not change the map before the plugin |
 | `endmatch.max_maps` | `100` | Most maps offered in the vote (1 to 100). Above that many votable maps, a random subset is offered each vote; `!maps` always lists up to 100 |
 | `endmatch.winner_reveal_seconds` | `5` | Locked-winner hold after our vote (custom menu only); taken off the end of the time after the 6s match-results hold |
+| `nominations.enabled` | `true` | Allow map picks through `!maps` / `!nom` / `!nominate` during the round. Nominated maps are guaranteed candidates in the end-match vote and the nominator's vote is prefilled there |
 | `rtv.enabled` | `true` | `!rtv` / `css_rtv` / `rtv` |
 | `rtv.ratio` | `0.6` | Fraction of humans required (clamped 0.01–1) |
 | `rtv.duration_seconds` | `60` | Seconds the RTV window stays open after the first vote. `0` = no limit |

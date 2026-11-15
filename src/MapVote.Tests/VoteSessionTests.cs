@@ -91,4 +91,40 @@ public class VoteSessionTests
         VoteSession session = new(["a", "a", "b", ""]);
         Assert.Equal(["a", "b"], session.Maps);
     }
+
+    [Fact]
+    public void CopyVotesTo_CarriesVotesForOfferedMaps()
+    {
+        VoteSession nominations = new(["a", "b", "c"]);
+        nominations.Cast(1, "a");
+        nominations.Cast(2, "a");
+        nominations.Cast(3, "c");
+
+        VoteSession final = new(["a", "c", "d"]);
+        int copied = nominations.CopyVotesTo(final);
+
+        Assert.Equal(3, copied);
+        Assert.Equal(2, final.CountOf("a"));
+        Assert.Equal(1, final.CountOf("c"));
+        Assert.Equal("a", final.VoteOf(1));
+        Assert.Equal("a", final.VoteOf(2));
+        Assert.Equal("c", final.VoteOf(3));
+        Assert.Equal(0, final.CountOf("b"));
+        Assert.Equal(["a", "c"], final.VotedOrder());
+    }
+
+    [Fact]
+    public void CopyVotesTo_SkipsVotesForUnavailableMaps()
+    {
+        VoteSession nominations = new(["a", "b"]);
+        nominations.Cast(1, "a");
+        nominations.Cast(2, "b");
+
+        VoteSession final = new(["b"]);
+        int copied = nominations.CopyVotesTo(final);
+
+        Assert.Equal(1, copied);
+        Assert.Null(final.VoteOf(1));
+        Assert.Equal("b", final.VoteOf(2));
+    }
 }

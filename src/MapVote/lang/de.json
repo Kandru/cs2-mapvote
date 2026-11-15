@@ -20,6 +20,8 @@
   "hud.status_voted": "Deine Stimme: {0} – klick eine andere Map, um zu wechseln",
   "hud.status_closed": "Abstimmung beendet",
   "hud.status_browse": "Stern = Favorit · die aktuelle Map kannst du jederzeit bewerten",
+  "hud.status_nominate_hint": "Klick auf eine Map, um sie für die nächste Abstimmung zu nominieren",
+  "hud.status_nominated": "Deine Nominierung: {0} – klick eine andere Map, um zu wechseln",
   "hud.current": "Aktuelle Map",
   "hud.rate_q": "Wie war die Map?",
   "hud.like": "Gefällt mir",

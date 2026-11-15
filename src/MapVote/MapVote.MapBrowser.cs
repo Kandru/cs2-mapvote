@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using MapVote.Huds;
 using MapVote.Maps;
 using MapVote.Utils;
+using MapVote.Voting;
 
 namespace MapVote
 {
@@ -15,9 +16,14 @@ namespace MapVote
 
         private bool _mapsClosed;
         private readonly HashSet<ulong> _mapsPendingOpen = [];
+        private VoteSession? _nominationSession;
 
         [ConsoleCommand("css_maps", "Browse the server map list.")]
         [ConsoleCommand("maps", "Browse the server map list.")]
+        [ConsoleCommand("css_nom", "Nominate a map for the end-match vote.")]
+        [ConsoleCommand("nom", "Nominate a map for the end-match vote.")]
+        [ConsoleCommand("css_nominate", "Nominate a map for the end-match vote.")]
+        [ConsoleCommand("nominate", "Nominate a map for the end-match vote.")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void OnMapsCommand(CCSPlayerController? player, CommandInfo info)
         {
@@ -111,6 +117,7 @@ namespace MapVote
                     names.Add(map.Name);
                 }
 
+                VoteSession? nominations = NominationSessionFor(names);
                 VoteHud.BindBrowse(
                     Config.Filters,
                     _archive,
@@ -120,10 +127,33 @@ namespace MapVote
                     names,
                     currentMap,
                     currentOrigin,
-                    Config.CleanMapNames);
+                    Config.CleanMapNames,
+                    nominations);
             }
 
             VoteHud.OpenFor(player);
+        }
+
+        /// <summary>
+        /// Returns the session bound to this map list, or null for browse-only mode.
+        /// It is reset on map start, so the list cannot go stale between browse sessions.
+        /// </summary>
+        private VoteSession? NominationSessionFor(IReadOnlyList<string> maps)
+        {
+            if (!Config.Nominations.Enabled)
+            {
+                _nominationSession = null;
+                return null;
+            }
+
+            return _nominationSession ??= new VoteSession(maps);
+        }
+
+        /// <summary>Map start: nominations belong to one map only.</summary>
+        private void ResetNominations()
+        {
+            _nominationSession = null;
+            PluginLog.Debug("nominations reset (map start)");
         }
 
         /// <summary>Very first !maps after a load: opens everyone who was waiting once RCON answers.</summary>
