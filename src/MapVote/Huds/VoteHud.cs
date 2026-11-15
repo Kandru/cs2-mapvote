@@ -918,10 +918,15 @@ namespace MapVote.Huds
             int slot = player.Slot;
             bool show = _filters.Enabled;
             SetPlayerClass(player, VoteIds.Filters, "is-off", !show, xmlOn: false);
-            CustomHud.SetText(player, Panel, VoteIds.FavOnlyVar, L(player, "hud.fav_only"));
+            if (!show)
+            {
+                return;
+            }
+
+            CustomHud.SetText(player, Panel, VoteIds.FavOnlyVar, L(player, "hud.fav_only", favorites.Count));
             for (int chip = 0; chip < FilterTypeSlots; chip++)
             {
-                bool on = show && _typeChips > 0 && chip <= _typeChips;
+                bool on = _typeChips > 0 && chip <= _typeChips;
                 SetPlayerClass(player, VoteIds.TypeChipIds[chip], "is-off", !on, xmlOn: true);
                 if (!on)
                 {
@@ -938,7 +943,7 @@ namespace MapVote.Huds
 
             // Sort chips reorder one viewer's grid, so they only exist in browse.
             int sortChip = 0;
-            if (show && _mode == Mode.Browse)
+            if (_mode == Mode.Browse)
             {
                 for (int i = 0; i < _filters.Sorts.Count && sortChip < FilterSortSlots; i++)
                 {
@@ -956,11 +961,8 @@ namespace MapVote.Huds
             }
         }
 
-        private static string ChipText(CCSPlayerController? player, int chip)
-        {
-            string label = T(player, chip == 0 ? "filter.all" : $"filter.{_filters.Types[chip - 1].Id}");
-            return MapNameDisplay.ForHud($"{label} {TypeCounts[chip]}");
-        }
+        private static string ChipText(CCSPlayerController? player, int chip) =>
+            L(player, chip == 0 ? "filter.all" : $"filter.{_filters.Types[chip - 1].Id}", TypeCounts[chip]);
 
         private static string WinVotesText(CCSPlayerController? player)
         {
@@ -1184,6 +1186,10 @@ namespace MapVote.Huds
 
         /// <summary>Localized text for a dialog variable, padded so it can never equal a client token.</summary>
         private static string L(CCSPlayerController? player, string key) => MapNameDisplay.ForHud(T(player, key));
+
+        /// <summary>Localized text with a count in parentheses, e.g. <c>All (95)</c>.</summary>
+        private static string L(CCSPlayerController? player, string key, int count) =>
+            MapNameDisplay.ForHud($"{T(player, key)} ({count})");
 
         private static bool TryParseIndex(string buttonId, string prefix, int count, out int index)
         {

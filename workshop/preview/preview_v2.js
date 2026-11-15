@@ -130,11 +130,11 @@
       flag(`mv-ft-${i}`, "is-off", !t);
       if (!t) continue;
       const count = all.filter(t.test).length;
-      text(`ft${i}`, `${t.label} ${count}`);
+      text(`ft${i}`, `${t.label} (${count})`);
       flag(`mv-ft-${i}`, "is-active", s.type === i);
       flag(`mv-ft-${i}`, "is-disabled", i > 0 && count === 0);
     }
-    text("mv_favonly", `Favoriten ${s.fav.size}`);
+    text("mv_favonly", `Favoriten (${s.fav.size})`);
     flag("mv-fav-only", "is-active", s.favOnly);
     flag("mv-fav-only", "is-disabled", s.fav.size === 0);
     SORTS.forEach((label, i) => {
