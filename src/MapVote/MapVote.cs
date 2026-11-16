@@ -100,9 +100,17 @@ namespace MapVote
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
 
             MapOrder.Configure(Config.Display?.Order);
+        }
 
-            // OnMapStart may not fire for a hot reload or a plugin loaded mid-map:
-            // rebuild the live session immediately, and arm the engine hold for the next intermission.
+        public override void OnAllPluginsLoaded(bool hotReload)
+        {
+            // Called after a reload or a late load, when the server is already live.
+            // A normal start runs before the engine globals exist; OnMapStart attaches then.
+            if (!hotReload)
+            {
+                return;
+            }
+
             ReconcileSteamSlots();
             CustomHud.ResetRound();
             ArmEngineHold();
