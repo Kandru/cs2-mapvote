@@ -396,7 +396,8 @@ def preview_config() -> dict[str, object]:
     if nominations is None:
         raise ValueError("could not read the nominations default from PluginConfig.cs")
 
-    types.insert(0, {"id": "all", "label": lang.get("filter.all", "All"), "prefixes": []})
+    if types:
+        types.insert(0, {"id": "all", "label": lang.get("filter.all", "All"), "prefixes": []})
     return {
         "types": types,
         "sorts": sorts,
