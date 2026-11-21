@@ -21,6 +21,7 @@ namespace MapVote.Huds
         private sealed class Session
         {
             public required HudMenuOpenOptions Options;
+            public required ulong OwnerSteamId;
             public int CaptureToken;
         }
 
@@ -33,7 +34,7 @@ namespace MapVote.Huds
 
         public static bool Open(CCSPlayerController player, HudMenuOpenOptions options)
         {
-            if (!CustomHud.EnsureSpawned(player))
+            if (!CustomHud.EnsureSpawned(player) || !Humans.TryGetSteamId(player, out ulong ownerSteamId))
             {
                 return false;
             }
@@ -43,7 +44,7 @@ namespace MapVote.Huds
                 CloseInternal(player, existing, invokeClosed: false);
             }
 
-            Session session = new() { Options = options };
+            Session session = new() { Options = options, OwnerSteamId = ownerSteamId };
             Sessions[player.Slot] = session;
             CustomHud.ShowPanel(player);
             ScheduleCapture(player.Slot, session);
@@ -91,6 +92,8 @@ namespace MapVote.Huds
         {
             if (!Sessions.TryGetValue(player.Slot, out Session? session)
                 || string.IsNullOrEmpty(buttonId)
+                || !Humans.TryGetSteamId(player, out ulong steamId)
+                || session.OwnerSteamId != steamId
                 || !CustomHud.IsLayout(player, layout))
             {
                 return false;
@@ -118,7 +121,9 @@ namespace MapVote.Huds
                 if (Utilities.GetPlayerFromSlot(slot) is not { IsValid: true } player
                     || !Sessions.TryGetValue(slot, out Session? live)
                     || live != session
-                    || live.CaptureToken != token)
+                    || live.CaptureToken != token
+                    || !Humans.TryGetSteamId(player, out ulong steamId)
+                    || steamId != session.OwnerSteamId)
                 {
                     return;
                 }
