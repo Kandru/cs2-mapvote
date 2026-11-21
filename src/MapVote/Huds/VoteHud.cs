@@ -152,7 +152,7 @@ namespace MapVote.Huds
             _plays = plays;
             _text = text;
             _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
-            _formatMapName = cleanMapNames ? MapNameDisplay.Format : static name => name;
+            _formatMapName = MapNameDisplay.Formatter(cleanMapNames);
             // Selection already caps the source at MapCatalog.MaxMaps (= SlotCount); keep it
             // whole so every sort (especially rating) sees the complete list, not a prefix.
             _grid = MapOrder.Sort(source, _formatMapName);

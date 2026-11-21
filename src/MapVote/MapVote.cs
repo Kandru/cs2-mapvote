@@ -402,65 +402,32 @@ namespace MapVote
                 return HookResult.Continue;
             }
 
-            int slot = player.Slot;
             ulong steamId = Humans.TryGetSteamId(player, out ulong current)
                 ? current
                 : player.AuthorizedSteamID?.SteamId64 ?? 0;
 
-            if (!PlayerSlots.IsValid(slot) && steamId > 0)
-            {
-                slot = CustomHud.FindSlotBySteamId(steamId);
-            }
-
-            ulong occupantSteamId = 0;
-            bool occupantKnown = PlayerSlots.IsValid(slot)
-                && Utilities.GetPlayerFromSlot(slot) is { IsValid: true } occupant
-                && Humans.TryGetSteamId(occupant, out occupantSteamId);
+            // The owner is the identity. A slot without an authorized occupant may still
+            // carry the old layout; recover its SteamID once, then release only that owner.
             if (steamId == 0
-                && PlayerSlots.IsValid(slot)
-                && CustomHud.TryGetOwner(slot, out ulong layoutOwner)
-                && (!occupantKnown || layoutOwner != occupantSteamId))
+                && PlayerSlots.IsValid(player.Slot)
+                && !Humans.TryGetSteamId(Utilities.GetPlayerFromSlot(player.Slot), out _)
+                && CustomHud.TryGetOwner(player.Slot, out ulong layoutOwner))
             {
-                // The controller is gone; a stale layout entry still names the old SteamID.
                 steamId = layoutOwner;
             }
 
-            // A live authorized occupant is authoritative. If it is not this SteamID,
-            // the slot has been reused and none of its HUD state may be touched.
-            bool slotReused = occupantKnown
-                && (steamId == 0 || occupantSteamId != steamId);
-            if (PlayerSlots.IsValid(slot) && !slotReused)
+            int slot = steamId > 0 ? CustomHud.FindSlotBySteamId(steamId) : -1;
+            if (slot >= 0)
             {
-                bool ownsSlot = steamId == 0
-                    || (CustomHud.TryGetOwner(slot, out ulong owner) && owner == steamId)
-                    || (occupantKnown && occupantSteamId == steamId);
-                if (!ownsSlot && steamId > 0)
-                {
-                    slot = CustomHud.FindSlotBySteamId(steamId);
-                    ownsSlot = PlayerSlots.IsValid(slot);
-                }
-
-                if (ownsSlot)
-                {
-                    _hudOpenTokens.Clear(slot);
-                    // Kill the layout/session without writing to a controller that may be gone.
-                    CustomHud.ReleaseSlot(slot);
-                    VoteHud.ReleaseSlot(slot);
-                    if (!HudMenu.HasOpenSessions)
-                    {
-                        VoteHud.CloseBrowse();
-                    }
-                }
-                else
-                {
-                    PluginLog.Debug(
-                        $"disconnect: no owned HUD slot for {steamId}; no HUD release");
-                }
+                _hudOpenTokens.Clear(slot);
+                // Kill the layout/session without writing to a controller that may be gone.
+                CustomHud.ReleaseSlot(slot);
+                VoteHud.ReleaseSlot(slot);
             }
-            else if (slotReused)
+
+            if (!HudMenu.HasOpenSessions)
             {
-                PluginLog.Debug(
-                    $"disconnect: slot {slot} now belongs to another player; leaving its HUD untouched");
+                VoteHud.CloseBrowse();
             }
 
             if (steamId > 0)
@@ -492,10 +459,13 @@ namespace MapVote
                 string label = Humans.Label(player, steamId);
                 PluginLog.Debug(
                     $"disconnect: {label} slot={slot} votes_changed={votesChanged} rtv_votes={_rtvVoters.Count}");
-                TrySucceedRtv(
-                    CountRtvHumans(steamId),
-                    $"after disconnect of {label}",
-                    deferCommand: true);
+                if (_rtvVoters.Count > 0)
+                {
+                    TrySucceedRtv(
+                        CountRtvHumans(steamId),
+                        $"after disconnect of {label}",
+                        deferCommand: true);
+                }
             }
             else
             {

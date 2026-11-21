@@ -169,7 +169,8 @@ namespace MapVote
         /// <summary>Runs from OnTick: expiry first, then one reminder per scheduled whole interval.</summary>
         private void TickRtv()
         {
-            if (_unloaded || _rtvPassed || _rtvClosed)
+            if (_unloaded || _rtvPassed || _rtvClosed
+                || (_rtvDeadlineUtc is null && _rtvNextAnnounceUtc is null))
             {
                 return;
             }
@@ -199,9 +200,11 @@ namespace MapVote
             }
 
             DateTime nextAt = next.AddSeconds(_rtvAnnounceSeconds);
-            while (nextAt <= now)
+            if (nextAt <= now)
             {
-                nextAt = nextAt.AddSeconds(_rtvAnnounceSeconds);
+                // Skip missed boundaries without a loop if the server stalled.
+                long missed = (long)Math.Floor((now - nextAt).TotalSeconds / _rtvAnnounceSeconds) + 1;
+                nextAt = nextAt.AddSeconds(missed * (double)_rtvAnnounceSeconds);
             }
 
             _rtvNextAnnounceUtc = _rtvDeadlineUtc is DateTime end && nextAt >= end ? null : nextAt;

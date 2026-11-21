@@ -30,7 +30,10 @@
     else maps.push({ id: LONG[i - base.length] || `ws_community_map_${i - base.length + 1}`, img: base[i % base.length] });
   }
   const all = maps.slice(0, N);
-  const current = all.find((m) => m.id === "de_dust2") || all[0];
+  const mapById = new Map(all.map((map) => [map.id, map]));
+  const position = new Map(all.map((map, index) => [map.id, index]));
+  const byId = (id) => mapById.get(id);
+  const current = byId("de_dust2") || all[0];
 
   // MapNameDisplay.Format: drop a leading token of at most 4 chars, then title-case words.
   const pretty = (id) => {
@@ -125,13 +128,12 @@
         ? (av < bv ? -1 : av > bv ? 1 : 0)
         : av - bv;
       if (descending) result = -result;
-      return result || all.indexOf(a) - all.indexOf(b);
+      return result || position.get(a.id) - position.get(b.id);
     });
     return list;
   };
   const availableFavorites = () => all.filter((map) => s.fav.has(map.id)).length;
   const visible = (map) => TYPES[s.type].test(map) && (!s.favOnly || s.fav.has(map.id));
-  const byId = (id) => all.find((map) => map.id === id);
 
   let grid = [];
   const paint = () => {

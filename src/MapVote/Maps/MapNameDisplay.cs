@@ -20,6 +20,9 @@ namespace MapVote.Maps
         /// the name and is kept; names without a prefix are only word-separated
         /// and capitalized.
         /// </summary>
+        public static Func<string, string> Formatter(bool cleanMapNames) =>
+            cleanMapNames ? Format : static map => map;
+
         public static string Format(string map)
         {
             if (string.IsNullOrEmpty(map))
