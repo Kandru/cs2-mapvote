@@ -54,7 +54,7 @@ State is owned by two symmetric entry points in [`MapVote.cs`](../src/MapVote/Ma
 
 Deferred HUD opens use [`SlotActionTokens`](../src/MapVote/Runtime/SlotActionTokens.cs): each slot has one current generation, a newer open supersedes an older one, and clearing the slot/map invalidates anything still waiting on a timer. This is also why a first or repeated `!maps` can never hit a missing dictionary key.
 
-Votes, RTV votes, nominations, pending open waiters and player archives are keyed by SteamID64. An engine slot is only a short-lived handle for the player controller and its private layout entity; it is never used as the player identity. Disconnect cleanup resolves the SteamID first, checks that the slot still has that owner, and only then kills the layout/menu and drops queued HUD state. Vote/nomination/RTV/archive entries are removed by SteamID; the archive is saved on disconnect. A reused slot can therefore never be cleaned up as the previous owner.
+Votes, RTV votes, nominations, pending open waiters, HUD menu sessions and player archives are keyed by SteamID64. An engine slot is only a short-lived handle for the player controller and its private layout entity; it is never used as the player identity. Disconnect cleanup resolves the SteamID first, checks that the slot still has that owner, and only then kills the layout/menu and drops queued HUD state. Vote/nomination/RTV/archive entries are removed by SteamID; the archive is saved on disconnect. A reused slot can therefore never be cleaned up or receive the previous owner's HUD.
 
 ## Localization
 
