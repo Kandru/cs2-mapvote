@@ -24,6 +24,7 @@ OUT_HTML = PREVIEW / "vote_v2.html"
 OUT_BROWSE_HTML = PREVIEW / "maps_v2.html"
 OUT_CSS = PREVIEW / "hud_v2.preview.css"
 CONFIG_DEFAULTS = ROOT / "src" / "MapVote" / "Config" / "ConfigDefaults.cs"
+PLUGIN_CONFIG = ROOT / "src" / "MapVote" / "Config" / "PluginConfig.cs"
 LANG = ROOT / "src" / "MapVote" / "lang" / "de.json"
 
 TYPE_DEFAULT_RE = re.compile(
@@ -33,6 +34,10 @@ SORT_DEFAULT_RE = re.compile(
     r'new\(\)\s*\{\s*Id\s*=\s*"([^"]*)"\s*,\s*By\s*=\s*"([^"]*)"\s*,\s*Order\s*=\s*"([^"]*)"\s*\}'
 )
 PREFIX_RE = re.compile(r'"([^"]*)"')
+NOMINATIONS_RE = re.compile(
+    r"class NominationsConfig.*?Enabled\s*\{\s*get;\s*set;\s*\}\s*=\s*(true|false);",
+    re.S,
+)
 
 TAGS = {"Panel": "div", "Label": "div", "Button": "button", "Image": "div"}
 
@@ -361,10 +366,11 @@ PREVIEW_MAP_ORDER = [
 
 
 def preview_config() -> dict[str, object]:
-    """Read the runtime defaults and German strings so the mock cannot drift from the plugin."""
-    if not CONFIG_DEFAULTS.is_file() or not LANG.is_file():
-        raise ValueError(f"missing {CONFIG_DEFAULTS} or {LANG}")
+    """Read runtime defaults, nominations default and German strings so the mock cannot drift."""
+    if not CONFIG_DEFAULTS.is_file() or not PLUGIN_CONFIG.is_file() or not LANG.is_file():
+        raise ValueError(f"missing {CONFIG_DEFAULTS}, {PLUGIN_CONFIG} or {LANG}")
     defaults = CONFIG_DEFAULTS.read_text(encoding="utf-8")
+    config_source = PLUGIN_CONFIG.read_text(encoding="utf-8")
     lang = json.loads(LANG.read_text(encoding="utf-8"))
 
     types = [
@@ -386,9 +392,17 @@ def preview_config() -> dict[str, object]:
     ]
     if not types or not sorts:
         raise ValueError("could not read default filter types/sorts from ConfigDefaults.cs")
+    nominations = NOMINATIONS_RE.search(config_source)
+    if nominations is None:
+        raise ValueError("could not read the nominations default from PluginConfig.cs")
 
     types.insert(0, {"id": "all", "label": lang.get("filter.all", "All"), "prefixes": []})
-    return {"types": types, "sorts": sorts, "text": lang, "nominationsEnabled": True}
+    return {
+        "types": types,
+        "sorts": sorts,
+        "text": lang,
+        "nominationsEnabled": nominations.group(1) == "true",
+    }
 
 
 def preview_maps() -> list[str]:
