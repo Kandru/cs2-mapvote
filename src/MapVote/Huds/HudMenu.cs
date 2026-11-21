@@ -11,7 +11,6 @@ namespace MapVote.Huds
     {
         public required Action<CCSPlayerController, string> OnButton { get; init; }
         public Action<CCSPlayerController>? OnClosed { get; init; }
-        public bool CaptureMouse { get; init; } = true;
     }
 
     public static class HudMenu
@@ -30,6 +29,8 @@ namespace MapVote.Huds
         public static bool IsOpen(CCSPlayerController player) =>
             player is { IsValid: true } && Sessions.ContainsKey(player.Slot);
 
+        public static bool HasOpenSessions => Sessions.Count > 0;
+
         public static bool Open(CCSPlayerController player, HudMenuOpenOptions options)
         {
             if (!CustomHud.EnsureSpawned(player))
@@ -45,13 +46,8 @@ namespace MapVote.Huds
             Session session = new() { Options = options };
             Sessions[player.Slot] = session;
             CustomHud.ShowPanel(player);
-            if (options.CaptureMouse)
-            {
-                ScheduleCapture(player.Slot, session);
-            }
-
-            PluginLog.Debug(
-                $"hud menu opened: {Humans.Label(player)} slot={player.Slot} capture={options.CaptureMouse}");
+            ScheduleCapture(player.Slot, session);
+            PluginLog.Debug($"hud menu opened: {Humans.Label(player)} slot={player.Slot}");
             return true;
         }
 
@@ -78,17 +74,6 @@ namespace MapVote.Huds
             {
                 InvalidateCapture(session);
             }
-        }
-
-        public static void DropCapture(CCSPlayerController player)
-        {
-            if (!Sessions.TryGetValue(player.Slot, out Session? session))
-            {
-                return;
-            }
-
-            InvalidateCapture(session);
-            SetCapture(player, enabled: false);
         }
 
         /// <summary>Drop sessions without touching layout entities (used before a full layout reset).</summary>

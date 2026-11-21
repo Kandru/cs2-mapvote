@@ -167,6 +167,38 @@ namespace MapVote.Utils
             && Slots[player.Slot]?.Layout is { IsValid: true } owned
             && owned.Handle == layout.Handle;
 
+        /// <summary>Current owner of a live layout entity, if the slot has one.</summary>
+        public static bool TryGetOwner(int slot, out ulong steamId)
+        {
+            steamId = 0;
+            if (!PlayerSlots.IsValid(slot) || Slots[slot] is not { } entry || entry.OwnerSteamId == 0)
+            {
+                return false;
+            }
+
+            steamId = entry.OwnerSteamId;
+            return true;
+        }
+
+        /// <summary>Finds the HUD entry owned by <paramref name="steamId"/>; one SteamID never has two.</summary>
+        public static int FindSlotBySteamId(ulong steamId)
+        {
+            if (steamId == 0)
+            {
+                return -1;
+            }
+
+            for (int slot = 0; slot < MaxSlots; slot++)
+            {
+                if (Slots[slot] is { OwnerSteamId: var owner } && owner == steamId)
+                {
+                    return slot;
+                }
+            }
+
+            return -1;
+        }
+
         public static void ShowPanel(CCSPlayerController player)
         {
             if (!TryEntry(player, out PlayerHud entry) || !EnsureSpawned(player))
@@ -350,29 +382,6 @@ namespace MapVote.Utils
             }
 
             QueueHumans();
-        }
-
-        public static void ReleasePlayer(CCSPlayerController? player)
-        {
-            if (player is null)
-            {
-                return;
-            }
-
-            int slot = player.Slot;
-            if (player.IsValid)
-            {
-                HudMenu.ReleasePlayer(player);
-            }
-            else
-            {
-                HudMenu.ReleaseSlot(slot);
-            }
-
-            if (PlayerSlots.IsValid(slot))
-            {
-                Kill(slot);
-            }
         }
 
         /// <summary>

@@ -305,7 +305,7 @@ namespace MapVote
             bool openForVote = untilReveal > 0f;
             foreach (CCSPlayerController player in Humans.GetHumans())
             {
-                VoteHud.OpenFor(player, captureMouse: openForVote);
+                VoteHud.OpenFor(player);
             }
 
             if (!openForVote)
@@ -547,7 +547,7 @@ namespace MapVote
             if (_flow.Phase == EndMatchPhase.Revealing)
             {
                 PluginLog.Debug($"map vote: opening reveal HUD for joiner {Humans.Label(player)}");
-                VoteHud.OpenFor(player, captureMouse: false);
+                VoteHud.OpenFor(player);
                 if (_pendingWinner is not null)
                 {
                     VoteHud.PaintRevealFor(player, _pendingWinner);

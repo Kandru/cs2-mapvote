@@ -160,7 +160,7 @@ namespace MapVote
         /// </summary>
         private VoteSession? NominationSessionFor(IReadOnlyList<string> maps)
         {
-            if (!Config.Nominations.Enabled)
+            if (!Config.Nominations.Enabled || maps.Count == 0)
             {
                 _nominationSession = null;
                 return null;

@@ -69,6 +69,56 @@ public class ConfigNormalizeTests
     }
 
     [Fact]
+    public void Normalize_DropsNullAndBlankEntriesAndRepairsLists()
+    {
+        PluginConfig config = new()
+        {
+            Filters = new FiltersConfig
+            {
+                Types = [null!, new() { Id = " bomb ", Prefixes = null! }, new() { Id = "   " }],
+                Sorts = [null!, new() { Id = " alpha ", By = null!, Order = " " }],
+            },
+        };
+
+        config.Normalize();
+
+        FilterTypeConfig type = Assert.Single(config.Filters.Types);
+        Assert.Equal("bomb", type.Id);
+        Assert.Empty(type.Prefixes);
+        SortConfig sort = Assert.Single(config.Filters.Sorts);
+        Assert.Equal("alpha", sort.Id);
+        Assert.Equal("name", sort.By);
+        Assert.Equal("asc", sort.Order);
+    }
+
+    [Fact]
+    public void Normalize_ClampsUpperMaxMapsAndRtvValues()
+    {
+        PluginConfig config = new()
+        {
+            Endmatch = new EndmatchConfig
+            {
+                MaxMaps = MapCatalog.MaxMaps + 20,
+                WinnerRevealSeconds = -4,
+            },
+            Rtv = new RtvConfig
+            {
+                Ratio = 2.5f,
+                DurationSeconds = -1,
+                AnnounceSeconds = -1,
+            },
+        };
+
+        config.Normalize();
+
+        Assert.Equal(MapCatalog.MaxMaps, config.Endmatch.MaxMaps);
+        Assert.Equal(1, config.Endmatch.WinnerRevealSeconds);
+        Assert.Equal(1f, config.Rtv.Ratio);
+        Assert.Equal(0, config.Rtv.DurationSeconds);
+        Assert.Equal(0, config.Rtv.AnnounceSeconds);
+    }
+
+    [Fact]
     public void Normalize_IsIdempotent()
     {
         PluginConfig config = new();

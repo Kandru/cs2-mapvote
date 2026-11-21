@@ -52,8 +52,8 @@ namespace MapVote.Config
             Catalog ??= new CatalogConfig();
             MapsVotable ??= new Dictionary<string, bool>(StringComparer.Ordinal);
 
-            Filters.Types ??= ConfigDefaults.CreateFilterTypes();
-            Filters.Sorts ??= ConfigDefaults.CreateSorts();
+            Filters.Types = NormalizeTypes(Filters.Types);
+            Filters.Sorts = NormalizeSorts(Filters.Sorts);
 
             if (string.IsNullOrWhiteSpace(Display.Order))
             {
@@ -69,6 +69,70 @@ namespace MapVote.Config
             {
                 Endmatch.MaxMaps = MapCatalog.MaxMaps;
             }
+            else
+            {
+                Endmatch.MaxMaps = Math.Min(Endmatch.MaxMaps, MapCatalog.MaxMaps);
+            }
+
+            Endmatch.WinnerRevealSeconds = Math.Max(1, Endmatch.WinnerRevealSeconds);
+            Rtv.DurationSeconds = Math.Max(0, Rtv.DurationSeconds);
+            Rtv.AnnounceSeconds = Math.Max(0, Rtv.AnnounceSeconds);
+            Rtv.Ratio = float.IsFinite(Rtv.Ratio)
+                ? Math.Clamp(Rtv.Ratio, 0.01f, 1f)
+                : 0.6f;
+        }
+
+        private static List<FilterTypeConfig> NormalizeTypes(List<FilterTypeConfig>? configured)
+        {
+            if (configured is null)
+            {
+                return ConfigDefaults.CreateFilterTypes();
+            }
+
+            List<FilterTypeConfig> types = [];
+            foreach (FilterTypeConfig? type in configured)
+            {
+                if (type is null)
+                {
+                    continue;
+                }
+
+                type.Id = type.Id?.Trim() ?? string.Empty;
+                type.Prefixes ??= [];
+                if (type.Id.Length > 0)
+                {
+                    types.Add(type);
+                }
+            }
+
+            return types;
+        }
+
+        private static List<SortConfig> NormalizeSorts(List<SortConfig>? configured)
+        {
+            if (configured is null)
+            {
+                return ConfigDefaults.CreateSorts();
+            }
+
+            List<SortConfig> sorts = [];
+            foreach (SortConfig? sort in configured)
+            {
+                if (sort is null)
+                {
+                    continue;
+                }
+
+                sort.Id = sort.Id?.Trim() ?? string.Empty;
+                sort.By = string.IsNullOrWhiteSpace(sort.By) ? "name" : sort.By.Trim().ToLowerInvariant();
+                sort.Order = string.IsNullOrWhiteSpace(sort.Order) ? "asc" : sort.Order.Trim().ToLowerInvariant();
+                if (sort.Id.Length > 0)
+                {
+                    sorts.Add(sort);
+                }
+            }
+
+            return sorts;
         }
     }
 

@@ -75,7 +75,6 @@ namespace MapVote.Huds
             /// <summary>Reveal reached this open player while the tick budget was spent.</summary>
             public bool RevealPending;
             public bool Pending;
-            public bool PendingCapture;
         }
 
         private static readonly SlotState[] Slots = CreateSlots();
@@ -233,7 +232,6 @@ namespace MapVote.Huds
             }
 
             ResetSlotState(slot);
-            SlotAt(slot).PendingCapture = false;
             if (SlotAt(slot).Pending)
             {
                 SlotAt(slot).Pending = false;
@@ -258,7 +256,7 @@ namespace MapVote.Huds
         /// Opens now when the tick budget allows and nobody is queued ahead,
         /// otherwise queues the open for <see cref="OnTick"/>.
         /// </summary>
-        public static void OpenFor(CCSPlayerController player, bool captureMouse = true)
+        public static void OpenFor(CCSPlayerController player)
         {
             if (!IsBound || !Humans.IsHumanViewer(player) || !IsSlot(player.Slot))
             {
@@ -266,7 +264,6 @@ namespace MapVote.Huds
             }
 
             int slot = player.Slot;
-            SlotAt(slot).PendingCapture = captureMouse;
             if (!SlotAt(slot).Pending)
             {
                 SlotAt(slot).Pending = true;
@@ -295,17 +292,17 @@ namespace MapVote.Huds
                 if (_revealing)
                 {
                     // Reveal started while queued: open like a joiner during reveal.
-                    OpenNow(player, captureMouse: false);
+                    OpenNow(player);
                     ApplyRevealPaint(player);
                 }
                 else
                 {
-                    OpenNow(player, SlotAt(slot).PendingCapture);
+                    OpenNow(player);
                 }
             }
         }
 
-        private static void OpenNow(CCSPlayerController player, bool captureMouse)
+        private static void OpenNow(CCSPlayerController player)
         {
             // The layout entity can be missing after a map change or a failed spawn: do not
             // call anything on it and tell the viewer that the overlay could not open.
@@ -321,7 +318,6 @@ namespace MapVote.Huds
                 {
                     OnButton = OnButton,
                     OnClosed = OnClosed,
-                    CaptureMouse = captureMouse,
                 }))
             {
                 ReportOpenFailure(player);
@@ -349,6 +345,13 @@ namespace MapVote.Huds
             if (IsSlot(player.Slot))
             {
                 ResetSlotState(player.Slot);
+            }
+
+            // The browse view is shared. Drop it with its last viewer so the next !maps
+            // always binds a fresh map list and base order.
+            if (_mode == Mode.Browse && !HudMenu.HasOpenSessions)
+            {
+                Clear();
             }
         }
 
@@ -502,7 +505,6 @@ namespace MapVote.Huds
             }
 
             SlotAt(player.Slot).RevealPending = false;
-            HudMenu.DropCapture(player);
             SlotAt(player.Slot).Minimized = false;
             PaintPlayer(player);
             SetDirty(player.Slot, CustomHud.TickWrites >= PaintWriteBudget);
@@ -513,7 +515,7 @@ namespace MapVote.Huds
         private static void OnButton(CCSPlayerController player, string buttonId)
         {
             bool browsing = _mode == Mode.Browse;
-            bool interactive = browsing || _session is { IsOpen: true };
+            bool interactive = browsing || _revealing || _session is { IsOpen: true };
             if (!interactive || !IsSlot(player.Slot))
             {
                 PluginLog.Debug(
@@ -538,7 +540,8 @@ namespace MapVote.Huds
                 return;
             }
 
-            if (SlotAt(slot).Minimized)
+            // Reveal keeps mouse capture only so the viewer can hide/show the result.
+            if (_revealing || SlotAt(slot).Minimized)
             {
                 return;
             }
@@ -571,7 +574,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            if (_revealing || !Humans.TryGetSteamId(player, out _))
+            if (!Humans.TryGetSteamId(player, out _))
             {
                 return;
             }
@@ -1317,7 +1320,6 @@ namespace MapVote.Huds
             {
                 ResetSlotState(slot);
                 SlotAt(slot).Pending = false;
-                SlotAt(slot).PendingCapture = false;
             }
 
             PendingOpens.Clear();

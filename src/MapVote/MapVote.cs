@@ -29,9 +29,8 @@ namespace MapVote
         private MapPlayCounts _plays = null!;
         private VoteSession? _session;
         private VoteTiming _timing;
-        // Timers are cancelled by bumping these tokens, never by Kill() (ruleset §1.3).
+        // Flow timers are cancelled by bumping this token, never by Kill() (ruleset §1.3).
         private int _flowEpoch;
-        private int _rtvToken;
         // Deferred HUD opens are superseded per slot; never touch a dictionary indexer directly.
         private readonly SlotActionTokens _hudOpenTokens = new();
         private DateTime _scheduleEpochUtc;
@@ -49,7 +48,6 @@ namespace MapVote
         private bool _rtvClosed;
         private bool _leaveMap;
         private bool _unloaded;
-        private readonly Dictionary<int, ulong> _steamBySlot = [];
 
         public void OnConfigParsed(PluginConfig config)
         {
@@ -111,7 +109,6 @@ namespace MapVote
                 return;
             }
 
-            ReconcileSteamSlots();
             CustomHud.ResetRound();
             ArmEngineHold();
         }
@@ -207,6 +204,7 @@ namespace MapVote
             CustomHud.OnTick();
             // Vote mode is bound only during Voting/Revealing; browse mode can be open any time.
             VoteHud.OnTick();
+            TickRtv();
         }
 
         private void LoadPersistence()
@@ -236,7 +234,6 @@ namespace MapVote
         {
             PluginLog.Info($"map start: {mapName}");
             InitializeRuntimeState("map start");
-            ReconcileSteamSlots();
             CustomHud.ResetRound();
             LoadPersistence();
             ArmEngineHold();
@@ -257,8 +254,9 @@ namespace MapVote
         }
 
         /// <summary>
-        /// Resets every piece of runtime state to its startup default. Used on plugin load
+        /// Resets every per-map runtime value to its startup default. Used on plugin load
         /// (including hot reload) and on map start, so neither path depends on the other.
+        /// The cached original server vote length is intentionally retained across maps.
         /// </summary>
         private void InitializeRuntimeState(string reason)
         {
@@ -277,15 +275,15 @@ namespace MapVote
             _timing = default;
             _flowEpoch++;
             _flow.Reset();
-            _rtvToken++;
             _rtvDeadlineUtc = null;
+            _rtvNextAnnounceUtc = null;
+            _rtvAnnounceSeconds = 0;
             _rtvVoters.Clear();
             _rtvPassed = false;
             _rtvClosed = false;
             _hudOpenTokens.ClearAll();
             _mapsPendingOpen.Clear();
             _nominationSession = null;
-            _steamBySlot.Clear();
             VoteHud.ResetView();
             CustomHud.Initialize();
             MapOrder.ResetMatch();
@@ -294,8 +292,8 @@ namespace MapVote
 
         /// <summary>
         /// De-initializes everything that can outlive a map: timers, votes, RTV, browser
-        /// state, pending HUD opens, slot identities and layout entities. Used on map end
-        /// and on plugin unload; both leave the plugin in a closed, inert state.
+        /// state, pending HUD opens and layout entities. Used on map end and on plugin
+        /// unload; both leave the plugin in a closed, inert state.
         /// </summary>
         private void ShutdownRuntimeState(string reason)
         {
@@ -314,14 +312,14 @@ namespace MapVote
             _timing = default;
             _flowEpoch++;
             _flow.Reset();
-            _rtvToken++;
             _rtvDeadlineUtc = null;
+            _rtvNextAnnounceUtc = null;
+            _rtvAnnounceSeconds = 0;
             _rtvVoters.Clear();
             _rtvPassed = false;
             _hudOpenTokens.ClearAll();
             _mapsPendingOpen.Clear();
             _nominationSession = null;
-            _steamBySlot.Clear();
             try
             {
                 _catalog?.Invalidate();
@@ -332,43 +330,6 @@ namespace MapVote
                 CustomHud.Shutdown();
                 PluginLog.Debug($"runtime shut down ({reason})");
             }
-        }
-
-        /// <summary>
-        /// Keeps the slot → SteamID fallback map aligned with the controllers that
-        /// survived a map change, so a later disconnect cannot clean up a stale identity.
-        /// </summary>
-        private void ReconcileSteamSlots()
-        {
-            HashSet<int> liveSlots = [];
-            foreach (CCSPlayerController player in Humans.GetHumans())
-            {
-                if (!PlayerSlots.IsValid(player.Slot))
-                {
-                    continue;
-                }
-
-                liveSlots.Add(player.Slot);
-                if (Humans.TryGetSteamId(player, out ulong steamId))
-                {
-                    _steamBySlot[player.Slot] = steamId;
-                }
-                else
-                {
-                    // A slot without an authorized id must not fall back to the previous owner.
-                    _steamBySlot.Remove(player.Slot);
-                }
-            }
-
-            foreach (int slot in _steamBySlot.Keys.ToList())
-            {
-                if (!liveSlots.Contains(slot))
-                {
-                    _steamBySlot.Remove(slot);
-                }
-            }
-
-            PluginLog.Debug($"slot identities reconciled ({_steamBySlot.Count} cached)");
         }
 
         private HookResult OnWinPanelMatch(EventCsWinPanelMatch @event, GameEventInfo info)
@@ -424,11 +385,6 @@ namespace MapVote
 
             if (Humans.TryGetSteamId(player, out ulong steamId))
             {
-                if (PlayerSlots.IsValid(player.Slot))
-                {
-                    _steamBySlot[player.Slot] = steamId;
-                }
-
                 _archive.GetOrCreate(steamId, player.PlayerName);
                 PluginLog.Debug($"connect: {Humans.Label(player, steamId)} slot={player.Slot}");
 
@@ -454,24 +410,44 @@ namespace MapVote
             int slot = player.Slot;
             ulong steamId = Humans.TryGetSteamId(player, out ulong current)
                 ? current
-                : PlayerSlots.IsValid(slot) && _steamBySlot.TryGetValue(slot, out ulong cached)
-                    ? cached
-                    : 0;
+                : player.AuthorizedSteamID?.SteamId64 ?? 0;
 
-            // The controller may no longer expose a usable slot; fall back to the cached
-            // identity so HUD queues and per-slot state are still released.
+            // A slot may already belong to the next player. Find the live layout by
+            // SteamID first and only release a slot whose owner still matches.
             if (!PlayerSlots.IsValid(slot) && steamId > 0)
             {
-                slot = FindSlotForSteamId(steamId);
+                slot = CustomHud.FindSlotBySteamId(steamId);
             }
 
             if (PlayerSlots.IsValid(slot))
             {
-                _steamBySlot.Remove(slot);
-                _hudOpenTokens.Clear(slot);
-                VoteHud.ReleaseSlot(slot);
-                // No controller writes here: the slot may already be invalid/reused.
-                CustomHud.ReleaseSlot(slot);
+                bool ownsSlot = steamId == 0
+                    || (CustomHud.TryGetOwner(slot, out ulong owner) && owner == steamId)
+                    || (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } occupant
+                        && Humans.TryGetSteamId(occupant, out ulong occupantId)
+                        && occupantId == steamId);
+                if (!ownsSlot && steamId > 0)
+                {
+                    slot = CustomHud.FindSlotBySteamId(steamId);
+                    ownsSlot = PlayerSlots.IsValid(slot);
+                }
+
+                if (ownsSlot)
+                {
+                    _hudOpenTokens.Clear(slot);
+                    // Kill the layout/session without writing to a controller that may be gone.
+                    CustomHud.ReleaseSlot(slot);
+                    VoteHud.ReleaseSlot(slot);
+                    if (!HudMenu.HasOpenSessions)
+                    {
+                        VoteHud.CloseBrowse();
+                    }
+                }
+                else
+                {
+                    PluginLog.Debug(
+                        $"disconnect: slot {slot} now belongs to another player; no HUD release");
+                }
             }
 
             if (steamId > 0)
@@ -514,20 +490,6 @@ namespace MapVote
             }
 
             return HookResult.Continue;
-        }
-
-        /// <summary>Cached slot for an identity, or -1 when the controller never reached connect full.</summary>
-        private int FindSlotForSteamId(ulong steamId)
-        {
-            foreach ((int slot, ulong cached) in _steamBySlot)
-            {
-                if (cached == steamId)
-                {
-                    return slot;
-                }
-            }
-
-            return -1;
         }
 
         private void OnCustomHudClicked(CCSPlayerController player, CCSCustomHudLayout layout, string buttonId) =>

@@ -10,6 +10,9 @@ namespace MapVote
 {
     public partial class MapVote
     {
+        private DateTime? _rtvNextAnnounceUtc;
+        private int _rtvAnnounceSeconds;
+
         [ConsoleCommand("css_rtv", "Rock the vote - force the match toward the map vote.")]
         [ConsoleCommand("rtv", "Rock the vote - force the match toward the map vote.")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
@@ -137,75 +140,103 @@ namespace MapVote
         {
             StopRtvWindow();
 
-            int token = _rtvToken;
+            DateTime now = DateTime.UtcNow;
             int duration = Math.Max(0, Config.Rtv.DurationSeconds);
+            _rtvAnnounceSeconds = Math.Max(0, Config.Rtv.AnnounceSeconds);
             if (duration > 0)
             {
-                _rtvDeadlineUtc = DateTime.UtcNow.AddSeconds(duration);
-                AddTimer(duration, () => OnRtvExpired(token));
+                _rtvDeadlineUtc = now.AddSeconds(duration);
             }
 
-            int announce = Math.Max(0, Config.Rtv.AnnounceSeconds);
-            if (announce > 0)
+            if (RtvRule.NextAnnounceDelay(duration, _rtvAnnounceSeconds) is int delay)
             {
-                ScheduleRtvAnnounce(token, announce);
+                _rtvNextAnnounceUtc = now.AddSeconds(delay);
             }
 
             PluginLog.Debug(
-                $"rtv: window started token={token} duration={duration}s announce={announce}s");
+                $"rtv: window started duration={duration}s announce={_rtvAnnounceSeconds}s");
         }
 
-        /// <summary>Cancels the window timers by token; safe to call from their own callbacks.</summary>
+        /// <summary>Clears the deadline and reminder schedule. No timer is used; OnTick drives RTV.</summary>
         private void StopRtvWindow()
         {
-            _rtvToken++;
             _rtvDeadlineUtc = null;
+            _rtvNextAnnounceUtc = null;
+            _rtvAnnounceSeconds = 0;
         }
 
-        private void ScheduleRtvAnnounce(int token, int seconds) =>
-            AddTimer(seconds, () => OnRtvAnnounce(token, seconds));
-
-        private void OnRtvExpired(int token)
+        /// <summary>Runs from OnTick: expiry first, then one reminder per scheduled whole interval.</summary>
+        private void TickRtv()
         {
-            if (token != _rtvToken)
+            if (_unloaded || _rtvPassed || _rtvClosed)
             {
                 return;
             }
 
-            if (_unloaded || _rtvPassed || _rtvClosed || _rtvVoters.Count == 0)
+            DateTime now = DateTime.UtcNow;
+            if (_rtvDeadlineUtc is DateTime deadline && now >= deadline)
             {
-                PluginLog.Debug($"rtv: expiry ignored token={token} unloaded={_unloaded} passed={_rtvPassed} closed={_rtvClosed} voters={_rtvVoters.Count}");
+                ExpireRtv();
+                return;
+            }
+
+            if (_rtvNextAnnounceUtc is not DateTime next || now < next)
+            {
+                return;
+            }
+
+            if (_rtvVoters.Count == 0)
+            {
                 StopRtvWindow();
                 return;
             }
 
+            AnnounceRtv(now);
+            if (_rtvAnnounceSeconds == 0)
+            {
+                return;
+            }
+
+            DateTime nextAt = next.AddSeconds(_rtvAnnounceSeconds);
+            while (nextAt <= now)
+            {
+                nextAt = nextAt.AddSeconds(_rtvAnnounceSeconds);
+            }
+
+            _rtvNextAnnounceUtc = _rtvDeadlineUtc is DateTime end && nextAt >= end ? null : nextAt;
+        }
+
+        private void ExpireRtv()
+        {
+            int humans = CountRtvHumans();
             int have = _rtvVoters.Count;
-            int need = RtvVotesNeeded(CountRtvHumans());
+            if (have == 0)
+            {
+                StopRtvWindow();
+                return;
+            }
+
+            int need = RtvVotesNeeded(humans);
             _rtvVoters.Clear();
             StopRtvWindow();
             PluginLog.Info($"rtv expired: {have}/{need} vote(s) were not enough");
             Server.PrintToChatAll(Chat(Localizer["rtv.expired"]));
         }
 
-        private void OnRtvAnnounce(int token, int seconds)
+        private void AnnounceRtv(DateTime now)
         {
-            if (token != _rtvToken)
-            {
-                return;
-            }
-
-            ScheduleRtvAnnounce(token, seconds);
-            if (_unloaded || _rtvPassed || _rtvClosed || _rtvVoters.Count == 0)
-            {
-                return;
-            }
-
             int humans = CountRtvHumans();
-            int need = RtvVotesNeeded(humans);
             int have = _rtvVoters.Count;
+            if (have == 0)
+            {
+                StopRtvWindow();
+                return;
+            }
+
+            int need = RtvVotesNeeded(humans);
             if (_rtvDeadlineUtc is DateTime deadline)
             {
-                int left = Math.Max(0, (int)Math.Ceiling((deadline - DateTime.UtcNow).TotalSeconds));
+                int left = Math.Max(0, (int)Math.Ceiling((deadline - now).TotalSeconds));
                 PluginLog.Debug($"rtv: reminder {have}/{need}, {left}s left, {humans} human(s)");
                 Server.PrintToChatAll(Chat(Localizer["rtv.running", have, need, left]));
                 return;

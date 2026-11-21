@@ -11,5 +11,27 @@ namespace MapVote.Voting
         }
 
         public static float ClampRatio(float ratio) => Math.Clamp(ratio, 0.01f, 1f);
+
+        /// <summary>
+        /// Seconds until the first reminder on a whole interval boundary. With a 60s
+        /// window and 15s interval this is 15s (45s left), then 30, 45, and no 0s
+        /// reminder. A 0 duration means no deadline and repeats forever.
+        /// </summary>
+        public static int? NextAnnounceDelay(int durationSeconds, int intervalSeconds)
+        {
+            if (intervalSeconds <= 0)
+            {
+                return null;
+            }
+
+            if (durationSeconds <= 0)
+            {
+                return intervalSeconds;
+            }
+
+            int remainder = durationSeconds % intervalSeconds;
+            int delay = remainder == 0 ? intervalSeconds : remainder;
+            return delay < durationSeconds ? delay : null;
+        }
     }
 }

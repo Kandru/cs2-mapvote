@@ -34,8 +34,9 @@ namespace MapVote.Maps
         }
 
         /// <summary>
-        /// Keeps priority maps first, then the start of the stable base order. The source list
-        /// keeps catalog order; the HUD applies the same base order to every viewer.
+        /// Keeps every priority map in the selected set, then fills the remaining slots from
+        /// the start of the stable base order. The returned list stays in catalog order; the
+        /// HUD applies the same base order to every viewer.
         /// </summary>
         public static List<MapEntry> TakeInBaseOrder(
             List<MapEntry> maps,

@@ -1,3 +1,4 @@
+using CounterStrikeSharp.API;
 using MapVote.Huds;
 using MapVote.Runtime;
 using MapVote.Utils;
@@ -213,7 +214,15 @@ namespace MapVote.Maps
             {
                 _debug(
                     $"catalog: starting queued refresh sources={request.DescribeSources()} budget={request.BudgetSeconds}s");
-                RequestRefresh(request.BudgetSeconds, request.QueryLocalMaps, request.QueryMapgroup);
+                // This callback runs on the RCON worker. RequestRefresh reads ConVars and
+                // must start from the game thread.
+                Server.NextFrame(() =>
+                {
+                    if (IsCurrentGeneration(generation))
+                    {
+                        RequestRefresh(request.BudgetSeconds, request.QueryLocalMaps, request.QueryMapgroup);
+                    }
+                });
             }
         }
 
