@@ -34,9 +34,6 @@ namespace MapVote.Utils
             return true;
         }
 
-        public static bool IsEligible(CCSPlayerController? player) =>
-            TryGetSteamId(player, out _);
-
         /// <summary>Console label: "Name (steamid)". Missing name → "?", missing id → "0".</summary>
         public static string Label(CCSPlayerController? player, ulong? steamId = null)
         {
@@ -50,9 +47,5 @@ namespace MapVote.Utils
 
         public static IEnumerable<CCSPlayerController> GetHumans() =>
             Utilities.GetPlayers().Where(IsHumanViewer);
-
-        /// <summary>Humans whose SteamID64 is usable for persisted or counted actions.</summary>
-        public static IEnumerable<CCSPlayerController> GetEligible() =>
-            Utilities.GetPlayers().Where(IsEligible);
     }
 }

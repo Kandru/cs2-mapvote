@@ -83,7 +83,7 @@ namespace MapVote
         private int CountRtvHumans(ulong? excludeSteamId = null)
         {
             HashSet<ulong> eligible = [];
-            foreach (CCSPlayerController human in Humans.GetEligible())
+            foreach (CCSPlayerController human in Humans.GetHumans())
             {
                 if (Humans.TryGetSteamId(human, out ulong id)
                     && id != excludeSteamId)
