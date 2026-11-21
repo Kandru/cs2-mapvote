@@ -406,33 +406,34 @@ namespace MapVote
             ulong steamId = Humans.TryGetSteamId(player, out ulong current)
                 ? current
                 : player.AuthorizedSteamID?.SteamId64 ?? 0;
-            if (steamId == 0
-                && PlayerSlots.IsValid(slot)
-                && CustomHud.TryGetOwner(slot, out ulong layoutOwner))
-            {
-                // The controller is gone; the private layout still names its SteamID.
-                steamId = layoutOwner;
-            }
 
-            // A slot may already belong to the next player. Find the live layout by
-            // SteamID first and only release a slot whose owner still matches.
             if (!PlayerSlots.IsValid(slot) && steamId > 0)
             {
                 slot = CustomHud.FindSlotBySteamId(steamId);
             }
 
-            bool slotReused = PlayerSlots.IsValid(slot)
-                && steamId > 0
+            ulong occupantSteamId = 0;
+            bool occupantKnown = PlayerSlots.IsValid(slot)
                 && Utilities.GetPlayerFromSlot(slot) is { IsValid: true } occupant
-                && Humans.TryGetSteamId(occupant, out ulong occupantSteamId)
-                && occupantSteamId != steamId;
+                && Humans.TryGetSteamId(occupant, out occupantSteamId);
+            if (steamId == 0
+                && PlayerSlots.IsValid(slot)
+                && CustomHud.TryGetOwner(slot, out ulong layoutOwner)
+                && (!occupantKnown || layoutOwner != occupantSteamId))
+            {
+                // The controller is gone; a stale layout entry still names the old SteamID.
+                steamId = layoutOwner;
+            }
+
+            // A live authorized occupant is authoritative. If it is not this SteamID,
+            // the slot has been reused and none of its HUD state may be touched.
+            bool slotReused = occupantKnown
+                && (steamId == 0 || occupantSteamId != steamId);
             if (PlayerSlots.IsValid(slot) && !slotReused)
             {
                 bool ownsSlot = steamId == 0
                     || (CustomHud.TryGetOwner(slot, out ulong owner) && owner == steamId)
-                    || (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } currentOccupant
-                        && Humans.TryGetSteamId(currentOccupant, out ulong currentId)
-                        && currentId == steamId);
+                    || (occupantKnown && occupantSteamId == steamId);
                 if (!ownsSlot && steamId > 0)
                 {
                     slot = CustomHud.FindSlotBySteamId(steamId);

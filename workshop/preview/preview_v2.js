@@ -116,6 +116,7 @@
     const list = all.slice();
     if (s.sort < 0 || s.sort >= SORTS.length) return list;
     const sort = SORTS[s.sort];
+    if (!["name", "plays", "rating", "favorite"].includes(sort.by)) return list;
     const descending = sort.order !== "asc";
     list.sort((a, b) => {
       const av = sortValue(a, sort.by);
