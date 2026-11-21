@@ -274,7 +274,7 @@ namespace MapVote
 
         private void OpenRtvForNewMatch(string reason)
         {
-            if (!_rtvClosed || !_flow.TryFinishForNewMatch())
+            if ((!_rtvClosed && !_rtvPassed) || !_flow.TryFinishForNewMatch())
             {
                 return;
             }
