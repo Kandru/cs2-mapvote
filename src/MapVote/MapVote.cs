@@ -35,7 +35,6 @@ namespace MapVote
         private readonly SlotActionTokens _hudOpenTokens = new();
         private DateTime _scheduleEpochUtc;
         private DateTime _intermissionEpochUtc;
-        private DateTime? _rtvDeadlineUtc;
         private int _voteSeconds = VoteClock.DefaultVoteSeconds;
         private int? _baseVoteSeconds;
         private int _catalogGeneration;
@@ -422,13 +421,18 @@ namespace MapVote
                 slot = CustomHud.FindSlotBySteamId(steamId);
             }
 
-            if (PlayerSlots.IsValid(slot))
+            bool slotReused = PlayerSlots.IsValid(slot)
+                && steamId > 0
+                && Utilities.GetPlayerFromSlot(slot) is { IsValid: true } occupant
+                && Humans.TryGetSteamId(occupant, out ulong occupantSteamId)
+                && occupantSteamId != steamId;
+            if (PlayerSlots.IsValid(slot) && !slotReused)
             {
                 bool ownsSlot = steamId == 0
                     || (CustomHud.TryGetOwner(slot, out ulong owner) && owner == steamId)
-                    || (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } occupant
-                        && Humans.TryGetSteamId(occupant, out ulong occupantId)
-                        && occupantId == steamId);
+                    || (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } currentOccupant
+                        && Humans.TryGetSteamId(currentOccupant, out ulong currentId)
+                        && currentId == steamId);
                 if (!ownsSlot && steamId > 0)
                 {
                     slot = CustomHud.FindSlotBySteamId(steamId);
@@ -449,8 +453,13 @@ namespace MapVote
                 else
                 {
                     PluginLog.Debug(
-                        $"disconnect: slot {slot} now belongs to another player; no HUD release");
+                        $"disconnect: no owned HUD slot for {steamId}; no HUD release");
                 }
+            }
+            else if (slotReused)
+            {
+                PluginLog.Debug(
+                    $"disconnect: slot {slot} now belongs to another player; leaving its HUD untouched");
             }
 
             if (steamId > 0)

@@ -16,7 +16,8 @@ namespace MapVote.Maps
             string? excludeName,
             int limit,
             IReadOnlyList<string>? priority = null,
-            Action<int, int>? onTruncated = null)
+            Action<int, int>? onTruncated = null,
+            Func<string, string>? nameKey = null)
         {
             if (catalog.Count == 0)
             {
@@ -27,7 +28,7 @@ namespace MapVote.Maps
             if (maps.Count > limit)
             {
                 onTruncated?.Invoke(maps.Count, limit);
-                maps = TakeInBaseOrder(maps, priority, limit);
+                maps = TakeInBaseOrder(maps, priority, limit, nameKey);
             }
 
             return maps;
@@ -41,7 +42,8 @@ namespace MapVote.Maps
         public static List<MapEntry> TakeInBaseOrder(
             List<MapEntry> maps,
             IReadOnlyList<string>? priority,
-            int limit)
+            int limit,
+            Func<string, string>? nameKey = null)
         {
             if (maps.Count <= limit)
             {
@@ -68,7 +70,7 @@ namespace MapVote.Maps
 
             if (keep.Count < limit)
             {
-                foreach (string name in MapOrder.Sort([.. available], MapNameDisplay.Format))
+                foreach (string name in MapOrder.Sort([.. available], nameKey ?? MapNameDisplay.Format))
                 {
                     if (keep.Count >= limit)
                     {

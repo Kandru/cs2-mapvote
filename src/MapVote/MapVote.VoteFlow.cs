@@ -406,7 +406,8 @@ namespace MapVote
                 limit,
                 priority,
                 static (found, capped) => PluginLog.Debug(
-                    () => $"map candidates: {found} visible map(s) truncated to {capped}"));
+                    () => $"map candidates: {found} visible map(s) truncated to {capped}"),
+                Config.CleanMapNames ? MapNameDisplay.Format : static name => name);
             PluginLog.Debug(() =>
                 $"map candidates: selected {selected.Count}/{catalog.Count} (exclude={exclude ?? "none"}, limit={limit}, "
                 + $"priority={priority?.Count ?? 0}) [{string.Join(", ", selected.Select(static map => map.Name))}]");

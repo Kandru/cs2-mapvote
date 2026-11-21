@@ -10,6 +10,7 @@ namespace MapVote
 {
     public partial class MapVote
     {
+        private DateTime? _rtvDeadlineUtc;
         private DateTime? _rtvNextAnnounceUtc;
         private int _rtvAnnounceSeconds;
 

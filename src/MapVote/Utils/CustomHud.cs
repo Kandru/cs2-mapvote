@@ -162,12 +162,13 @@ namespace MapVote.Utils
 
         /// <summary>True when <paramref name="layout"/> is the private entity of <paramref name="player"/>.</summary>
         public static bool IsLayout(CCSPlayerController player, CCSCustomHudLayout layout) =>
-            player is { IsValid: true }
+            Humans.TryGetSteamId(player, out ulong steamId)
             && PlayerSlots.IsValid(player.Slot)
-            && Slots[player.Slot]?.Layout is { IsValid: true } owned
+            && Slots[player.Slot] is { Layout: { IsValid: true } owned, OwnerSteamId: var owner }
+            && owner == steamId
             && owned.Handle == layout.Handle;
 
-        /// <summary>Current owner of a live layout entity, if the slot has one.</summary>
+        /// <summary>SteamID recorded for a slot's HUD entry, even if its layout entity was lost.</summary>
         public static bool TryGetOwner(int slot, out ulong steamId)
         {
             steamId = 0;
@@ -416,16 +417,17 @@ namespace MapVote.Utils
 
             foreach ((CCheckTransmitInfo info, CCSPlayerController? viewer) in infoList)
             {
-                bool human = Humans.IsHumanViewer(viewer);
+                bool human = Humans.TryGetSteamId(viewer, out ulong viewerSteamId);
                 for (int slot = 0; slot < MaxSlots; slot++)
                 {
-                    if (Slots[slot]?.Layout is not { IsValid: true } layout)
+                    if (Slots[slot] is not { Layout: { IsValid: true } layout } entry)
                     {
                         continue;
                     }
 
                     int index = (int)layout.Index;
-                    if (human && viewer!.Slot == slot && ShouldTransmit(Slots[slot]!))
+                    if (human && viewer!.Slot == slot && entry.OwnerSteamId == viewerSteamId
+                        && ShouldTransmit(entry))
                     {
                         info.TransmitEntities.Add(index);
                     }
