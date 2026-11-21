@@ -23,6 +23,16 @@ PREVIEW = ROOT / "workshop" / "preview"
 OUT_HTML = PREVIEW / "vote_v2.html"
 OUT_BROWSE_HTML = PREVIEW / "maps_v2.html"
 OUT_CSS = PREVIEW / "hud_v2.preview.css"
+CONFIG_DEFAULTS = ROOT / "src" / "MapVote" / "Config" / "ConfigDefaults.cs"
+LANG = ROOT / "src" / "MapVote" / "lang" / "de.json"
+
+TYPE_DEFAULT_RE = re.compile(
+    r'new\(\)\s*\{\s*Id\s*=\s*"([^"]*)"\s*,\s*Prefixes\s*=\s*\[([^\]]*)\]\s*\}'
+)
+SORT_DEFAULT_RE = re.compile(
+    r'new\(\)\s*\{\s*Id\s*=\s*"([^"]*)"\s*,\s*By\s*=\s*"([^"]*)"\s*,\s*Order\s*=\s*"([^"]*)"\s*\}'
+)
+PREFIX_RE = re.compile(r'"([^"]*)"')
 
 TAGS = {"Panel": "div", "Label": "div", "Button": "button", "Image": "div"}
 
@@ -350,6 +360,37 @@ PREVIEW_MAP_ORDER = [
 ]
 
 
+def preview_config() -> dict[str, object]:
+    """Read the runtime defaults and German strings so the mock cannot drift from the plugin."""
+    if not CONFIG_DEFAULTS.is_file() or not LANG.is_file():
+        raise ValueError(f"missing {CONFIG_DEFAULTS} or {LANG}")
+    defaults = CONFIG_DEFAULTS.read_text(encoding="utf-8")
+    lang = json.loads(LANG.read_text(encoding="utf-8"))
+
+    types = [
+        {
+            "id": type_id,
+            "label": lang.get(f"filter.{type_id}", type_id),
+            "prefixes": PREFIX_RE.findall(prefixes),
+        }
+        for type_id, prefixes in TYPE_DEFAULT_RE.findall(defaults)
+    ]
+    sorts = [
+        {
+            "id": sort_id,
+            "label": lang.get(f"sort.{sort_id}", sort_id),
+            "by": by,
+            "order": order,
+        }
+        for sort_id, by, order in SORT_DEFAULT_RE.findall(defaults)
+    ]
+    if not types or not sorts:
+        raise ValueError("could not read default filter types/sorts from ConfigDefaults.cs")
+
+    types.insert(0, {"id": "all", "label": lang.get("filter.all", "All"), "prefixes": []})
+    return {"types": types, "sorts": sorts, "text": lang, "nominationsEnabled": True}
+
+
 def preview_maps() -> list[str]:
     """Preview maps with a bundled .webp, preferring the curated order."""
     image_dir = PREVIEW / "maps"
@@ -373,8 +414,6 @@ div, button { min-width: 0; min-height: 0; flex-shrink: 0; line-height: 1.15; }
 button { background: none; border: 0; font: inherit; color: inherit; cursor: pointer; text-align: inherit; padding: 0; appearance: none; }
 .pv-plate { position: fixed; inset: 0; background: #0a0c10 url("endmatch.jpg") center center / cover no-repeat; overflow: hidden; }
 .HudScreen { position: absolute; inset: 0; }
-/* Preview forces the card open; the game starts with is-off. */
-.VoteRoot.is-off { display: grid !important; }
 /* Panorama paints later siblings on top; in Chromium the blurred glass would form a higher stacking layer. */
 .VoteColumn { position: relative; z-index: 1; }
 /* hittest="false" */
@@ -395,6 +434,10 @@ def sync() -> list[str]:
     for path in (VOTE_XML, HUD_VCSS, MAPS_VCSS):
         if not path.is_file():
             return [f"missing {path.relative_to(ROOT)}"]
+    try:
+        config = preview_config()
+    except (OSError, ValueError, json.JSONDecodeError) as ex:
+        return [f"preview config: {ex}"]
     try:
         root = ET.parse(VOTE_XML).getroot()
     except ET.ParseError as ex:
@@ -417,12 +460,14 @@ def sync() -> list[str]:
     OUT_CSS.write_text("\n".join(css), encoding="utf-8", newline="\n")
 
     maps_json = json.dumps(preview_maps(), separators=(",", ":"))
+    config_json = json.dumps(config, ensure_ascii=False, separators=(",", ":"))
     for out, browse, title in ((OUT_HTML, "0", "MapVote preview"), (OUT_BROWSE_HTML, "1", "MapVote map browser preview")):
         out.write_text(
             "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\" />\n"
             f"<title>{title}</title>\n<link rel=\"stylesheet\" href=\"hud_v2.preview.css\" />\n</head>\n"
             f"<body data-browse=\"{browse}\">\n<div class=\"pv-plate\">\n{body}\n</div>\n"
-            f"<script>window.PV_MAPS = {maps_json};</script>\n<script src=\"preview_v2.js\"></script>\n"
+            f"<script>window.PV_MAPS = {maps_json}; window.PV_CONFIG = {config_json};</script>\n"
+            "<script src=\"preview_v2.js\"></script>\n"
             "</body>\n</html>\n",
             encoding="utf-8",
             newline="\n",

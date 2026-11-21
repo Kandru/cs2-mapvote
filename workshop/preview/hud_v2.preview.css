@@ -11,8 +11,6 @@ div, button { min-width: 0; min-height: 0; flex-shrink: 0; line-height: 1.15; }
 button { background: none; border: 0; font: inherit; color: inherit; cursor: pointer; text-align: inherit; padding: 0; appearance: none; }
 .pv-plate { position: fixed; inset: 0; background: #0a0c10 url("endmatch.jpg") center center / cover no-repeat; overflow: hidden; }
 .HudScreen { position: absolute; inset: 0; }
-/* Preview forces the card open; the game starts with is-off. */
-.VoteRoot.is-off { display: grid !important; }
 /* Panorama paints later siblings on top; in Chromium the blurred glass would form a higher stacking layer. */
 .VoteColumn { position: relative; z-index: 1; }
 /* hittest="false" */

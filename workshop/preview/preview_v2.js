@@ -1,14 +1,25 @@
-// Browser stand-in for the C# view of layout v2 (T8). Writes the same ids / classes / dialog
-// variables as the contract in tools/generate_vote_xml_v2.py, so the preview shows what the
-// server would paint. URL: ?n=8|45|all &state=vote|voted|reveal|empty|browse &clean=1 (no tool bar).
+// Browser stand-in for the C# view of layout v2. Type/sort defaults and all strings come
+// from ConfigDefaults.cs + lang/de.json through window.PV_CONFIG (tools/sync_preview.py),
+// so the mock follows the plugin instead of duplicating a second configuration.
+// URL: ?n=8|45|all &state=vote|voted|reveal|empty|browse &clean=1 (no tool bar).
 (() => {
   const q = new URLSearchParams(location.search);
   const BROWSE = document.body.dataset.browse === "1";
+  const CONFIG = window.PV_CONFIG;
+  const L = CONFIG.text;
   const SLOTS = document.querySelectorAll('[id^="mv-slot-"]').length;
   const N_OPTIONS = [8, 45, SLOTS];
   const N = N_OPTIONS.includes(Number(q.get("n"))) ? Number(q.get("n")) : 45;
   const STATE = BROWSE ? "browse" : q.get("state") || "vote";
   const RANKS = 6;
+
+  const fmt = (key, ...values) => {
+    let value = L[key] ?? key;
+    values.forEach((part, index) => {
+      value = value.split(`{${index}}`).join(String(part));
+    });
+    return value;
+  };
 
   // Sample catalog: maps that have a preview image, then workshop stand-ins up to the XML pool.
   const LONG = ["ws_ancient_night_extended_edition", "ws_aim_redline_training_complex", "ws_surf_kitsune_reborn"];
@@ -18,24 +29,49 @@
     if (i < base.length) maps.push({ id: base[i], img: base[i] });
     else maps.push({ id: LONG[i - base.length] || `ws_community_map_${i - base.length + 1}`, img: base[i % base.length] });
   }
-  const pretty = (id) =>
-    id.replace(/^(de|cs|ar|ws)_/, "").split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
   const all = maps.slice(0, N);
   const current = all.find((m) => m.id === "de_dust2") || all[0];
 
-  const TYPES = [
-    { label: "Alle", test: () => true },
-    { label: "Bomb", test: (m) => m.id.startsWith("de_") },
-    { label: "Hostage", test: (m) => m.id.startsWith("cs_") },
-    { label: "Arms Race", test: (m) => m.id.startsWith("ar_") },
-    { label: "Andere", test: (m) => !/^(de|cs|ar)_/.test(m.id) },
-  ];
-  const SORTS = ["Meistgespielt", "Wenig gespielt", "Beliebt", "Unbeliebt"];
+  // MapNameDisplay.Format: drop a leading token of at most 4 chars, then title-case words.
+  const pretty = (id) => {
+    const separator = id.indexOf("_");
+    const name = separator > 0 && separator <= 4 && separator + 1 < id.length
+      ? id.slice(separator + 1)
+      : id;
+    if (!name.includes("_")) {
+      return name ? name[0].toUpperCase() + name.slice(1) : name;
+    }
+    return name.split("_").filter(Boolean)
+      .map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
+  };
+
+  const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matchesPattern = (id, pattern) => {
+    if (!pattern) return false;
+    if (!pattern.includes("*")) {
+      return id.toLowerCase().startsWith(pattern.toLowerCase());
+    }
+    const regex = new RegExp(`^${pattern.split("*").map(escapeRegExp).join(".*")}$`, "i");
+    return regex.test(id);
+  };
+  const typeMatches = (map, index) => {
+    const type = CONFIG.types[index];
+    if (type.prefixes.length > 0) {
+      return type.prefixes.some((prefix) => matchesPattern(map.id, prefix));
+    }
+    return !CONFIG.types.slice(0, index)
+      .some((earlier) => earlier.prefixes.some((prefix) => matchesPattern(map.id, prefix)));
+  };
+  const TYPES = CONFIG.types.map((type, index) => ({
+    ...type,
+    test: (map) => typeMatches(map, index),
+  }));
+  const SORTS = CONFIG.sorts;
 
   const s = {
     votes: {}, firstVote: [], mine: null, fav: new Set(), rating: null,
     likes: 12, dislikes: 3, type: 0, favOnly: false, sort: -1,
-    reveal: false, minimized: false,
+    reveal: false, minimized: false, closed: false,
   };
   const vote = (id, delta) => {
     s.votes[id] = Math.max(0, (s.votes[id] || 0) + delta);
@@ -52,8 +88,10 @@
   if (STATE !== "vote") seed();
   if (STATE === "voted" || STATE === "reveal") { s.rating = "like"; s.likes += 1; }
   if (STATE === "reveal") s.reveal = true;
-  if (STATE === "empty") { s.type = 2; s.favOnly = true; }
-  if (STATE === "browse") s.sort = 0;
+  if (STATE === "empty") {
+    s.type = Math.max(0, TYPES.findIndex((type) => type.id === "hostage"));
+    s.favOnly = true;
+  }
 
   // ---- DOM helpers (mirror the three server channels) ----
   const $ = (id) => document.getElementById(id);
@@ -66,41 +104,64 @@
 
   const ranked = () =>
     s.firstVote.map((id, i) => ({ id, c: s.votes[id], i })).sort((a, b) => b.c - a.c || a.i - b.i).map((x) => x.id);
+  const plays = (map) => (map.id.length * 7) % 13;
+  const rating = (map) => (map.id.length % 5) - 2;
+  const sortValue = (map, by) => {
+    if (by === "plays") return plays(map);
+    if (by === "rating") return rating(map);
+    if (by === "favorite") return s.fav.has(map.id) ? 1 : 0;
+    return pretty(map.id);
+  };
   const order = () => {
-    const plays = (m) => (m.id.length * 7) % 13;
     const list = all.slice();
-    if (s.sort === 0) list.sort((a, b) => plays(b) - plays(a));
-    if (s.sort === 1) list.sort((a, b) => plays(a) - plays(b));
-    if (s.sort === 2) list.sort((a, b) => (b.id.length % 5) - (a.id.length % 5));
-    if (s.sort === 3) list.sort((a, b) => (a.id.length % 5) - (b.id.length % 5));
+    if (s.sort < 0 || s.sort >= SORTS.length) return list;
+    const sort = SORTS[s.sort];
+    const descending = sort.order !== "asc";
+    list.sort((a, b) => {
+      const av = sortValue(a, sort.by);
+      const bv = sortValue(b, sort.by);
+      let result = typeof av === "string"
+        ? (av < bv ? -1 : av > bv ? 1 : 0)
+        : av - bv;
+      if (descending) result = -result;
+      return result || all.indexOf(a) - all.indexOf(b);
+    });
     return list;
   };
-  const visible = (m) => TYPES[s.type].test(m) && (!s.favOnly || s.fav.has(m.id));
-  const byId = (id) => all.find((m) => m.id === id);
+  const availableFavorites = () => all.filter((map) => s.fav.has(map.id)).length;
+  const visible = (map) => TYPES[s.type].test(map) && (!s.favOnly || s.fav.has(map.id));
+  const byId = (id) => all.find((map) => map.id === id);
 
   let grid = [];
   const paint = () => {
     group("Vote", VIEWS, BROWSE ? "view-browse" : s.reveal ? "view-reveal" : "view-vote");
+    flag("Vote", "is-off", s.closed);
     flag("Vote", "is-minimized", s.minimized);
-    text("mv_title", BROWSE ? "Maps auf diesem Server" : "Stimme für die nächste Map");
-    text("mv_hide", BROWSE ? "Schließen" : s.minimized ? "Einblenden" : "Ausblenden");
+    text("mv_title", BROWSE ? L["hud.maps_title"] : L["hud.title"]);
+    text("mv_hide", BROWSE ? L["hud.close"] : s.minimized ? L["hud.show"] : L["hud.hide"]);
 
     const mine = byId(s.mine);
-    flag("mv-status", "is-self", !!mine && !BROWSE);
-    text("mv_status", BROWSE
-      ? "Stern = Favorit · Bewerten geht hier jederzeit"
-      : s.reveal ? "Abstimmung beendet"
-      : mine ? `Deine Stimme: ${pretty(mine.id)} – klick eine andere Map, um zu wechseln`
-      : "Klick auf eine Map, um abzustimmen");
+    flag("mv-status", "is-self", !!mine);
+    let status;
+    if (BROWSE) {
+      status = mine
+        ? fmt("hud.status_nominated", pretty(mine.id))
+        : CONFIG.nominationsEnabled ? L["hud.status_nominate_hint"] : L["hud.status_browse"];
+    } else if (s.reveal) {
+      status = L["hud.status_closed"];
+    } else {
+      status = mine ? fmt("hud.status_voted", pretty(mine.id)) : L["hud.status_hint"];
+    }
+    text("mv_status", status);
 
     // Current map + rating
-    text("mv_cur_tag", "Aktuelle Map");
+    text("mv_cur_tag", L["hud.current"]);
     text("mv_cur_name", pretty(current.id));
     shot("mv-current-shot", current);
     flag("mv-current-fav", "is-active", s.fav.has(current.id));
-    text("mv_rate_q", "Wie war die Map?");
-    text("mv_like", "Gefällt mir");
-    text("mv_dislike", "Gefällt mir nicht");
+    text("mv_rate_q", L["hud.rate_q"]);
+    text("mv_like", L["hud.like"]);
+    text("mv_dislike", L["hud.dislike"]);
     text("mv_like_n", String(s.likes));
     text("mv_dislike_n", String(s.dislikes));
     flag("mv-like", "is-active", s.rating === "like");
@@ -109,9 +170,9 @@
     // Ranking
     const top = ranked();
     const total = top.reduce((n, id) => n + s.votes[id], 0);
-    text("mv_rank_title", "Vorne");
-    text("mv_rank_empty", "Noch keine Stimmen – wähl unten eine Map");
-    text("mv_self", "Deine Stimme");
+    text("mv_rank_title", L["hud.rank_title"]);
+    text("mv_rank_empty", L["hud.rank_empty"]);
+    text("mv_self", L["hud.self"]);
     flag("mv-rank-empty", "is-off", top.length > 0);
     for (let i = 0; i < RANKS; i++) {
       const m = byId(top[i]);
@@ -126,22 +187,28 @@
 
     // Filters (labels carry the count)
     for (let i = 0; i < 8; i++) {
-      const t = TYPES[i];
-      flag(`mv-ft-${i}`, "is-off", !t);
-      if (!t) continue;
-      const count = all.filter(t.test).length;
-      text(`ft${i}`, `${t.label} (${count})`);
+      const type = TYPES[i];
+      flag(`mv-ft-${i}`, "is-off", !type);
+      if (!type) continue;
+      const count = all.filter(type.test).length;
+      text(`ft${i}`, `${type.label} (${count})`);
       flag(`mv-ft-${i}`, "is-active", s.type === i);
       flag(`mv-ft-${i}`, "is-disabled", i > 0 && count === 0);
     }
-    text("mv_favonly", `Favoriten (${s.fav.size})`);
+
+    const favoriteCount = availableFavorites();
+    if (favoriteCount === 0) s.favOnly = false;
+    text("mv_favonly", `${L["hud.fav_only"]} (${favoriteCount})`);
     flag("mv-fav-only", "is-active", s.favOnly);
-    flag("mv-fav-only", "is-disabled", s.fav.size === 0);
-    SORTS.forEach((label, i) => {
-      flag(`mv-fs-${i}`, "is-off", false);
-      text(`fs${i}`, label);
+    flag("mv-fav-only", "is-disabled", favoriteCount === 0);
+
+    for (let i = 0; i < 4; i++) {
+      const sort = SORTS[i];
+      flag(`mv-fs-${i}`, "is-off", !sort);
+      if (!sort) continue;
+      text(`fs${i}`, sort.label);
       flag(`mv-fs-${i}`, "is-active", s.sort === i);
-    });
+    }
 
     // Grid: order is global, visibility per player
     grid = order();
@@ -160,22 +227,24 @@
       flag(`mv-fav-${i}`, "is-active", s.fav.has(m.id));
     }
     flag("mv-empty", "is-off", shown > 0);
-    text("mv_empty", "Keine Map passt zu diesem Filter – Filter abwählen, um alle zu sehen");
+    text("mv_empty", L["hud.empty"]);
 
     // Reveal
     const winner = byId(top[0]) || all[0];
-    text("mv_win_tag", "Nächste Map");
+    text("mv_win_tag", L["hud.next"]);
     text("mv_win_name", pretty(winner.id));
-    const wv = s.votes[winner.id] || 0;
-    text("mv_win_votes", wv === 1 ? "1 Stimme" : wv ? `${wv} Stimmen` : "Zufallsauswahl – keine Stimmen");
+    const winnerVotes = s.votes[winner.id] || 0;
+    text("mv_win_votes", winnerVotes === 1
+      ? L["hud.win_votes_one"]
+      : winnerVotes ? fmt("hud.win_votes", winnerVotes) : L["hud.win_random"]);
     shot("mv-win-shot", winner);
   };
 
   // ---- Client-timed countdown: span-N, then is-running in the next frame; text 1x/s ----
   let left = BROWSE ? 0 : STATE === "reveal" ? 5 : 12;
-  const fmt = (t) => `0:${String(Math.max(0, t)).padStart(2, "0")}`;
+  const fmtTime = (t) => `0:${String(Math.max(0, t)).padStart(2, "0")}`;
   const tick = () => {
-    text("mv_time", fmt(left));
+    text("mv_time", fmtTime(left));
     flag("mv-timer", "is-urgent", left <= 5);
     if (left-- > 0) setTimeout(tick, 1000);
   };
@@ -191,22 +260,40 @@
     const id = ev.target.closest("button[id]")?.id;
     if (!id) return;
     let m;
-    if (id === "mv-minimize") s.minimized = !s.minimized;
-    else if (id === "mv-current-fav") s.fav.has(current.id) ? s.fav.delete(current.id) : s.fav.add(current.id);
-    else if ((id === "mv-like" || id === "mv-dislike") && !s.reveal) {
-      const r = id === "mv-like" ? "like" : "dislike";
+    if (id === "mv-minimize") {
+      if (BROWSE) s.closed = true;
+      else s.minimized = !s.minimized;
+    } else if (s.reveal) {
+      // Reveal only exposes the hide/show control, matching the server.
+      return;
+    } else if (id === "mv-current-fav") {
+      s.fav.has(current.id) ? s.fav.delete(current.id) : s.fav.add(current.id);
+    } else if (id === "mv-like" || id === "mv-dislike") {
+      const next = id === "mv-like" ? "like" : "dislike";
       if (s.rating === "like") s.likes--;
       if (s.rating === "dislike") s.dislikes--;
-      s.rating = s.rating === r ? null : r;
+      s.rating = s.rating === next ? null : next;
       if (s.rating === "like") s.likes++;
       if (s.rating === "dislike") s.dislikes++;
-    } else if ((m = /^mv-ft-(\d)$/.exec(id))) s.type = s.type === +m[1] ? 0 : +m[1];
-    else if (id === "mv-fav-only" && s.fav.size) s.favOnly = !s.favOnly;
-    else if ((m = /^mv-fs-(\d)$/.exec(id))) s.sort = s.sort === +m[1] ? -1 : +m[1];
-    else if ((m = /^mv-fav-(\d+)$/.exec(id))) { const k = grid[+m[1]].id; s.fav.has(k) ? s.fav.delete(k) : s.fav.add(k); }
-    else if (!BROWSE && !s.reveal && ((m = /^mv-(\d+)$/.exec(id)) || (m = /^mv-rank-(\d)$/.exec(id)))) {
-      const k = id.startsWith("mv-rank-") ? ranked()[+m[1]] : grid[+m[1]].id;
-      if (k !== s.mine) { if (s.mine) vote(s.mine, -1); vote(k, 1); s.mine = k; }
+    } else if ((m = /^mv-ft-(\d)$/.exec(id))) {
+      const index = +m[1];
+      if (index < TYPES.length && (index === 0 || all.filter(TYPES[index].test).length > 0)) {
+        s.type = s.type === index ? 0 : index;
+      }
+    } else if (id === "mv-fav-only" && availableFavorites() > 0) {
+      s.favOnly = !s.favOnly;
+    } else if ((m = /^mv-fs-(\d)$/.exec(id))) {
+      s.sort = s.sort === +m[1] ? -1 : +m[1];
+    } else if ((m = /^mv-fav-(\d+)$/.exec(id))) {
+      const map = grid[+m[1]];
+      if (map) s.fav.has(map.id) ? s.fav.delete(map.id) : s.fav.add(map.id);
+    } else if ((m = /^mv-(\d+)$/.exec(id)) || (m = /^mv-rank-(\d)$/.exec(id))) {
+      if (BROWSE && !CONFIG.nominationsEnabled) return;
+      const map = id.startsWith("mv-rank-") ? byId(ranked()[+m[1]]) : grid[+m[1]];
+      if (!map || map.id === s.mine) return;
+      if (s.mine) vote(s.mine, -1);
+      vote(map.id, 1);
+      s.mine = map.id;
     }
     paint();
   });
@@ -220,7 +307,7 @@
     bar.innerHTML =
       N_OPTIONS.map((n) => link(`${n} maps`, { n, state: STATE, browse: BROWSE }, n === N)).join("") +
       '<span class="pv-sep"></span>' +
-      ["vote", "voted", "reveal", "empty"].map((st) => link(st, { n: N, state: st }, st === STATE)).join("") +
+      ["vote", "voted", "reveal", "empty"].map((st) => link(st, { n: N, state: st, browse: BROWSE }, st === STATE)).join("") +
       link("browse", { n: N, state: "browse", browse: true }, BROWSE);
     document.body.appendChild(bar);
   }
