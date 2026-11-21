@@ -275,9 +275,7 @@ namespace MapVote
             _timing = default;
             _flowEpoch++;
             _flow.Reset();
-            _rtvDeadlineUtc = null;
-            _rtvNextAnnounceUtc = null;
-            _rtvAnnounceSeconds = 0;
+            StopRtvWindow();
             _rtvVoters.Clear();
             _rtvPassed = false;
             _rtvClosed = false;
@@ -312,9 +310,7 @@ namespace MapVote
             _timing = default;
             _flowEpoch++;
             _flow.Reset();
-            _rtvDeadlineUtc = null;
-            _rtvNextAnnounceUtc = null;
-            _rtvAnnounceSeconds = 0;
+            StopRtvWindow();
             _rtvVoters.Clear();
             _rtvPassed = false;
             _hudOpenTokens.ClearAll();
@@ -411,6 +407,13 @@ namespace MapVote
             ulong steamId = Humans.TryGetSteamId(player, out ulong current)
                 ? current
                 : player.AuthorizedSteamID?.SteamId64 ?? 0;
+            if (steamId == 0
+                && PlayerSlots.IsValid(slot)
+                && CustomHud.TryGetOwner(slot, out ulong layoutOwner))
+            {
+                // The controller is gone; the private layout still names its SteamID.
+                steamId = layoutOwner;
+            }
 
             // A slot may already belong to the next player. Find the live layout by
             // SteamID first and only release a slot whose owner still matches.
