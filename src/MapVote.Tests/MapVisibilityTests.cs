@@ -65,6 +65,24 @@ public class MapVisibilityTests
     }
 
     [Fact]
+    public void TrySync_BackfillDoesNotEnableADisabledMap()
+    {
+        Dictionary<string, MapSettings> maps = new(StringComparer.Ordinal)
+        {
+            ["map_de_dust2"] = Setting(enabled: false, added: 0),
+        };
+
+        Assert.True(MapVisibility.TrySync(
+            maps,
+            [new MapEntry("de_dust2", MapOrigin.Local)],
+            Now,
+            prune: false));
+
+        Assert.False(maps["map_de_dust2"].Enabled);
+        Assert.Equal(Now, maps["map_de_dust2"].Added);
+    }
+
+    [Fact]
     public void TrySync_KeepsStaleEntriesWithoutPrune()
     {
         Dictionary<string, MapSettings> maps = new(StringComparer.Ordinal)

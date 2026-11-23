@@ -1074,11 +1074,11 @@
 .CardTopLeft
 {
 	width: fit-children;
-	height: 28px;
+	height: fit-children;
 	horizontal-align: left;
 	vertical-align: top;
 	margin: 6px 0px 0px 6px;
-	flow-children: right;
+	flow-children: down;
 }
 
 .CardRating
@@ -1125,7 +1125,7 @@
 {
 	width: 28px;
 	height: 28px;
-	margin: 0px 0px 0px 4px;
+	margin: 4px 0px 0px 0px;
 	flow-children: none;
 	background-color: #0b0f14e8;
 	border: 2px solid #f0a531;

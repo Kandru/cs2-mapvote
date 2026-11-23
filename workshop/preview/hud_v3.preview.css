@@ -1116,11 +1116,11 @@ button { pointer-events: auto; }
 .CardTopLeft
 {
 	width: auto;
-	height: 28px;
+	height: auto;
 	justify-self: start; margin-right: auto;
 	align-self: start;
 	margin: 6px 0px 0px 6px;
-	display: flex; flex-direction: row; flex-wrap: nowrap;
+	display: flex; flex-direction: column;
 }
 
 .CardRating
@@ -1167,7 +1167,7 @@ button { pointer-events: auto; }
 {
 	width: 28px;
 	height: 28px;
-	margin: 0px 0px 0px 4px;
+	margin: 4px 0px 0px 0px;
 	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
 	background-color: #0b0f14e8;
 	border: 2px solid #f0a531;
