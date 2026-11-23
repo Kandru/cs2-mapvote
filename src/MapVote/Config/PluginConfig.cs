@@ -34,9 +34,9 @@ namespace MapVote.Config
         [JsonPropertyName("catalog")]
         public CatalogConfig Catalog { get; set; } = new();
 
-        // Keys: map_{name} (local) / ws_{name} (workshop). true = shown; false = hidden. Stale keys kept.
-        [JsonPropertyName("maps_votable")]
-        public Dictionary<string, bool> MapsVotable { get; set; } = new(StringComparer.Ordinal);
+        // Keys: map_{name} (local) / ws_{name} (workshop).
+        [JsonPropertyName("maps")]
+        public Dictionary<string, MapSettings> Maps { get; set; } = new(StringComparer.Ordinal);
 
         /// <summary>
         /// Repairs every nullable section/list so the rest of the plugin can assume a complete
@@ -50,10 +50,11 @@ namespace MapVote.Config
             Display ??= new DisplayConfig();
             Filters ??= new FiltersConfig();
             Catalog ??= new CatalogConfig();
-            MapsVotable ??= new Dictionary<string, bool>(StringComparer.Ordinal);
+            Maps ??= new Dictionary<string, MapSettings>(StringComparer.Ordinal);
 
             Filters.Types = NormalizeTypes(Filters.Types);
             Filters.Sorts = NormalizeSorts(Filters.Sorts);
+            NormalizeMaps(Maps);
 
             if (string.IsNullOrWhiteSpace(Display.Order))
             {
@@ -80,6 +81,21 @@ namespace MapVote.Config
             Rtv.Ratio = float.IsFinite(Rtv.Ratio)
                 ? Math.Clamp(Rtv.Ratio, 0.01f, 1f)
                 : 0.6f;
+        }
+
+        private static void NormalizeMaps(Dictionary<string, MapSettings> settings)
+        {
+            foreach (string key in settings.Keys.ToList())
+            {
+                MapSettings? value = settings[key];
+                if (value is null)
+                {
+                    settings[key] = new MapSettings();
+                    continue;
+                }
+
+                value.Added = Math.Max(0, value.Added);
+            }
         }
 
         private static List<FilterTypeConfig> NormalizeTypes(List<FilterTypeConfig>? configured)

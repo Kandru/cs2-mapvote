@@ -1,3 +1,5 @@
+using MapVote.Config;
+
 namespace MapVote.Maps
 {
     /// <summary>
@@ -12,7 +14,7 @@ namespace MapVote.Maps
         /// </summary>
         public static List<MapEntry> Select(
             IReadOnlyList<MapEntry> catalog,
-            IReadOnlyDictionary<string, bool> votable,
+            IReadOnlyDictionary<string, MapSettings> mapSettings,
             string? excludeName,
             int limit,
             IReadOnlyList<string>? priority = null,
@@ -24,7 +26,7 @@ namespace MapVote.Maps
                 return [];
             }
 
-            List<MapEntry> maps = MapVisibility.Shown(catalog, votable, excludeName);
+            List<MapEntry> maps = MapVisibility.Shown(catalog, mapSettings, excludeName);
             if (maps.Count > limit)
             {
                 onTruncated?.Invoke(maps.Count, limit);

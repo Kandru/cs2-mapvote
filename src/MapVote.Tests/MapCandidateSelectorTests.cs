@@ -1,3 +1,4 @@
+using MapVote.Config;
 using MapVote.Maps;
 
 namespace MapVote.Tests;
@@ -14,12 +15,12 @@ public class MapCandidateSelectorTests
     [Fact]
     public void Select_DropsDisabledAndExcludedMaps()
     {
-        Dictionary<string, bool> votable = new(StringComparer.Ordinal)
+        Dictionary<string, MapSettings> settings = new(StringComparer.Ordinal)
         {
-            [MapVisibility.KeyFor(Beta)] = false,
+            [MapVisibility.KeyFor(Beta)] = new MapSettings { Enabled = false },
         };
 
-        List<MapEntry> maps = MapCandidateSelector.Select(Catalog, votable, Gamma.Name, 64);
+        List<MapEntry> maps = MapCandidateSelector.Select(Catalog, settings, Gamma.Name, 64);
 
         Assert.Equal([Alpha, Workshop], maps);
     }
@@ -31,7 +32,7 @@ public class MapCandidateSelectorTests
         int reportedLimit = 0;
         List<MapEntry> maps = MapCandidateSelector.Select(
             Catalog,
-            new Dictionary<string, bool>(StringComparer.Ordinal),
+            new Dictionary<string, MapSettings>(StringComparer.Ordinal),
             excludeName: null,
             limit: 2,
             priority: [Workshop.Name],
@@ -53,7 +54,7 @@ public class MapCandidateSelectorTests
         bool reported = false;
         List<MapEntry> maps = MapCandidateSelector.Select(
             [Alpha, Beta],
-            new Dictionary<string, bool>(StringComparer.Ordinal),
+            new Dictionary<string, MapSettings>(StringComparer.Ordinal),
             excludeName: null,
             limit: 2,
             onTruncated: (_, _) => reported = true);
@@ -67,7 +68,7 @@ public class MapCandidateSelectorTests
     {
         Assert.Empty(MapCandidateSelector.Select(
             [],
-            new Dictionary<string, bool>(StringComparer.Ordinal),
+            new Dictionary<string, MapSettings>(StringComparer.Ordinal),
             excludeName: null,
             limit: 64));
     }

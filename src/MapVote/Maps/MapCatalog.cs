@@ -14,7 +14,7 @@ namespace MapVote.Maps
 
         private readonly Action<string> _info;
         private readonly Action<string> _debug;
-        private readonly Action<IReadOnlyList<MapEntry>, int>? _onLoaded;
+        private readonly Action<IReadOnlyList<MapEntry>, bool, int>? _onLoaded;
         private readonly object _gate = new();
         private IReadOnlyList<MapEntry> _maps = [];
         private IReadOnlyDictionary<string, string> _workshopNamesById =
@@ -29,7 +29,7 @@ namespace MapVote.Maps
         public MapCatalog(
             Action<string> info,
             Action<string> debug,
-            Action<IReadOnlyList<MapEntry>, int>? onLoaded = null)
+            Action<IReadOnlyList<MapEntry>, bool, int>? onLoaded = null)
         {
             _info = info;
             _debug = debug;
@@ -177,7 +177,7 @@ namespace MapVote.Maps
 
             _info(
                 $"catalog: {result.Maps.Count} maps loaded ({(result.Ready ? "ready" : "partial")}; {result.Summary})");
-            _onLoaded?.Invoke(result.Maps, generation);
+            _onLoaded?.Invoke(result.Maps, result.Ready, generation);
         }
 
         private void NotifyCurrent(int generation)
@@ -193,7 +193,7 @@ namespace MapVote.Maps
                 current = _maps;
             }
 
-            _onLoaded?.Invoke(current, generation);
+            _onLoaded?.Invoke(current, false, generation);
         }
 
         private void ClearLoading(int generation)

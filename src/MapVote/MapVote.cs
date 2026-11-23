@@ -58,7 +58,7 @@ namespace MapVote
             }
 
             MapOrder.Configure(Config.Display.Order);
-            EnsureMapsVotable();
+            EnsureMapSettings();
             PluginLog.Bind(() => Config.Debug);
             PluginLog.Debug(
                 $"config: order={Config.Display.Order}, max_maps={Config.Endmatch.MaxMaps}, "
@@ -66,7 +66,7 @@ namespace MapVote
                 + $"reveal={Config.Endmatch.WinnerRevealSeconds}s, "
                 + $"catalog={Config.Catalog.QueryLocalMaps}/{Config.Catalog.QueryMapGroup}, "
                 + $"rtv={Config.Rtv.Enabled} ({Config.Rtv.Ratio:0.##}, {Config.Rtv.DurationSeconds}s), "
-                + $"nominations={Config.Nominations.Enabled}, votable_keys={Config.MapsVotable.Count}");
+                + $"nominations={Config.Nominations.Enabled}, maps={Config.Maps.Count}");
         }
 
         public override void Load(bool hotReload)
@@ -144,7 +144,7 @@ namespace MapVote
             }
         }
 
-        private void OnCatalogLoaded(IReadOnlyList<MapEntry> maps, int generation) =>
+        private void OnCatalogLoaded(IReadOnlyList<MapEntry> maps, bool ready, int generation) =>
             // RCON worker thread → main thread for config I/O and Server APIs.
             Server.NextFrame(() =>
             {
@@ -152,6 +152,8 @@ namespace MapVote
                 {
                     return;
                 }
+
+                SyncMapSettings(maps, ready);
 
                 if (generation == _catalogGeneration && _flow.Phase == EndMatchPhase.Preparing)
                 {
@@ -161,7 +163,11 @@ namespace MapVote
                 OnMapsCatalogSettled(maps, generation);
             });
 
-        private void SyncMapsVotable(IReadOnlyList<MapEntry> maps)
+        /// <summary>
+        /// Records first-seen timestamps and applies config edits on every catalog publish.
+        /// Only a fully ready reply may prune maps that disappeared from the catalog.
+        /// </summary>
+        private void SyncMapSettings(IReadOnlyList<MapEntry> maps, bool ready)
         {
             if (_unloaded)
             {
@@ -174,12 +180,12 @@ namespace MapVote
             }
             catch (Exception ex)
             {
-                PluginLog.Info($"config: reload before maps_votable sync failed: {ex.Message}");
+                PluginLog.Info($"config: reload before maps sync failed: {ex.Message}");
             }
 
-            EnsureMapsVotable();
-            Config.Catalog ??= new CatalogConfig();
-            if (!MapVisibility.TrySync(Config.MapsVotable, maps))
+            EnsureMapSettings();
+            long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            if (!MapVisibility.TrySync(Config.Maps, maps, now, prune: ready))
             {
                 return;
             }
@@ -187,16 +193,17 @@ namespace MapVote
             try
             {
                 Config.Update();
-                PluginLog.Debug($"maps_votable: synced {Config.MapsVotable.Count} key(s)");
+                PluginLog.Debug(
+                    $"maps: synced {Config.Maps.Count} map setting(s) (ready={ready})");
             }
             catch (Exception ex)
             {
-                PluginLog.Info($"maps_votable: config update failed: {ex.Message}");
+                PluginLog.Info($"maps: config update failed: {ex.Message}");
             }
         }
 
-        private void EnsureMapsVotable() =>
-            Config.MapsVotable ??= new Dictionary<string, bool>(StringComparer.Ordinal);
+        private void EnsureMapSettings() =>
+            Config.Maps ??= new Dictionary<string, MapSettings>(StringComparer.Ordinal);
 
         private void OnTick()
         {

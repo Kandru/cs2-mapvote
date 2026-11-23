@@ -67,7 +67,6 @@ namespace MapVote
                 return;
             }
 
-            SyncMapsVotable(maps);
             List<MapEntry> candidates = SelectCandidates();
             if (!_flow.TryDecide(candidates.Count, out PathChoice choice))
             {
@@ -401,7 +400,7 @@ namespace MapVote
                 : MapCatalog.MaxMaps;
             List<MapEntry> selected = MapCandidateSelector.Select(
                 catalog,
-                Config.MapsVotable,
+                Config.Maps,
                 exclude,
                 limit,
                 priority,

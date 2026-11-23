@@ -18,7 +18,7 @@ public class ConfigNormalizeTests
               "display": null,
               "filters": null,
               "catalog": null,
-              "maps_votable": null
+              "maps": null
             }
             """)!;
 
@@ -30,7 +30,7 @@ public class ConfigNormalizeTests
         Assert.NotNull(config.Display);
         Assert.NotNull(config.Filters);
         Assert.NotNull(config.Catalog);
-        Assert.NotNull(config.MapsVotable);
+        Assert.NotNull(config.Maps);
         Assert.NotEmpty(config.Filters.Types);
         Assert.Equal(
             ["alphabetical", "most_positive", "most_negative"],
