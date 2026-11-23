@@ -1,3 +1,4 @@
+using System.Globalization;
 using MapVote.Players;
 
 namespace MapVote.Huds
@@ -14,6 +15,30 @@ namespace MapVote.Huds
             remainingSeconds <= 0 ? 0 : (int)Math.Ceiling(remainingSeconds);
 
         public static string FormatTime(int seconds) => $"{seconds / 60}:{seconds % 60:00}";
+
+        /// <summary>
+        /// Vote counter for the card badge. Exact with the viewer's thousands separator up to
+        /// 99,999 (for example <c>1.000</c> or <c>1,000</c>); above that, compact thousands
+        /// and millions keep two counters inside the small pill.
+        /// </summary>
+        public static string FormatCount(int value, string groupSeparator)
+        {
+            value = Math.Max(0, value);
+            if (value < 100_000)
+            {
+                string separator = string.IsNullOrEmpty(groupSeparator) ? "," : groupSeparator;
+                return value.ToString("#,0", CultureInfo.InvariantCulture)
+                    .Replace(",", separator, StringComparison.Ordinal);
+            }
+
+            if (value < 1_000_000)
+            {
+                return (value / 1_000).ToString(CultureInfo.InvariantCulture) + "k";
+            }
+
+            double millions = Math.Floor(value / 100_000.0) / 10.0;
+            return millions.ToString("0.#", CultureInfo.InvariantCulture) + "M";
+        }
 
         /// <summary>Index into <see cref="VoteIds.ShareClasses"/>: the map's share of all votes in steps of 10 %.</summary>
         public static int ShareStep(int votes, int total) =>

@@ -11,7 +11,7 @@
 
 ![Map vote](example.png)
 
-When the match ends, players should pick the next map the way Valve never intended - big pictures, a clear winner row, and a list you can browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: landscape map cards, a "Leading" ranking of the maps with the most votes, type filters and favorites, and `!rtv` so the lobby can force a vote early on your map list.
+When the match ends, players should pick the next map the way Valve never intended - big pictures, a clear winner row, and a list you can browse. **MapVote** brings that full-screen vote to your [CounterStrikeSharp](https://docs.cssharp.dev/) server: landscape map cards with per-map like/dislike counts, a "Leading" ranking of the maps with the most votes, type filters and favorites, and `!rtv` so the lobby can force a vote early on your map list.
 
 ## Installation
 
@@ -32,8 +32,8 @@ We publish [that addon](https://steamcommunity.com/sharedfiles/filedetails/?id=3
 
 - At the end of a match, the vote screen opens with up to 200 maps from the catalog in the configured base order; players click a map, and the "Leading" ranking shows the 6 maps with the most votes. A player can change their vote once per second; a faster click plays a blocked sound and changes nothing.
 - In chat, type `!rtv` (or `css_rtv` / `rtv`). By default about 60% of humans must agree; then the match ends early so this vote can run.
-- Type `!maps` (or `!nom` / `!nominate` / `css_maps` / `maps`) to browse the server map list at any time before intermission. Filter, sort your own view (A-Z, most positive rated, most negative rated; all maps stay listed), rate the current map, and manage favorites; with nominations enabled you can also pick your map for the next vote, and the live "Leading" ranking shows which maps already have nominations. Use the Close button to leave. The browser closes automatically when the match ends and reopens with the next match or map.
-- Config file: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`. Useful knobs: vote length, base list order (`display.order`), whether to hide the map just played, RTV on/off and ratio, and which maps appear (`maps_votable`). Full key list: [docs/config.md](docs/config.md).
+- Type `!maps` (or `!nom` / `!nominate` / `css_maps` / `maps`) to browse the server map list at any time before intermission. Filter, sort your own view (newest, oldest, A-Z, most positive rated, most negative rated; all maps stay listed), rate the current map, and manage favorites; with nominations enabled you can also pick your map for the next vote, and the live "Leading" ranking shows which maps already have nominations. Use the Close button to leave. The browser closes automatically when the match ends and reopens with the next match or map.
+- Config file: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json`. Useful knobs: vote length, base list order (`display.order`), whether to hide the map just played, RTV on/off and ratio, and which maps appear (`maps`). Full key list: [docs/config.md](docs/config.md).
 
 Changing the plugin code, building, or extracting images: see [docs/](docs/README.md).
 

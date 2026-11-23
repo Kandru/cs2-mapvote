@@ -52,6 +52,7 @@ namespace MapVote.Huds
 
         // Base grid order for the bound list. Sorting is per player on top of it.
         private static List<string> _grid = [];
+        private static MapGridView? _view;
         private static readonly Dictionary<string, int> Masks = new(StringComparer.Ordinal);
         private static readonly int[] TypeCounts = new int[FilterTypeSlots];
         private static int _typeChips;
@@ -162,6 +163,7 @@ namespace MapVote.Huds
             // Selection already caps the source at MapCatalog.MaxMaps (= SlotCount); keep it
             // whole so every sort (especially rating) sees the complete list, not a prefix.
             _grid = MapOrder.Sort(source, _formatMapName);
+            _view = MapGridView.Build(_grid, _origins, _mapSettings, _formatMapName);
             _currentMap = string.IsNullOrWhiteSpace(currentMap) ? null : currentMap;
             _currentOrigin = currentOrigin;
             _revealing = false;
@@ -182,6 +184,7 @@ namespace MapVote.Huds
             _mode = Mode.Vote;
             _session = null;
             _grid = [];
+            _view = null;
             _archive = null;
             _plays = null;
             _mapSettings = new Dictionary<string, MapSettings>(StringComparer.Ordinal);
@@ -913,6 +916,15 @@ namespace MapVote.Huds
                 int votes = _session?.CountOf(map) ?? 0;
                 CustomHud.SetMapImage(player, VoteIds.GridShotIds[i], map, OriginOf(map));
                 CustomHud.SetText(player, Panel, VoteIds.GridNameVars[i], Display(map));
+                string groupSeparator = T(player, "number.group_separator");
+                CustomHud.SetText(
+                    player, Panel,
+                    VoteIds.GridLikeVars[i],
+                    VoteView.FormatCount(_archive?.LikeCount(map) ?? 0, groupSeparator));
+                CustomHud.SetText(
+                    player, Panel,
+                    VoteIds.GridDislikeVars[i],
+                    VoteView.FormatCount(_archive?.DislikeCount(map) ?? 0, groupSeparator));
                 // The badge only shows with votes-some, so zero stays the empty XML default.
                 CustomHud.SetText(player, Panel, VoteIds.GridVoteVars[i], votes > 0 ? votes.ToString() : string.Empty);
                 SetPlayerGroup(player, VoteIds.GridTileIds[i], VoteIds.VotesClasses, votes > 0 ? 1 : 0);
@@ -1259,9 +1271,11 @@ namespace MapVote.Huds
             }
         }
 
-        private static string Display(string map) => MapNameDisplay.ForHud(_formatMapName(map));
+        private static string Display(string map) =>
+            _view?.Find(map)?.DisplayName ?? MapNameDisplay.ForHud(_formatMapName(map));
 
-        private static MapOrigin OriginOf(string map) => _origins.GetValueOrDefault(map, MapOrigin.Local);
+        private static MapOrigin OriginOf(string map) =>
+            _view?.Find(map)?.Origin ?? _origins.GetValueOrDefault(map, MapOrigin.Local);
 
         private static string T(CCSPlayerController? player, string key) =>
             _text is null ? key : _text(player, key);

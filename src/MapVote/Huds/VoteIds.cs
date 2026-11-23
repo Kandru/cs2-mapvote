@@ -1,7 +1,7 @@
 namespace MapVote.Huds
 {
     /// <summary>
-    /// Current Panorama contract (tools/generate_vote_xml_v2.py docstring): every panel id,
+    /// Current Panorama contract (tools/generate_vote_xml.py docstring): every panel id,
     /// pool size, dialog variable and ladder class spelled once. Each viewer has a private
     /// layout entity, so every value is written on the viewer's own entity.
     /// </summary>
@@ -79,6 +79,8 @@ namespace MapVote.Huds
         public static readonly string[] GridFavIds = BuildIndexed("mv-fav-", SlotCount);     // is-active
         public static readonly string[] GridVoteVars = BuildIndexed("v", SlotCount);
         public static readonly string[] GridNameVars = BuildIndexed("n", SlotCount);
+        public static readonly string[] GridLikeVars = BuildIndexed("ln", SlotCount);
+        public static readonly string[] GridDislikeVars = BuildIndexed("dn", SlotCount);
 
         public static readonly string[] RankRowIds = BuildIndexed("mv-rank-", RankSlots);        // is-off (XML on)
         public static readonly string[] RankShotIds = BuildIndexed("mv-rank-shot-", RankSlots);

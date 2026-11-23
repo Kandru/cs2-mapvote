@@ -19,6 +19,7 @@ from mapvote_layout import (
     HUD_VCSS_NAME,
     MAPS_CSS_NAME,
     MAPS_VCSS_NAME,
+    PANORAMA_VERSION,
     RANK_SLOTS,
     SHARE_STEP,
     SPAN_MAX,
@@ -36,9 +37,9 @@ HUD_CSS = STYLES / HUD_CSS_NAME
 MAPS_VCSS = STYLES / MAPS_VCSS_NAME
 MAPS_CSS = STYLES / MAPS_CSS_NAME
 VOTE_XML = LAYOUTS / VOTE_XML_NAME
-PREVIEW_HTML = ROOT / "workshop" / "preview" / "vote_v2.html"
-PREVIEW_BROWSE_HTML = ROOT / "workshop" / "preview" / "maps_v2.html"
-GENERATE_XML = ROOT / "tools" / "generate_vote_xml_v2.py"
+PREVIEW_HTML = ROOT / "workshop" / "preview" / f"vote_{PANORAMA_VERSION}.html"
+PREVIEW_BROWSE_HTML = ROOT / "workshop" / "preview" / f"maps_{PANORAMA_VERSION}.html"
+GENERATE_XML = ROOT / "tools" / "generate_vote_xml.py"
 CREDIT_TEXT = "made by kandru.net - visit github.com/kandru/cs2-mapvote"
 
 # Engine name tables on one CCSCustomHudLayout. Every id/variable the server
@@ -156,6 +157,7 @@ def expected() -> tuple[set[str], set[str]]:
     variables |= {f"ft{i}" for i in range(FILTER_TYPE_SLOTS)} | {f"fs{i}" for i in range(FILTER_SORT_SLOTS)}
     variables |= {f"rn{i}" for i in range(RANK_SLOTS)} | {f"rv{i}" for i in range(RANK_SLOTS)}
     variables |= {f"v{i}" for i in range(GRID_SLOTS)} | {f"n{i}" for i in range(GRID_SLOTS)}
+    variables |= {f"ln{i}" for i in range(GRID_SLOTS)} | {f"dn{i}" for i in range(GRID_SLOTS)}
     return ids, variables
 
 

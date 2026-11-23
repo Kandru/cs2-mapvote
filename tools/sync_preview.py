@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from map_names import DEFAULT_STEM, is_playable_map_id
-from mapvote_layout import HUD_VCSS_NAME, MAPS_VCSS_NAME, VOTE_XML_NAME
+from mapvote_layout import HUD_VCSS_NAME, MAPS_VCSS_NAME, PANORAMA_VERSION, VOTE_XML_NAME
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "workshop" / "content" / "panorama"
@@ -20,9 +20,9 @@ VOTE_XML = CONTENT / "layout" / "custom_game" / "mapvote" / VOTE_XML_NAME
 HUD_VCSS = CONTENT / "styles" / "custom_game" / "mapvote" / HUD_VCSS_NAME
 MAPS_VCSS = CONTENT / "styles" / "custom_game" / "mapvote" / MAPS_VCSS_NAME
 PREVIEW = ROOT / "workshop" / "preview"
-OUT_HTML = PREVIEW / "vote_v2.html"
-OUT_BROWSE_HTML = PREVIEW / "maps_v2.html"
-OUT_CSS = PREVIEW / "hud_v2.preview.css"
+OUT_HTML = PREVIEW / f"vote_{PANORAMA_VERSION}.html"
+OUT_BROWSE_HTML = PREVIEW / f"maps_{PANORAMA_VERSION}.html"
+OUT_CSS = PREVIEW / f"hud_{PANORAMA_VERSION}.preview.css"
 CONFIG_DEFAULTS = ROOT / "src" / "MapVote" / "Config" / "ConfigDefaults.cs"
 PLUGIN_CONFIG = ROOT / "src" / "MapVote" / "Config" / "PluginConfig.cs"
 LANG = ROOT / "src" / "MapVote" / "lang" / "de.json"
@@ -178,9 +178,10 @@ def quote_font_family(raw: str) -> str:
     name = raw.strip().strip("\"'")
     if not name:
         return "font-family: sans-serif;"
-    # Stratum2 is rarely installed; Barlow Condensed matches the condensed metric.
-    # Face weight is in the Panorama family name - browsers need an explicit weight.
-    stack = f'"{name}", "Barlow Condensed", "Arial Narrow", sans-serif'
+    # Stratum2 is rarely installed. Condensed faces use Barlow Condensed; regular
+    # faces use Barlow so the wider CS2 map names keep their proportions.
+    fallback = "Barlow Condensed" if "Condensed" in name else "Barlow"
+    stack = f'"{name}", "{fallback}", "Arial Narrow", sans-serif'
     # Panorama bakes weight into the face name; browsers need an explicit weight.
     if "Bold" in name or name == "Stratum2":
         return f"font-family: {stack}; font-weight: 700;"
@@ -419,8 +420,8 @@ def preview_maps() -> list[str]:
 
 
 SHELL_CSS = """
-/* Browser host only. Visual layout comes from the translated hud_v2.vcss below. */
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap");
+/* Browser host only. Visual layout comes from the translated HUD stylesheet below. */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@500;600;700&display=swap");
 
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
@@ -479,10 +480,11 @@ def sync() -> list[str]:
     for out, browse, title in ((OUT_HTML, "0", "MapVote preview"), (OUT_BROWSE_HTML, "1", "MapVote map browser preview")):
         out.write_text(
             "<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<meta charset=\"utf-8\" />\n"
-            f"<title>{title}</title>\n<link rel=\"stylesheet\" href=\"hud_v2.preview.css\" />\n</head>\n"
+            f"<title>{title}</title>\n<link rel=\"stylesheet\" href=\"{OUT_CSS.name}\" />\n</head>\n"
             f"<body data-browse=\"{browse}\">\n<div class=\"pv-plate\">\n{body}\n</div>\n"
-            f"<script>window.PV_MAPS = {maps_json}; window.PV_CONFIG = {config_json};</script>\n"
-            "<script src=\"preview_v2.js\"></script>\n"
+            f"<script>window.PV_MAPS = {maps_json}; window.PV_CONFIG = {config_json}; "
+            f"window.PV_PAGES = {{\"vote\":\"{OUT_HTML.name}\",\"maps\":\"{OUT_BROWSE_HTML.name}\"}};</script>\n"
+            "<script src=\"preview.js\"></script>\n"
             "</body>\n</html>\n",
             encoding="utf-8",
             newline="\n",

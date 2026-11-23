@@ -1,4 +1,4 @@
-// Browser stand-in for the C# view of layout v2. Type/sort defaults and all strings come
+// Browser stand-in for the C# view of the current layout. Type/sort defaults and all strings come
 // from ConfigDefaults.cs + lang/de.json through window.PV_CONFIG (tools/sync_preview.py),
 // so the mock follows the plugin instead of duplicating a second configuration.
 // URL: ?n=8|45|all &state=vote|voted|reveal|empty|browse &clean=1 (no tool bar).
@@ -109,17 +109,27 @@
     s.firstVote.map((id, i) => ({ id, c: s.votes[id], i })).sort((a, b) => b.c - a.c || a.i - b.i).map((x) => x.id);
   const plays = (map) => (map.id.length * 7) % 13;
   const rating = (map) => (map.id.length % 5) - 2;
+  const addedAt = (map) => Date.UTC(2024, 0, 1) / 1000 + position.get(map.id) * 86400 * 7;
+  const likes = (map) => 40 + ((map.id.length * 137 + position.get(map.id) * 311) % 2400);
+  const dislikes = (map) => 2 + ((map.id.length * 53 + position.get(map.id) * 97) % 180);
+  // Mirrors VoteView.FormatCount with the German preview separator.
+  const formatCount = (value) => {
+    if (value < 100000) return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    if (value < 1000000) return `${Math.floor(value / 1000)}k`;
+    return `${Math.floor(value / 100000) / 10}`.replace(/\.0$/, "") + "M";
+  };
   const sortValue = (map, by) => {
     if (by === "plays") return plays(map);
     if (by === "rating") return rating(map);
     if (by === "favorite") return s.fav.has(map.id) ? 1 : 0;
+    if (by === "newest" || by === "oldest") return addedAt(map);
     return pretty(map.id);
   };
   const order = () => {
     const list = all.slice();
     if (s.sort < 0 || s.sort >= SORTS.length) return list;
     const sort = SORTS[s.sort];
-    if (!["name", "plays", "rating", "favorite"].includes(sort.by)) return list;
+    if (!["name", "plays", "rating", "favorite", "newest", "oldest"].includes(sort.by)) return list;
     const descending = sort.order !== "asc";
     list.sort((a, b) => {
       const av = sortValue(a, sort.by);
@@ -205,7 +215,7 @@
     flag("mv-fav-only", "is-active", s.favOnly);
     flag("mv-fav-only", "is-disabled", favoriteCount === 0);
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < SORTS.length; i++) {
       const sort = SORTS[i];
       flag(`mv-fs-${i}`, "is-off", !sort);
       if (!sort) continue;
@@ -225,6 +235,8 @@
       shot(`mv-shot-${i}`, m);
       text(`n${i}`, pretty(m.id));
       text(`v${i}`, String(s.votes[m.id] || 0));
+      text(`ln${i}`, formatCount(likes(m)));
+      text(`dn${i}`, formatCount(dislikes(m)));
       group(`mv-${i}`, ["votes-none", "votes-some"], (s.votes[m.id] || 0) > 0 ? "votes-some" : "votes-none");
       flag(`mv-slot-${i}`, "is-self", m.id === s.mine);
       flag(`mv-fav-${i}`, "is-active", s.fav.has(m.id));
@@ -305,8 +317,9 @@
   if (q.get("clean") !== "1") {
     const bar = document.createElement("div");
     bar.className = "pv-bar";
+    const pages = window.PV_PAGES || { vote: "vote_v3.html", maps: "maps_v3.html" };
     const link = (label, params, active) =>
-      `<a class="${active ? "is-active" : ""}" href="${params.browse ? "maps_v2.html" : "vote_v2.html"}?n=${params.n}&state=${params.state}">${label}</a>`;
+      `<a class="${active ? "is-active" : ""}" href="${params.browse ? pages.maps : pages.vote}?n=${params.n}&state=${params.state}">${label}</a>`;
     bar.innerHTML =
       N_OPTIONS.map((n) => link(`${n} maps`, { n, state: STATE, browse: BROWSE }, n === N)).join("") +
       '<span class="pv-sep"></span>' +
