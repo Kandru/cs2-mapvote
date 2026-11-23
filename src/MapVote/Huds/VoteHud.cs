@@ -896,6 +896,7 @@ namespace MapVote.Huds
             }
 
             bool anyShown = false;
+            string groupSeparator = T(player, "number.group_separator");
             for (int i = 0; i < SlotCount; i++)
             {
                 if (CustomHud.TickWrites >= PaintWriteBudget)
@@ -916,7 +917,6 @@ namespace MapVote.Huds
                 int votes = _session?.CountOf(map) ?? 0;
                 CustomHud.SetMapImage(player, VoteIds.GridShotIds[i], map, OriginOf(map));
                 CustomHud.SetText(player, Panel, VoteIds.GridNameVars[i], Display(map));
-                string groupSeparator = T(player, "number.group_separator");
                 CustomHud.SetText(
                     player, Panel,
                     VoteIds.GridLikeVars[i],
