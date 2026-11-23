@@ -725,7 +725,7 @@ namespace MapVote.Huds
                 m => _archive?.RatingScore(m) ?? 0,
                 _formatMapName,
                 favorites,
-                m => MapVisibility.AddedFor(m, OriginOf(m), _mapSettings));
+                m => _view?.Find(m)?.AddedUnix ?? 0);
         }
 
         /// <summary>Map an <c>mv-fs-*</c> chip onto the matching entry in sorts.</summary>
