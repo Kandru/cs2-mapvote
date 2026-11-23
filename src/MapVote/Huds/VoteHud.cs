@@ -54,6 +54,8 @@ namespace MapVote.Huds
         private static readonly Dictionary<string, int> Masks = new(StringComparer.Ordinal);
         private static readonly int[] TypeCounts = new int[FilterTypeSlots];
         private static int _typeChips;
+        private static int _defaultSortIndex = -1;
+        private static List<string>? _defaultOrder;
         private static List<string> _ranked = [];
 
         /// <summary>All per-viewer HUD state in one place. Slots are zero-based.</summary>
@@ -168,8 +170,8 @@ namespace MapVote.Huds
             _deadlineUtc = null;
             _lastSecond = -1;
             _ranked = [];
-            ResetAllSlots();
             RebuildGrid();
+            ResetAllSlots();
         }
 
         public static bool IsBrowsing => _mode == Mode.Browse;
@@ -194,8 +196,8 @@ namespace MapVote.Huds
             _deadlineUtc = null;
             _lastSecond = -1;
             _ranked = [];
-            ResetAllSlots();
             RebuildGrid();
+            ResetAllSlots();
         }
 
         /// <summary>Base grid order, map type masks and counts. Per-player sorts are built on demand.</summary>
@@ -219,6 +221,10 @@ namespace MapVote.Huds
 
                 Masks[map] = mask;
             }
+
+            // A-Z is the default view for every player; other sorts are per-player choices.
+            _defaultSortIndex = VoteView.DefaultSortIndex(_filters.Sorts);
+            _defaultOrder = _defaultSortIndex >= 0 ? ApplySort(_defaultSortIndex, favorites: null) : null;
         }
 
         /// <summary>CustomHud restores XML defaults itself; only the view state of the slot resets here.</summary>
@@ -713,7 +719,11 @@ namespace MapVote.Huds
                 return;
             }
 
-            SlotAt(slot).GridOrder = MapSort.Apply(
+            SlotAt(slot).GridOrder = ApplySort(index, favorites);
+        }
+
+        private static List<string> ApplySort(int index, IReadOnlySet<string>? favorites) =>
+            MapSort.Apply(
                 _grid,
                 _grid,
                 _filters.Sorts[index],
@@ -722,7 +732,6 @@ namespace MapVote.Huds
                 _formatMapName,
                 favorites,
                 m => _view?.Find(m)?.AddedUnix ?? 0);
-        }
 
         /// <summary>Map an <c>mv-fs-*</c> chip onto the matching entry in sorts.</summary>
         private static int SortIndexForChip(int chipIndex) =>
@@ -1317,8 +1326,8 @@ namespace MapVote.Huds
             SlotAt(slot).RevealPending = false;
             SlotAt(slot).TypeSelection = 0;
             SlotAt(slot).FavoritesOnly = false;
-            SlotAt(slot).SortIndex = -1;
-            SlotAt(slot).GridOrder = null;
+            SlotAt(slot).SortIndex = _defaultSortIndex;
+            SlotAt(slot).GridOrder = _defaultOrder;
             SlotAt(slot).SelfSlot = -1;
             SlotAt(slot).TimerStage = 0;
             SlotAt(slot).TimerTick = -1;

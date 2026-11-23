@@ -72,10 +72,11 @@
     test: (map) => typeMatches(map, index),
   }));
   const SORTS = CONFIG.sorts;
+  const DEFAULT_SORT = SORTS.findIndex((sort) => sort.by === "name" && sort.order === "asc");
 
   const s = {
     votes: {}, firstVote: [], mine: null, fav: new Set(), rating: null,
-    likes: 12, dislikes: 3, type: 0, favOnly: false, sort: -1,
+    likes: 12, dislikes: 3, type: 0, favOnly: false, sort: DEFAULT_SORT,
     reveal: false, minimized: false, closed: false,
   };
   const vote = (id, delta) => {

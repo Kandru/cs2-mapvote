@@ -1,4 +1,5 @@
 using System.Globalization;
+using MapVote.Config;
 using MapVote.Players;
 
 namespace MapVote.Huds
@@ -6,6 +7,23 @@ namespace MapVote.Huds
     /// <summary>Pure decisions of the v2 view, kept out of <see cref="VoteHud"/> so they can be tested.</summary>
     public static class VoteView
     {
+        /// <summary>First visible sort that orders names A-Z, or -1 when none is configured.</summary>
+        public static int DefaultSortIndex(IReadOnlyList<SortConfig> sorts)
+        {
+            int count = Math.Min(sorts.Count, VoteIds.FilterSortSlots);
+            for (int i = 0; i < count; i++)
+            {
+                SortConfig sort = sorts[i];
+                if (string.Equals(sort.By, "name", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(sort.Order, "asc", StringComparison.OrdinalIgnoreCase))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         /// <summary>Nearest generated countdown span (span-3 … span-90) for the time left.</summary>
         public static int SpanFor(double remainingSeconds) =>
             Math.Clamp((int)Math.Round(remainingSeconds, MidpointRounding.AwayFromZero), VoteIds.SpanMin, VoteIds.SpanMax);
