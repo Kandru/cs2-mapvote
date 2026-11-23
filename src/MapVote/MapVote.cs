@@ -58,7 +58,6 @@ namespace MapVote
             }
 
             MapOrder.Configure(Config.Display.Order);
-            EnsureMapSettings();
             PluginLog.Bind(() => Config.Debug);
             PluginLog.Debug(
                 $"config: order={Config.Display.Order}, max_maps={Config.Endmatch.MaxMaps}, "
@@ -183,7 +182,7 @@ namespace MapVote
                 PluginLog.Info($"config: reload before maps sync failed: {ex.Message}");
             }
 
-            EnsureMapSettings();
+            Config.Maps ??= new Dictionary<string, MapSettings>(StringComparer.Ordinal);
             long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             if (!MapVisibility.TrySync(Config.Maps, maps, now, prune: ready))
             {
@@ -202,8 +201,6 @@ namespace MapVote
             }
         }
 
-        private void EnsureMapSettings() =>
-            Config.Maps ??= new Dictionary<string, MapSettings>(StringComparer.Ordinal);
 
         private void OnTick()
         {
