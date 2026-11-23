@@ -12,7 +12,8 @@ namespace MapVote.Maps
             Func<string, int> playCount,
             Func<string, int> ratingScore,
             Func<string, string>? nameKey = null,
-            IReadOnlySet<string>? favorites = null)
+            IReadOnlySet<string>? favorites = null,
+            Func<string, long>? addedAt = null)
         {
             bool descending = !string.Equals(sort.Order, "asc", StringComparison.OrdinalIgnoreCase);
             string by = (sort.By ?? string.Empty).Trim().ToLowerInvariant();
@@ -29,9 +30,27 @@ namespace MapVote.Maps
                 "favorite" => OrderBy(maps, m => favorites?.Contains(m) == true ? 1 : 0, descending)
                     .ThenBy(m => Index(order, m))
                     .ToList(),
+                "newest" or "oldest" => OrderByAdded(maps, addedAt ?? (static _ => 0), descending)
+                    .ThenBy(m => Index(order, m))
+                    .ToList(),
                 _ => maps.OrderBy(m => Index(order, m)).ToList(),
             };
         }
+
+        /// <summary>
+        /// Maps with a known timestamp first, unknown ones last in both directions,
+        /// then the timestamp order requested by the sort chip.
+        /// </summary>
+        private static IOrderedEnumerable<string> OrderByAdded(
+            IEnumerable<string> maps,
+            Func<string, long> addedAt,
+            bool descending) =>
+            maps
+                .OrderBy(map => addedAt(map) <= 0)
+                .ThenBy(addedAt, descending ? DescendingLong : Comparer<long>.Default);
+
+        private static readonly Comparer<long> DescendingLong =
+            Comparer<long>.Create(static (left, right) => right.CompareTo(left));
 
         private static IOrderedEnumerable<string> OrderBy<TKey>(
             IEnumerable<string> maps,

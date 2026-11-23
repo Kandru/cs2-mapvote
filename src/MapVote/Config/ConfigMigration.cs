@@ -6,20 +6,25 @@ namespace MapVote.Config
         private static readonly string[] LegacyDefaultSortIds =
             ["most_played", "least_played", "most_liked", "least_liked", "favorites"];
 
+        private static readonly string[] PreviousDefaultSortIds =
+            ["alphabetical", "most_positive", "most_negative"];
+
         /// <summary>
-        /// Replaces exactly the old v2 default sort set with the per-player orders used now.
-        /// Custom sort lists are left untouched. Returns true when the config changed.
+        /// Replaces the old default sort sets with the current list. Custom sort lists are
+        /// left untouched. Returns true when the config changed.
         /// </summary>
         public static bool EnsureSortDefaults(FiltersConfig filters)
         {
             List<SortConfig> sorts = filters.Sorts ??= [];
-            if (sorts.Count == 0
-                || sorts.Any(static sort => sort.Id is "alphabetical" or "most_positive" or "most_negative"))
+            if (sorts.Count == 0)
             {
                 return false;
             }
 
-            if (!sorts.All(static sort => LegacyDefaultSortIds.Contains(sort.Id, StringComparer.Ordinal)))
+            bool legacy = sorts.All(static sort => LegacyDefaultSortIds.Contains(sort.Id, StringComparer.Ordinal));
+            bool previous = sorts.Count == PreviousDefaultSortIds.Length
+                && sorts.All(static sort => PreviousDefaultSortIds.Contains(sort.Id, StringComparer.Ordinal));
+            if (!legacy && !previous)
             {
                 return false;
             }

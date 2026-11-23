@@ -40,6 +40,8 @@ namespace MapVote.Huds
         private static MapPlayCounts? _plays;
         private static Func<CCSPlayerController?, string, string>? _text;
         private static Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);
+        private static IReadOnlyDictionary<string, MapSettings> _mapSettings =
+            new Dictionary<string, MapSettings>(StringComparer.Ordinal);
         private static Func<string, string> _formatMapName = static name => name;
         private static string? _currentMap;
         private static MapOrigin _currentOrigin = MapOrigin.Local;
@@ -102,13 +104,14 @@ namespace MapVote.Huds
             FiltersConfig filters,
             PlayerArchive archive,
             MapPlayCounts plays,
+            IReadOnlyDictionary<string, MapSettings> mapSettings,
             Func<CCSPlayerController?, string, string> text,
             IReadOnlyDictionary<string, MapOrigin> origins,
             string? currentMap,
             MapOrigin currentOrigin,
             bool cleanMapNames)
         {
-            BindCore(Mode.Vote, session, session.GridOrder(), filters, archive, plays, text, origins,
+            BindCore(Mode.Vote, session, session.GridOrder(), filters, archive, plays, mapSettings, text, origins,
                 currentMap, currentOrigin, cleanMapNames);
         }
 
@@ -120,6 +123,7 @@ namespace MapVote.Huds
             FiltersConfig filters,
             PlayerArchive archive,
             MapPlayCounts plays,
+            IReadOnlyDictionary<string, MapSettings> mapSettings,
             Func<CCSPlayerController?, string, string> text,
             IReadOnlyDictionary<string, MapOrigin> origins,
             IReadOnlyList<string> maps,
@@ -128,7 +132,7 @@ namespace MapVote.Huds
             bool cleanMapNames,
             VoteSession? nominations)
         {
-            BindCore(Mode.Browse, nominations, maps, filters, archive, plays, text, origins,
+            BindCore(Mode.Browse, nominations, maps, filters, archive, plays, mapSettings, text, origins,
                 currentMap, currentOrigin, cleanMapNames);
         }
 
@@ -139,6 +143,7 @@ namespace MapVote.Huds
             FiltersConfig filters,
             PlayerArchive archive,
             MapPlayCounts plays,
+            IReadOnlyDictionary<string, MapSettings> mapSettings,
             Func<CCSPlayerController?, string, string> text,
             IReadOnlyDictionary<string, MapOrigin> origins,
             string? currentMap,
@@ -150,6 +155,7 @@ namespace MapVote.Huds
             _filters = filters;
             _archive = archive;
             _plays = plays;
+            _mapSettings = mapSettings;
             _text = text;
             _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
             _formatMapName = MapNameDisplay.Formatter(cleanMapNames);
@@ -178,6 +184,7 @@ namespace MapVote.Huds
             _grid = [];
             _archive = null;
             _plays = null;
+            _mapSettings = new Dictionary<string, MapSettings>(StringComparer.Ordinal);
             _text = null;
             _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
             _formatMapName = static name => name;
@@ -678,7 +685,7 @@ namespace MapVote.Huds
 
         private static void ApplySortClick(CCSPlayerController player, int sortIndex)
         {
-            if (_mode != Mode.Browse || !_filters.Enabled || sortIndex < 0 || sortIndex >= _filters.Sorts.Count)
+            if (!_filters.Enabled || sortIndex < 0 || sortIndex >= _filters.Sorts.Count)
             {
                 return;
             }
@@ -699,8 +706,7 @@ namespace MapVote.Huds
             }
 
             int index = SlotAt(slot).SortIndex;
-            if (_mode != Mode.Browse
-                || !_filters.Enabled
+            if (!_filters.Enabled
                 || index < 0
                 || index >= _filters.Sorts.Count)
             {
@@ -715,7 +721,8 @@ namespace MapVote.Huds
                 m => _plays?.CountOf(m) ?? 0,
                 m => _archive?.RatingScore(m) ?? 0,
                 _formatMapName,
-                favorites);
+                favorites,
+                m => MapVisibility.AddedFor(m, OriginOf(m), _mapSettings));
         }
 
         /// <summary>Map an <c>mv-fs-*</c> chip onto the matching entry in sorts.</summary>
@@ -723,9 +730,7 @@ namespace MapVote.Huds
             chipIndex >= 0 && chipIndex < _filters.Sorts.Count ? chipIndex : -1;
 
         private static IReadOnlyList<string> OrderFor(int slot) =>
-            _mode == Mode.Browse && IsSlot(slot) && SlotAt(slot).GridOrder is { } order
-                ? order
-                : _grid;
+            IsSlot(slot) && SlotAt(slot).GridOrder is { } order ? order : _grid;
 
         private static void ToggleFavorite(CCSPlayerController player, string? map)
         {
@@ -1021,18 +1026,15 @@ namespace MapVote.Huds
             CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-active", SlotAt(slot).FavoritesOnly);
             CustomHud.SetHasClass(player, VoteIds.FavOnly, "is-disabled", availableFavoriteCount == 0);
 
-            // Sort chips reorder one viewer's grid, so they only exist in browse.
+            // Sort chips reorder only this viewer's grid; the shared list stays untouched.
             int sortChip = 0;
-            if (_mode == Mode.Browse)
+            for (int i = 0; i < _filters.Sorts.Count && sortChip < FilterSortSlots; i++)
             {
-                for (int i = 0; i < _filters.Sorts.Count && sortChip < FilterSortSlots; i++)
-                {
-                    string chipId = VoteIds.SortChipIds[sortChip];
-                    SetPlayerClass(player, chipId, "is-off", false, xmlOn: true);
-                    CustomHud.SetHasClass(player, chipId, "is-active", SlotAt(slot).SortIndex == i);
-                    CustomHud.SetText(player, Panel, VoteIds.SortVars[sortChip], L(player, $"sort.{_filters.Sorts[i].Id}"));
-                    sortChip++;
-                }
+                string chipId = VoteIds.SortChipIds[sortChip];
+                SetPlayerClass(player, chipId, "is-off", false, xmlOn: true);
+                CustomHud.SetHasClass(player, chipId, "is-active", SlotAt(slot).SortIndex == i);
+                CustomHud.SetText(player, Panel, VoteIds.SortVars[sortChip], L(player, $"sort.{_filters.Sorts[i].Id}"));
+                sortChip++;
             }
 
             for (; sortChip < FilterSortSlots; sortChip++)

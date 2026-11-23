@@ -33,7 +33,7 @@ public class ConfigNormalizeTests
         Assert.NotNull(config.Maps);
         Assert.NotEmpty(config.Filters.Types);
         Assert.Equal(
-            ["alphabetical", "most_positive", "most_negative"],
+            ["newest", "oldest", "alphabetical", "most_positive", "most_negative"],
             config.Filters.Sorts.Select(static sort => sort.Id));
         Assert.Equal(ConfigDefaults.DefaultDisplayOrder, config.Display.Order);
         Assert.Equal(ConfigDefaults.DefaultSuccessCommand, config.Rtv.SuccessCommand);

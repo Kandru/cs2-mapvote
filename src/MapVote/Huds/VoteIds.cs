@@ -62,7 +62,7 @@ namespace MapVote.Huds
         public const int SlotCount = 200;
         public const int RankSlots = 6;
         public const int FilterTypeSlots = 8;
-        public const int FilterSortSlots = 4;
+        public const int FilterSortSlots = 5;
         /// <summary>Generated countdown ladder span-3 … span-90.</summary>
         public const int SpanMin = 3;
         public const int SpanMax = 90;

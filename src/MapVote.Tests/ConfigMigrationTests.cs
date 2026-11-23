@@ -26,7 +26,26 @@ public class ConfigMigrationTests
 
         Assert.True(ConfigMigration.EnsureSortDefaults(filters));
         Assert.Equal(
-            ["alphabetical", "most_positive", "most_negative"],
+            ["newest", "oldest", "alphabetical", "most_positive", "most_negative"],
+            filters.Sorts.Select(static sort => sort.Id));
+    }
+
+    [Fact]
+    public void EnsureSortDefaults_UpgradesPreviousDefaultSet()
+    {
+        FiltersConfig filters = new()
+        {
+            Sorts =
+            [
+                new SortConfig { Id = "alphabetical", By = "name", Order = "asc" },
+                new SortConfig { Id = "most_positive", By = "rating", Order = "desc" },
+                new SortConfig { Id = "most_negative", By = "rating", Order = "asc" },
+            ],
+        };
+
+        Assert.True(ConfigMigration.EnsureSortDefaults(filters));
+        Assert.Equal(
+            ["newest", "oldest", "alphabetical", "most_positive", "most_negative"],
             filters.Sorts.Select(static sort => sort.Id));
     }
 

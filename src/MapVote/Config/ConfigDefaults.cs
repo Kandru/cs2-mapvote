@@ -16,6 +16,8 @@ namespace MapVote.Config
 
         public static List<SortConfig> CreateSorts() =>
         [
+            new() { Id = "newest", By = "newest", Order = "desc" },
+            new() { Id = "oldest", By = "oldest", Order = "asc" },
             new() { Id = "alphabetical", By = "name", Order = "asc" },
             new() { Id = "most_positive", By = "rating", Order = "desc" },
             new() { Id = "most_negative", By = "rating", Order = "asc" },

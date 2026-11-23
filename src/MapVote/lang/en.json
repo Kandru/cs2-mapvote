@@ -41,6 +41,8 @@
   "filter.arms_race": "Arms Race",
   "filter.danger_zone": "Danger Zone",
   "filter.other": "Other",
+  "sort.newest": "Newest",
+  "sort.oldest": "Oldest",
   "sort.alphabetical": "A–Z",
   "sort.most_positive": "Most positive rated",
   "sort.most_negative": "Most negative rated",

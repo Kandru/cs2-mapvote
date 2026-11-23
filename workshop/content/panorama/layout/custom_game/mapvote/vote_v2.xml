@@ -6,7 +6,7 @@
 		<include src="s2r://panorama/styles/custom_game/mapvote/maps_v1.vcss" />
 	</styles>
 
-	<!-- MapVote:mapvote v2 grid=200 rank=6 filter_types=8 filter_sorts=4 span=3-90 share_step=10 -->
+	<!-- MapVote:mapvote v2 grid=200 rank=6 filter_types=8 filter_sorts=5 span=3-90 share_step=10 -->
 	<Panel class="HudScreen" hittest="false">
 		<Panel id="Vote" class="VoteRoot is-off view-vote" hittest="false">
 			<Panel class="mv-glass" hittest="false" />
@@ -236,6 +236,9 @@
 							</Button>
 							<Button id="mv-fs-3" class="FilterChip is-off">
 								<Label class="ChipLabel" hittest="false" text="{s:fs3}" />
+							</Button>
+							<Button id="mv-fs-4" class="FilterChip is-off">
+								<Label class="ChipLabel" hittest="false" text="{s:fs4}" />
 							</Button>
 						</Panel>
 					</Panel>

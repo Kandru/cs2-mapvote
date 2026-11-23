@@ -139,6 +139,7 @@ namespace MapVote
                     Config.Filters,
                     _archive,
                     _plays,
+                    Config.Maps,
                     (viewer, key) => Localization.ForPlayerSafe(Localizer, viewer, key),
                     origins,
                     names,

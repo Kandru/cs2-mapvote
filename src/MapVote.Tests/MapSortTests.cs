@@ -177,6 +177,62 @@ public class MapSortTests
         Assert.Equal(Catalog, result);
     }
 
+    [Fact]
+    public void Apply_Newest_OrdersKnownDatesDescendingWithUnknownLast()
+    {
+        Dictionary<string, long> dates = new(StringComparer.Ordinal)
+        {
+            ["de_dust2"] = 100,
+            ["de_mirage"] = 300,
+            ["cs_office"] = 200,
+        };
+
+        List<string> result = MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "newest", By = "newest", Order = "desc" },
+            _ => 0,
+            _ => 0,
+            addedAt: m => dates.GetValueOrDefault(m));
+
+        Assert.Equal(["de_mirage", "cs_office", "de_dust2", "de_inferno"], result);
+    }
+
+    [Fact]
+    public void Apply_Oldest_OrdersKnownDatesAscendingWithUnknownLast()
+    {
+        Dictionary<string, long> dates = new(StringComparer.Ordinal)
+        {
+            ["de_dust2"] = 100,
+            ["de_mirage"] = 300,
+            ["cs_office"] = 200,
+        };
+
+        List<string> result = MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "oldest", By = "oldest", Order = "asc" },
+            _ => 0,
+            _ => 0,
+            addedAt: m => dates.GetValueOrDefault(m));
+
+        Assert.Equal(["de_dust2", "cs_office", "de_mirage", "de_inferno"], result);
+    }
+
+    [Fact]
+    public void Apply_Newest_TieBreaksByCatalogOrder()
+    {
+        List<string> result = MapSort.Apply(
+            Catalog,
+            Catalog,
+            new SortConfig { Id = "newest", By = "newest", Order = "desc" },
+            _ => 0,
+            _ => 0,
+            addedAt: _ => 42);
+
+        Assert.Equal(Catalog, result);
+    }
+
     private static List<string> ApplyRatingSort(string order, Dictionary<string, int> scores) =>
         MapSort.Apply(
             Catalog,
