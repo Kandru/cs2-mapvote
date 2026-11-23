@@ -184,24 +184,6 @@ public class MapVisibilityTests
     }
 
     [Fact]
-    public void AnyShown_EarlyExitsOnFirstEnabled()
-    {
-        List<MapEntry> catalog =
-        [
-            new("de_dust2", MapOrigin.Local),
-            new("de_mirage", MapOrigin.Local),
-        ];
-        Dictionary<string, MapSettings> allHidden = new(StringComparer.Ordinal)
-        {
-            ["map_de_dust2"] = Setting(enabled: false),
-            ["map_de_mirage"] = Setting(enabled: false),
-        };
-
-        Assert.False(MapVisibility.AnyShown(catalog, allHidden));
-        Assert.True(MapVisibility.AnyShown(catalog, new Dictionary<string, MapSettings>(StringComparer.Ordinal)));
-    }
-
-    [Fact]
     public void TrySync_AddedKeyAlreadyInOrderDoesNotRebuildUnnecessarily()
     {
         Dictionary<string, MapSettings> maps = new(StringComparer.Ordinal)

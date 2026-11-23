@@ -117,22 +117,6 @@ namespace MapVote.Maps
             return result;
         }
 
-        /// <summary>True if at least one catalog map is enabled (missing key = shown).</summary>
-        public static bool AnyShown(
-            IReadOnlyList<MapEntry> catalog,
-            IReadOnlyDictionary<string, MapSettings> maps)
-        {
-            foreach (MapEntry entry in catalog)
-            {
-                if (!maps.TryGetValue(KeyFor(entry), out MapSettings? setting) || setting is not { Enabled: false })
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static bool IsOrdinalSorted(Dictionary<string, MapSettings> maps)
         {
             string? prev = null;

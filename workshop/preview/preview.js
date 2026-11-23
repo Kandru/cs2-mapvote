@@ -112,9 +112,10 @@
   const addedAt = (map) => Date.UTC(2024, 0, 1) / 1000 + position.get(map.id) * 86400 * 7;
   const likes = (map) => 40 + ((map.id.length * 137 + position.get(map.id) * 311) % 2400);
   const dislikes = (map) => 2 + ((map.id.length * 53 + position.get(map.id) * 97) % 180);
-  // Mirrors VoteView.FormatCount with the German preview separator.
+  // Mirrors VoteView.FormatCount with the viewer's configured separator.
+  const GROUP_SEPARATOR = L["number.group_separator"] || ",";
   const formatCount = (value) => {
-    if (value < 100000) return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    if (value < 100000) return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, GROUP_SEPARATOR);
     if (value < 1000000) return `${Math.floor(value / 1000)}k`;
     return `${Math.floor(value / 100000) / 10}`.replace(/\.0$/, "") + "M";
   };
@@ -235,8 +236,9 @@
       shot(`mv-shot-${i}`, m);
       text(`n${i}`, pretty(m.id));
       text(`v${i}`, String(s.votes[m.id] || 0));
-      text(`ln${i}`, formatCount(likes(m)));
-      text(`dn${i}`, formatCount(dislikes(m)));
+      const isCurrent = m.id === current.id;
+      text(`ln${i}`, formatCount(isCurrent ? s.likes : likes(m)));
+      text(`dn${i}`, formatCount(isCurrent ? s.dislikes : dislikes(m)));
       group(`mv-${i}`, ["votes-none", "votes-some"], (s.votes[m.id] || 0) > 0 ? "votes-some" : "votes-none");
       flag(`mv-slot-${i}`, "is-self", m.id === s.mine);
       flag(`mv-fav-${i}`, "is-active", s.fav.has(m.id));

@@ -40,8 +40,6 @@ namespace MapVote.Huds
         private static MapPlayCounts? _plays;
         private static Func<CCSPlayerController?, string, string>? _text;
         private static Dictionary<string, MapOrigin> _origins = new(StringComparer.Ordinal);
-        private static IReadOnlyDictionary<string, MapSettings> _mapSettings =
-            new Dictionary<string, MapSettings>(StringComparer.Ordinal);
         private static Func<string, string> _formatMapName = static name => name;
         private static string? _currentMap;
         private static MapOrigin _currentOrigin = MapOrigin.Local;
@@ -156,14 +154,13 @@ namespace MapVote.Huds
             _filters = filters;
             _archive = archive;
             _plays = plays;
-            _mapSettings = mapSettings;
             _text = text;
             _origins = new Dictionary<string, MapOrigin>(origins, StringComparer.Ordinal);
             _formatMapName = MapNameDisplay.Formatter(cleanMapNames);
             // Selection already caps the source at MapCatalog.MaxMaps (= SlotCount); keep it
             // whole so every sort (especially rating) sees the complete list, not a prefix.
             _grid = MapOrder.Sort(source, _formatMapName);
-            _view = MapGridView.Build(_grid, _origins, _mapSettings, _formatMapName);
+            _view = MapGridView.Build(_grid, _origins, mapSettings, _formatMapName);
             _currentMap = string.IsNullOrWhiteSpace(currentMap) ? null : currentMap;
             _currentOrigin = currentOrigin;
             _revealing = false;
@@ -187,7 +184,6 @@ namespace MapVote.Huds
             _view = null;
             _archive = null;
             _plays = null;
-            _mapSettings = new Dictionary<string, MapSettings>(StringComparer.Ordinal);
             _text = null;
             _origins = new Dictionary<string, MapOrigin>(StringComparer.Ordinal);
             _formatMapName = static name => name;
