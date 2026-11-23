@@ -8,6 +8,8 @@
   const CONFIG = window.PV_CONFIG;
   const L = CONFIG.text;
   const SLOTS = document.querySelectorAll('[id^="mv-slot-"]').length;
+  const TYPE_SLOTS = document.querySelectorAll('[id^="mv-ft-"]').length;
+  const SORT_SLOTS = document.querySelectorAll('[id^="mv-fs-"]').length;
   const N_OPTIONS = [8, 45, SLOTS];
   const N = N_OPTIONS.includes(Number(q.get("n"))) ? Number(q.get("n")) : 45;
   const STATE = BROWSE ? "browse" : q.get("state") || "vote";
@@ -200,7 +202,7 @@
     }
 
     // Filters (labels carry the count)
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < TYPE_SLOTS; i++) {
       const type = TYPES[i];
       flag(`mv-ft-${i}`, "is-off", !type);
       if (!type) continue;
@@ -216,7 +218,7 @@
     flag("mv-fav-only", "is-active", s.favOnly);
     flag("mv-fav-only", "is-disabled", favoriteCount === 0);
 
-    for (let i = 0; i < SORTS.length; i++) {
+    for (let i = 0; i < SORTS.length && i < SORT_SLOTS; i++) {
       const sort = SORTS[i];
       flag(`mv-fs-${i}`, "is-off", !sort);
       if (!sort) continue;
