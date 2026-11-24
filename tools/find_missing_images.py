@@ -180,6 +180,24 @@ def parse_mapgroup_output(text: str, force_type: str = "auto") -> list[tuple[str
     return entries
 
 
+def read_mapgroup_input() -> str:
+    """Read pasted console output until EOF, or a blank line on an interactive terminal."""
+    if not sys.stdin.isatty():
+        return sys.stdin.read()
+
+    print(
+        "Paste print_mapgroup_sv output, then press Enter on an empty line (or Ctrl-D).",
+        file=sys.stderr,
+    )
+
+    lines: list[str] = []
+    for line in sys.stdin:
+        if not line.strip():
+            break
+        lines.append(line)
+    return "".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -198,8 +216,9 @@ def main() -> int:
         print(f"Error: {err}", file=sys.stderr)
         return 1
 
-    input_text = sys.stdin.read()
+    input_text = read_mapgroup_input()
     if not input_text.strip():
+        print("No map list received. Nothing to do.", file=sys.stderr)
         return 0
 
     parsed = parse_mapgroup_output(input_text, force_type=args.type)

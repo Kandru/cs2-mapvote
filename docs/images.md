@@ -23,6 +23,18 @@ make images-prune   # optional: delete map CSS entries with no stock-list/on-dis
 
 Republish the workshop addon after extracting images.
 
+## Missing tiles from the server
+
+Copy the `print_mapgroup_sv` output from the server console and feed it to one of these targets:
+
+```bash
+make images-missing        # auto-detect workshop vs stock from the "Map group:" line
+make images-missing-ws     # treat every listed map as workshop (ws_*)
+make images-missing-stock  # treat every listed map as stock (map_*)
+```
+
+Paste the output, then finish with an empty line (press Enter twice) or Ctrl-D; a file redirect such as `make images-missing < maps.txt` also works. Only maps without a tile are printed. Each one gets a copy of the default tile plus a `.vtex`, and the matching `maps_v1.vcss` class is added.
+
 ### Workshop (`WORKSHOP_DIR`)
 
 Opens each VPK in path order; only packages with `maps/<name>.vpk` or `maps/<name>.vmap_c`. Screenshots: `map_icons/screenshots/1080p` → `720p` → `360p` (largest file first). Skips radar/overhead paths; prefers shots that are not too dark (mean luma under 40) and not much taller than wide. Fallbacks: first too-dark screenshot → first portrait/tall (full width, vertically centered crop to 16:9) → `panorama/images/overheadmaps/{map}_radar_*` (plain, then lower/higher floors). Output: `ws_{name}.png` + `.vtex` under the panorama maps folder, **350×197**, class `.mv-map-ws_{name}`. Duplicate names: `ws_{name}_1`, `_2`, …. No usable shot → package skipped (HUD uses default).
