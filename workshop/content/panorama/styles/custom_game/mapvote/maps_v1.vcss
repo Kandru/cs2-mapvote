@@ -1014,4 +1014,19 @@
 	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_krygina_1.vtex");
 }
 
+.mv-map-ws_skatepark
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_skatepark.vtex");
+}
+
+.mv-map-ws_fy_iceworld_csco
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_fy_iceworld_csco.vtex");
+}
+
+.mv-map-ws_solomap
+{
+	background-image: url("s2r://panorama/images/custom_game/mapvote/maps/ws_solomap.vtex");
+}
+
 /* END mv-map-palette */
