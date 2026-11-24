@@ -1136,10 +1136,10 @@ button { pointer-events: auto; }
 
 .RatingIcon
 {
-	width: 16px;
-	height: 16px;
+	width: 18px;
+	height: 18px;
 	align-self: center;
-	background-size: 16px 16px;
+	background-size: 18px 18px;
 	background-repeat: no-repeat;
 
 }
@@ -1147,8 +1147,8 @@ button { pointer-events: auto; }
 .RatingCount
 {
 	align-self: center;
-	font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
-	font-size: 16px;
+	font-family: "Stratum2 Bold", "Barlow", "Arial Narrow", sans-serif; font-weight: 700;
+	font-size: 18px;
 	color: #f5f7fa;
 }
 
@@ -1251,11 +1251,11 @@ button { pointer-events: auto; }
 .CardDate
 {
 	width: 100%;
-	height: 20px;
+	height: 24px;
 	padding: 0px 8px 0px 8px;
-	font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
-	font-size: 16px;
-	color: #a3acb6;
+	font-family: "Stratum2 Bold", "Barlow", "Arial Narrow", sans-serif; font-weight: 700;
+	font-size: 18px;
+	color: #c8d0d9;
 	white-space: nowrap;
 	display: none;
 }
@@ -1475,7 +1475,7 @@ button { pointer-events: auto; }
 /* Taller browse tiles carry the added date under the name. */
 .VoteRoot.view-browse .MapSlot
 {
-	height: 161px;
+	height: 165px;
 }
 
 .VoteRoot.view-browse .CardDate
