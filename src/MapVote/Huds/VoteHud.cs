@@ -854,7 +854,10 @@ namespace MapVote.Huds
                 SlotAt(slot).FavoritesOnly = false;
             }
 
-            CustomHud.SetText(player, Panel, VoteIds.TitleVar, L(player, browse ? "hud.maps_title" : "hud.title"));
+            // Replace, not string.Format: a broken translation must not throw in the paint loop.
+            CustomHud.SetText(player, Panel, VoteIds.TitleVar, browse
+                ? MapNameDisplay.ForHud(T(player, "hud.maps_title").Replace("{0}", _grid.Count.ToString(), StringComparison.Ordinal))
+                : L(player, "hud.title"));
             if (_deadlineUtc is { } deadline)
             {
                 int seconds = VoteView.SecondsLeft((deadline - DateTime.UtcNow).TotalSeconds);
@@ -902,6 +905,7 @@ namespace MapVote.Huds
 
             bool anyShown = false;
             string groupSeparator = T(player, "number.group_separator");
+            string? addedFormat = browse ? T(player, "hud.added_format") : null;
             for (int i = 0; i < SlotCount; i++)
             {
                 if (CustomHud.TickWrites >= PaintWriteBudget)
@@ -922,14 +926,22 @@ namespace MapVote.Huds
                 int votes = _session?.CountOf(map) ?? 0;
                 CustomHud.SetMapImage(player, VoteIds.GridShotIds[i], map, OriginOf(map));
                 CustomHud.SetText(player, Panel, VoteIds.GridNameVars[i], Display(map));
-                CustomHud.SetText(
-                    player, Panel,
-                    VoteIds.GridLikeVars[i],
-                    VoteView.FormatCount(_archive?.LikeCount(map) ?? 0, groupSeparator));
-                CustomHud.SetText(
-                    player, Panel,
-                    VoteIds.GridDislikeVars[i],
-                    VoteView.FormatCount(_archive?.DislikeCount(map) ?? 0, groupSeparator));
+                int likes = _archive?.LikeCount(map) ?? 0;
+                int dislikes = _archive?.DislikeCount(map) ?? 0;
+                CustomHud.SetText(player, Panel, VoteIds.GridLikeVars[i], VoteView.FormatCount(likes, groupSeparator));
+                CustomHud.SetText(player, Panel, VoteIds.GridDislikeVars[i], VoteView.FormatCount(dislikes, groupSeparator));
+                int ratingStep = VoteView.RatingStep(likes, dislikes);
+                for (int k = 0; k < VoteIds.ShareClasses.Length; k++)
+                {
+                    // No tile authors a ladder class (unrated = grey bar), so an unwritten false costs nothing.
+                    SetPlayerClass(player, VoteIds.GridTileIds[i], VoteIds.ShareClasses[k], k == ratingStep, xmlOn: false);
+                }
+
+                if (addedFormat is not null)
+                {
+                    CustomHud.SetText(player, Panel, VoteIds.GridAddedVars[i], VoteView.FormatAdded(_view?.Find(map)?.AddedUnix ?? 0, addedFormat));
+                }
+
                 // The badge only shows with votes-some, so zero stays the empty XML default.
                 CustomHud.SetText(player, Panel, VoteIds.GridVoteVars[i], votes > 0 ? votes.ToString() : string.Empty);
                 SetPlayerGroup(player, VoteIds.GridTileIds[i], VoteIds.VotesClasses, votes > 0 ? 1 : 0);

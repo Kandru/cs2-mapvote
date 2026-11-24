@@ -158,6 +158,7 @@ def expected() -> tuple[set[str], set[str]]:
     variables |= {f"rn{i}" for i in range(RANK_SLOTS)} | {f"rv{i}" for i in range(RANK_SLOTS)}
     variables |= {f"v{i}" for i in range(GRID_SLOTS)} | {f"n{i}" for i in range(GRID_SLOTS)}
     variables |= {f"ln{i}" for i in range(GRID_SLOTS)} | {f"dn{i}" for i in range(GRID_SLOTS)}
+    variables |= {f"ad{i}" for i in range(GRID_SLOTS)}
     return ids, variables
 
 
@@ -200,6 +201,8 @@ def check_css(raw: str) -> list[str]:
     for p in range(0, 101, SHARE_STEP):
         if f".RankFill.p{p} " not in css:
             errors.append(f"{name}: missing share ladder class p{p}")
+        if f".MapCard.p{p} .RateFill " not in css:
+            errors.append(f"{name}: missing rating ladder class p{p}")
     for req in (".is-off", ".is-fading", ".is-minimized", ".view-reveal", ".view-browse", ".is-running",
                 ".is-urgent", ".is-active", ".is-disabled", ".is-self", ".votes-some", ".ico-like", ".ico-dislike"):
         if req not in css:

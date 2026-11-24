@@ -12,7 +12,7 @@ Root
                            Browse (!maps): timer and status check hidden; ranking, vote badges
                            and sort row live (same renderer as the vote).
 Top bar
-  mv_title      (G) title text                      "Stimme für die nächste Map"
+  mv_title      (G) title text                      "Stimme für die nächste Map" / browse "Karten · 152" (whole list)
   #mv-timer               is-urgent (P, last 5 s; red text + pulse, the only infinite animation)
   mv_time       (G) countdown text, at most 1x/s     "0:08"
   #mv-timer-fill          span-3 … span-90 (P, set first), is-running (P, next tick). Reset: remove both.
@@ -55,12 +55,17 @@ Filters
   fs{i}         (G) label
 Grid (pool GRID_SLOTS = VoteIds.SlotCount)
   #mv-slot-{i}            is-off (P, XML on) = filter/visibility, is-self (P) = own vote
-  #mv-{i}       Button    vote group votes-none | votes-some (G, XML votes-none); badge only when > 0
+  #mv-{i}       Button    vote group votes-none | votes-some (G, XML votes-none); badge only when > 0;
+                          rating ladder p0, p10 … p100 (G, XML none = unrated: grey bar) = like share of
+                          all ratings, mixed ratings clamped to p10 … p90 (VoteView.RatingStep)
+  RateBar                 thin strip on the shot's bottom edge: grey, or red track + green like share
   #mv-shot-{i}            mv-map-* (G)
   #mv-fav-{i}   Button    is-active (P) = favourite (filled star; outline star only on hover)
   v{i}, n{i}    (G) vote count / name
   CardTopLeft             rating pill + own-vote check (both overlay the shot's top-left)
   ln{i}, dn{i}  (G) positive / negative rating counts, compact form (999, 1.2k, 12k)
+  ad{i}         (P) date the map was added (maps.*.added, UTC day), lang hud.added_format; browse only
+                    (row collapsed in the vote, never written there); empty = unknown
   #mv-empty               is-off (P, XML on)
   mv_empty      (P) "Keine Map passt zu diesem Filter"
 Reveal (visible with view-reveal)
@@ -256,8 +261,13 @@ def grid_slot(x: Xml, i: int) -> None:
     x.leaf("Panel", cls="CheckIcon")
     x.close("Panel")
     x.close("Panel")
+    # Rating strip along the shot's bottom edge: grey until the tile gets a p* class.
+    x.open("Panel", cls="RateBar")
+    x.leaf("Panel", cls="RateFill")
+    x.close("Panel")
     x.close("Panel")
     x.leaf("Label", cls="CardName", text=f"{{s:n{i}}}")
+    x.leaf("Label", cls="CardDate", text=f"{{s:ad{i}}}")
     x.close("Button")
     x.leaf("Panel", cls="CardFrame")
     x.open("Button", f"mv-fav-{i}", "FavBtn CardFav")
@@ -335,12 +345,17 @@ def _replace_block(text: str, name: str, lines: list[str]) -> str:
 
 
 def ladders(text: str) -> str:
-    """Countdown span ladder and ranking share ladder, generated from the pool constants."""
+    """Countdown span, ranking share and tile rating ladders, generated from the pool constants."""
     spans = [f".TimerFill.span-{s} {{ transition-duration: {s}.0s; }}" for s in range(SPAN_MIN, SPAN_MAX + 1)]
-    shares = [
-        f".RankFill.p{p} {{ clip: rect( 0%, {p}%, 100%, 0% ); }}" for p in range(0, 101, SHARE_STEP)
+    steps = range(0, 101, SHARE_STEP)
+    shares = [f".RankFill.p{p} {{ clip: rect( 0%, {p}%, 100%, 0% ); }}" for p in steps]
+    # Tile rating bar: any p* class on the card = rated (red track); the green fill clip is the like share.
+    rating = [
+        ",\n".join(f".MapCard.p{p} .RateBar" for p in steps), "{", "\tbackground-color: #e05a5a;", "}",
+        *(f".MapCard.p{p} .RateFill {{ clip: rect( 0%, {p}%, 100%, 0% ); }}" for p in steps),
     ]
-    return _replace_block(_replace_block(text, "span-ladder", spans), "share-ladder", shares)
+    text = _replace_block(_replace_block(text, "span-ladder", spans), "share-ladder", shares)
+    return _replace_block(text, "rating-ladder", rating)
 
 
 def main() -> int:

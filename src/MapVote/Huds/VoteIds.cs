@@ -74,13 +74,15 @@ namespace MapVote.Huds
         public static readonly string[] VotesClasses = ["votes-none", "votes-some"];
 
         public static readonly string[] GridSlotIds = BuildIndexed("mv-slot-", SlotCount);   // is-off (XML on), is-self
-        public static readonly string[] GridTileIds = BuildIndexed("mv-", SlotCount);        // votes-none|votes-some
+        public static readonly string[] GridTileIds = BuildIndexed("mv-", SlotCount);        // votes-none|votes-some; rating ladder p0…p100 (none = unrated)
         public static readonly string[] GridShotIds = BuildIndexed("mv-shot-", SlotCount);
         public static readonly string[] GridFavIds = BuildIndexed("mv-fav-", SlotCount);     // is-active
         public static readonly string[] GridVoteVars = BuildIndexed("v", SlotCount);
         public static readonly string[] GridNameVars = BuildIndexed("n", SlotCount);
         public static readonly string[] GridLikeVars = BuildIndexed("ln", SlotCount);
         public static readonly string[] GridDislikeVars = BuildIndexed("dn", SlotCount);
+        /// <summary>Browse only: date the map was added (lang hud.added_format); empty = unknown.</summary>
+        public static readonly string[] GridAddedVars = BuildIndexed("ad", SlotCount);
 
         public static readonly string[] RankRowIds = BuildIndexed("mv-rank-", RankSlots);        // is-off (XML on)
         public static readonly string[] RankShotIds = BuildIndexed("mv-rank-shot-", RankSlots);
