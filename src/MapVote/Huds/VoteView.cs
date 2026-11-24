@@ -65,6 +65,42 @@ namespace MapVote.Huds
                 : Math.Clamp((int)Math.Round(votes * 10.0 / total, MidpointRounding.AwayFromZero), 0, 10);
 
         /// <summary>
+        /// Index into <see cref="VoteIds.ShareClasses"/> for a tile's rating bar (like share of all
+        /// ratings), -1 when unrated (grey bar). Mixed ratings never round to a single colour.
+        /// </summary>
+        public static int RatingStep(int likes, int dislikes)
+        {
+            likes = Math.Max(0, likes);
+            dislikes = Math.Max(0, dislikes);
+            if (likes + dislikes == 0)
+            {
+                return -1;
+            }
+
+            int step = ShareStep(likes, likes + dislikes);
+            return likes > 0 && dislikes > 0 ? Math.Clamp(step, 1, 9) : step;
+        }
+
+        /// <summary>Tile date (UTC day) in the viewer's language format; empty when unknown (0), ISO when the format is broken.</summary>
+        public static string FormatAdded(long addedUnix, string format)
+        {
+            if (addedUnix <= 0 || addedUnix > DateTimeOffset.MaxValue.ToUnixTimeSeconds())
+            {
+                return string.Empty;
+            }
+
+            DateTime added = DateTimeOffset.FromUnixTimeSeconds(addedUnix).UtcDateTime;
+            try
+            {
+                return added.ToString(format, CultureInfo.InvariantCulture);
+            }
+            catch (FormatException)
+            {
+                return added.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            }
+        }
+
+        /// <summary>
         /// Per-player grid visibility. <paramref name="typeMask"/> has bit t set when the map matches
         /// type chip t (chip 0 = All matches everything).
         /// </summary>

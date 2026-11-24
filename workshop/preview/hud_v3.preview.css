@@ -34,6 +34,7 @@ button { pointer-events: auto; }
 .MapSlot > * { grid-area: 1 / 1; position: relative; }
 .CardImage > * { grid-area: 1 / 1; position: relative; }
 .SelfBadge > * { grid-area: 1 / 1; position: relative; }
+.RateBar > * { grid-area: 1 / 1; position: relative; }
 .CardFav > * { grid-area: 1 / 1; position: relative; }
 .CurrentFav > * { grid-area: 1 / 1; position: relative; }
 .RevealImage > * { grid-area: 1 / 1; position: relative; }
@@ -1200,6 +1201,65 @@ button { pointer-events: auto; }
 	white-space: nowrap;
 }
 
+/* Rating strip on the shot's bottom edge (YouTube/Steam style): grey = unrated; rated = red track + green like share. */
+.RateBar
+{
+	width: 100%;
+	height: 4px;
+	align-self: end;
+	display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	background-color: #6b737c99;
+}
+
+.RateFill
+{
+	width: 100%;
+	height: 100%;
+	background-color: #9ccf4f;
+	clip-path: inset(0% 100% 0% 0%);
+}
+
+/* BEGIN rating-ladder */
+.MapCard.p0 .RateBar,
+.MapCard.p10 .RateBar,
+.MapCard.p20 .RateBar,
+.MapCard.p30 .RateBar,
+.MapCard.p40 .RateBar,
+.MapCard.p50 .RateBar,
+.MapCard.p60 .RateBar,
+.MapCard.p70 .RateBar,
+.MapCard.p80 .RateBar,
+.MapCard.p90 .RateBar,
+.MapCard.p100 .RateBar
+{
+	background-color: #e05a5a;
+}
+.MapCard.p0 .RateFill { clip-path: inset(0% 100% 0% 0%); }
+.MapCard.p10 .RateFill { clip-path: inset(0% 90% 0% 0%); }
+.MapCard.p20 .RateFill { clip-path: inset(0% 80% 0% 0%); }
+.MapCard.p30 .RateFill { clip-path: inset(0% 70% 0% 0%); }
+.MapCard.p40 .RateFill { clip-path: inset(0% 60% 0% 0%); }
+.MapCard.p50 .RateFill { clip-path: inset(0% 50% 0% 0%); }
+.MapCard.p60 .RateFill { clip-path: inset(0% 40% 0% 0%); }
+.MapCard.p70 .RateFill { clip-path: inset(0% 30% 0% 0%); }
+.MapCard.p80 .RateFill { clip-path: inset(0% 20% 0% 0%); }
+.MapCard.p90 .RateFill { clip-path: inset(0% 10% 0% 0%); }
+.MapCard.p100 .RateFill { clip-path: inset(0% 0% 0% 0%); }
+/* END rating-ladder */
+
+/* Date the map was added: browse only (the vote grid stays compact). */
+.CardDate
+{
+	width: 100%;
+	height: 20px;
+	padding: 0px 8px 0px 8px;
+	font-family: "Stratum2 Bold Condensed", "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700;
+	font-size: 16px;
+	color: #a3acb6;
+	white-space: nowrap;
+	display: none;
+}
+
 /* Frame as an overlay sibling so a thicker border never crops the 192x108 shot. */
 .CardFrame
 {
@@ -1408,6 +1468,17 @@ button { pointer-events: auto; }
 }
 
 .VoteRoot.view-browse .SortRow
+{
+	display: flex;
+}
+
+/* Taller browse tiles carry the added date under the name. */
+.VoteRoot.view-browse .MapSlot
+{
+	height: 161px;
+}
+
+.VoteRoot.view-browse .CardDate
 {
 	display: flex;
 }

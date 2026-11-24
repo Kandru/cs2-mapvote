@@ -115,6 +115,23 @@
   const addedAt = (map) => Date.UTC(2024, 0, 1) / 1000 + position.get(map.id) * 86400 * 7;
   const likes = (map) => 40 + ((map.id.length * 137 + position.get(map.id) * 311) % 2400);
   const dislikes = (map) => 2 + ((map.id.length * 53 + position.get(map.id) * 97) % 180);
+  // Sample edge cases for the tile rating bar and date: every 9th map unrated, every 7th has no date.
+  const unrated = (map) => position.get(map.id) % 9 === 8;
+  const known = (map) => position.get(map.id) % 7 !== 6;
+  // VoteView.RatingStep: -1 unrated, mixed ratings clamped to p10..p90.
+  const ratingStep = (up, down) => {
+    if (up + down <= 0) return -1;
+    const step = Math.round((up * 10) / (up + down));
+    return up > 0 && down > 0 ? Math.min(9, Math.max(1, step)) : step;
+  };
+  // VoteView.FormatAdded: UTC day in the lang format, empty when unknown.
+  const formatAdded = (unix) => {
+    if (!unix) return "";
+    const d = new Date(unix * 1000);
+    const pad = (n) => String(n).padStart(2, "0");
+    return (L["hud.added_format"] || "yyyy-MM-dd")
+      .replace("yyyy", d.getUTCFullYear()).replace("MM", pad(d.getUTCMonth() + 1)).replace("dd", pad(d.getUTCDate()));
+  };
   // Mirrors VoteView.FormatCount with the viewer's configured separator.
   const GROUP_SEPARATOR = L["number.group_separator"] || ",";
   const formatCount = (value) => {
@@ -154,7 +171,7 @@
     group("Vote", VIEWS, BROWSE ? "view-browse" : s.reveal ? "view-reveal" : "view-vote");
     flag("Vote", "is-off", s.closed);
     flag("Vote", "is-minimized", s.minimized);
-    text("mv_title", BROWSE ? L["hud.maps_title"] : L["hud.title"]);
+    text("mv_title", BROWSE ? fmt("hud.maps_title", all.length) : L["hud.title"]);
     text("mv_hide", BROWSE ? L["hud.close"] : s.minimized ? L["hud.show"] : L["hud.hide"]);
 
     const mine = byId(s.mine);
@@ -240,8 +257,13 @@
       text(`n${i}`, pretty(m.id));
       text(`v${i}`, String(s.votes[m.id] || 0));
       const isCurrent = m.id === current.id;
-      text(`ln${i}`, formatCount(isCurrent ? s.likes : likes(m)));
-      text(`dn${i}`, formatCount(isCurrent ? s.dislikes : dislikes(m)));
+      const up = isCurrent ? s.likes : unrated(m) ? 0 : likes(m);
+      const down = isCurrent ? s.dislikes : unrated(m) ? 0 : dislikes(m);
+      text(`ln${i}`, formatCount(up));
+      text(`dn${i}`, formatCount(down));
+      const step = ratingStep(up, down);
+      SHARES.forEach((c, k) => flag(`mv-${i}`, c, k === step));
+      if (BROWSE) text(`ad${i}`, formatAdded(known(m) ? addedAt(m) : 0));
       group(`mv-${i}`, ["votes-none", "votes-some"], (s.votes[m.id] || 0) > 0 ? "votes-some" : "votes-none");
       flag(`mv-slot-${i}`, "is-self", m.id === s.mine);
       flag(`mv-fav-${i}`, "is-active", s.fav.has(m.id));

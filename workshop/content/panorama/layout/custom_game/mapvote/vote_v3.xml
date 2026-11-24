@@ -261,8 +261,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n0}" />
+									<Label class="CardDate" hittest="false" text="{s:ad0}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-0" class="FavBtn CardFav">
@@ -286,8 +290,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n1}" />
+									<Label class="CardDate" hittest="false" text="{s:ad1}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-1" class="FavBtn CardFav">
@@ -311,8 +319,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n2}" />
+									<Label class="CardDate" hittest="false" text="{s:ad2}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-2" class="FavBtn CardFav">
@@ -336,8 +348,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n3}" />
+									<Label class="CardDate" hittest="false" text="{s:ad3}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-3" class="FavBtn CardFav">
@@ -361,8 +377,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n4}" />
+									<Label class="CardDate" hittest="false" text="{s:ad4}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-4" class="FavBtn CardFav">
@@ -386,8 +406,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n5}" />
+									<Label class="CardDate" hittest="false" text="{s:ad5}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-5" class="FavBtn CardFav">
@@ -411,8 +435,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n6}" />
+									<Label class="CardDate" hittest="false" text="{s:ad6}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-6" class="FavBtn CardFav">
@@ -436,8 +464,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n7}" />
+									<Label class="CardDate" hittest="false" text="{s:ad7}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-7" class="FavBtn CardFav">
@@ -461,8 +493,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n8}" />
+									<Label class="CardDate" hittest="false" text="{s:ad8}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-8" class="FavBtn CardFav">
@@ -486,8 +522,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n9}" />
+									<Label class="CardDate" hittest="false" text="{s:ad9}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-9" class="FavBtn CardFav">
@@ -511,8 +551,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n10}" />
+									<Label class="CardDate" hittest="false" text="{s:ad10}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-10" class="FavBtn CardFav">
@@ -536,8 +580,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n11}" />
+									<Label class="CardDate" hittest="false" text="{s:ad11}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-11" class="FavBtn CardFav">
@@ -561,8 +609,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n12}" />
+									<Label class="CardDate" hittest="false" text="{s:ad12}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-12" class="FavBtn CardFav">
@@ -586,8 +638,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n13}" />
+									<Label class="CardDate" hittest="false" text="{s:ad13}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-13" class="FavBtn CardFav">
@@ -611,8 +667,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n14}" />
+									<Label class="CardDate" hittest="false" text="{s:ad14}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-14" class="FavBtn CardFav">
@@ -636,8 +696,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n15}" />
+									<Label class="CardDate" hittest="false" text="{s:ad15}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-15" class="FavBtn CardFav">
@@ -661,8 +725,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n16}" />
+									<Label class="CardDate" hittest="false" text="{s:ad16}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-16" class="FavBtn CardFav">
@@ -686,8 +754,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n17}" />
+									<Label class="CardDate" hittest="false" text="{s:ad17}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-17" class="FavBtn CardFav">
@@ -711,8 +783,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n18}" />
+									<Label class="CardDate" hittest="false" text="{s:ad18}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-18" class="FavBtn CardFav">
@@ -736,8 +812,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n19}" />
+									<Label class="CardDate" hittest="false" text="{s:ad19}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-19" class="FavBtn CardFav">
@@ -761,8 +841,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n20}" />
+									<Label class="CardDate" hittest="false" text="{s:ad20}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-20" class="FavBtn CardFav">
@@ -786,8 +870,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n21}" />
+									<Label class="CardDate" hittest="false" text="{s:ad21}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-21" class="FavBtn CardFav">
@@ -811,8 +899,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n22}" />
+									<Label class="CardDate" hittest="false" text="{s:ad22}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-22" class="FavBtn CardFav">
@@ -836,8 +928,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n23}" />
+									<Label class="CardDate" hittest="false" text="{s:ad23}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-23" class="FavBtn CardFav">
@@ -861,8 +957,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n24}" />
+									<Label class="CardDate" hittest="false" text="{s:ad24}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-24" class="FavBtn CardFav">
@@ -886,8 +986,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n25}" />
+									<Label class="CardDate" hittest="false" text="{s:ad25}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-25" class="FavBtn CardFav">
@@ -911,8 +1015,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n26}" />
+									<Label class="CardDate" hittest="false" text="{s:ad26}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-26" class="FavBtn CardFav">
@@ -936,8 +1044,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n27}" />
+									<Label class="CardDate" hittest="false" text="{s:ad27}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-27" class="FavBtn CardFav">
@@ -961,8 +1073,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n28}" />
+									<Label class="CardDate" hittest="false" text="{s:ad28}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-28" class="FavBtn CardFav">
@@ -986,8 +1102,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n29}" />
+									<Label class="CardDate" hittest="false" text="{s:ad29}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-29" class="FavBtn CardFav">
@@ -1011,8 +1131,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n30}" />
+									<Label class="CardDate" hittest="false" text="{s:ad30}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-30" class="FavBtn CardFav">
@@ -1036,8 +1160,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n31}" />
+									<Label class="CardDate" hittest="false" text="{s:ad31}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-31" class="FavBtn CardFav">
@@ -1061,8 +1189,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n32}" />
+									<Label class="CardDate" hittest="false" text="{s:ad32}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-32" class="FavBtn CardFav">
@@ -1086,8 +1218,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n33}" />
+									<Label class="CardDate" hittest="false" text="{s:ad33}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-33" class="FavBtn CardFav">
@@ -1111,8 +1247,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n34}" />
+									<Label class="CardDate" hittest="false" text="{s:ad34}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-34" class="FavBtn CardFav">
@@ -1136,8 +1276,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n35}" />
+									<Label class="CardDate" hittest="false" text="{s:ad35}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-35" class="FavBtn CardFav">
@@ -1161,8 +1305,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n36}" />
+									<Label class="CardDate" hittest="false" text="{s:ad36}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-36" class="FavBtn CardFav">
@@ -1186,8 +1334,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n37}" />
+									<Label class="CardDate" hittest="false" text="{s:ad37}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-37" class="FavBtn CardFav">
@@ -1211,8 +1363,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n38}" />
+									<Label class="CardDate" hittest="false" text="{s:ad38}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-38" class="FavBtn CardFav">
@@ -1236,8 +1392,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n39}" />
+									<Label class="CardDate" hittest="false" text="{s:ad39}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-39" class="FavBtn CardFav">
@@ -1261,8 +1421,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n40}" />
+									<Label class="CardDate" hittest="false" text="{s:ad40}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-40" class="FavBtn CardFav">
@@ -1286,8 +1450,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n41}" />
+									<Label class="CardDate" hittest="false" text="{s:ad41}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-41" class="FavBtn CardFav">
@@ -1311,8 +1479,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n42}" />
+									<Label class="CardDate" hittest="false" text="{s:ad42}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-42" class="FavBtn CardFav">
@@ -1336,8 +1508,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n43}" />
+									<Label class="CardDate" hittest="false" text="{s:ad43}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-43" class="FavBtn CardFav">
@@ -1361,8 +1537,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n44}" />
+									<Label class="CardDate" hittest="false" text="{s:ad44}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-44" class="FavBtn CardFav">
@@ -1386,8 +1566,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n45}" />
+									<Label class="CardDate" hittest="false" text="{s:ad45}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-45" class="FavBtn CardFav">
@@ -1411,8 +1595,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n46}" />
+									<Label class="CardDate" hittest="false" text="{s:ad46}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-46" class="FavBtn CardFav">
@@ -1436,8 +1624,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n47}" />
+									<Label class="CardDate" hittest="false" text="{s:ad47}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-47" class="FavBtn CardFav">
@@ -1461,8 +1653,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n48}" />
+									<Label class="CardDate" hittest="false" text="{s:ad48}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-48" class="FavBtn CardFav">
@@ -1486,8 +1682,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n49}" />
+									<Label class="CardDate" hittest="false" text="{s:ad49}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-49" class="FavBtn CardFav">
@@ -1511,8 +1711,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n50}" />
+									<Label class="CardDate" hittest="false" text="{s:ad50}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-50" class="FavBtn CardFav">
@@ -1536,8 +1740,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n51}" />
+									<Label class="CardDate" hittest="false" text="{s:ad51}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-51" class="FavBtn CardFav">
@@ -1561,8 +1769,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n52}" />
+									<Label class="CardDate" hittest="false" text="{s:ad52}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-52" class="FavBtn CardFav">
@@ -1586,8 +1798,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n53}" />
+									<Label class="CardDate" hittest="false" text="{s:ad53}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-53" class="FavBtn CardFav">
@@ -1611,8 +1827,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n54}" />
+									<Label class="CardDate" hittest="false" text="{s:ad54}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-54" class="FavBtn CardFav">
@@ -1636,8 +1856,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n55}" />
+									<Label class="CardDate" hittest="false" text="{s:ad55}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-55" class="FavBtn CardFav">
@@ -1661,8 +1885,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n56}" />
+									<Label class="CardDate" hittest="false" text="{s:ad56}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-56" class="FavBtn CardFav">
@@ -1686,8 +1914,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n57}" />
+									<Label class="CardDate" hittest="false" text="{s:ad57}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-57" class="FavBtn CardFav">
@@ -1711,8 +1943,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n58}" />
+									<Label class="CardDate" hittest="false" text="{s:ad58}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-58" class="FavBtn CardFav">
@@ -1736,8 +1972,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n59}" />
+									<Label class="CardDate" hittest="false" text="{s:ad59}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-59" class="FavBtn CardFav">
@@ -1761,8 +2001,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n60}" />
+									<Label class="CardDate" hittest="false" text="{s:ad60}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-60" class="FavBtn CardFav">
@@ -1786,8 +2030,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n61}" />
+									<Label class="CardDate" hittest="false" text="{s:ad61}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-61" class="FavBtn CardFav">
@@ -1811,8 +2059,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n62}" />
+									<Label class="CardDate" hittest="false" text="{s:ad62}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-62" class="FavBtn CardFav">
@@ -1836,8 +2088,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n63}" />
+									<Label class="CardDate" hittest="false" text="{s:ad63}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-63" class="FavBtn CardFav">
@@ -1861,8 +2117,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n64}" />
+									<Label class="CardDate" hittest="false" text="{s:ad64}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-64" class="FavBtn CardFav">
@@ -1886,8 +2146,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n65}" />
+									<Label class="CardDate" hittest="false" text="{s:ad65}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-65" class="FavBtn CardFav">
@@ -1911,8 +2175,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n66}" />
+									<Label class="CardDate" hittest="false" text="{s:ad66}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-66" class="FavBtn CardFav">
@@ -1936,8 +2204,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n67}" />
+									<Label class="CardDate" hittest="false" text="{s:ad67}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-67" class="FavBtn CardFav">
@@ -1961,8 +2233,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n68}" />
+									<Label class="CardDate" hittest="false" text="{s:ad68}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-68" class="FavBtn CardFav">
@@ -1986,8 +2262,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n69}" />
+									<Label class="CardDate" hittest="false" text="{s:ad69}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-69" class="FavBtn CardFav">
@@ -2011,8 +2291,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n70}" />
+									<Label class="CardDate" hittest="false" text="{s:ad70}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-70" class="FavBtn CardFav">
@@ -2036,8 +2320,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n71}" />
+									<Label class="CardDate" hittest="false" text="{s:ad71}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-71" class="FavBtn CardFav">
@@ -2061,8 +2349,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n72}" />
+									<Label class="CardDate" hittest="false" text="{s:ad72}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-72" class="FavBtn CardFav">
@@ -2086,8 +2378,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n73}" />
+									<Label class="CardDate" hittest="false" text="{s:ad73}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-73" class="FavBtn CardFav">
@@ -2111,8 +2407,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n74}" />
+									<Label class="CardDate" hittest="false" text="{s:ad74}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-74" class="FavBtn CardFav">
@@ -2136,8 +2436,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n75}" />
+									<Label class="CardDate" hittest="false" text="{s:ad75}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-75" class="FavBtn CardFav">
@@ -2161,8 +2465,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n76}" />
+									<Label class="CardDate" hittest="false" text="{s:ad76}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-76" class="FavBtn CardFav">
@@ -2186,8 +2494,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n77}" />
+									<Label class="CardDate" hittest="false" text="{s:ad77}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-77" class="FavBtn CardFav">
@@ -2211,8 +2523,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n78}" />
+									<Label class="CardDate" hittest="false" text="{s:ad78}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-78" class="FavBtn CardFav">
@@ -2236,8 +2552,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n79}" />
+									<Label class="CardDate" hittest="false" text="{s:ad79}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-79" class="FavBtn CardFav">
@@ -2261,8 +2581,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n80}" />
+									<Label class="CardDate" hittest="false" text="{s:ad80}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-80" class="FavBtn CardFav">
@@ -2286,8 +2610,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n81}" />
+									<Label class="CardDate" hittest="false" text="{s:ad81}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-81" class="FavBtn CardFav">
@@ -2311,8 +2639,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n82}" />
+									<Label class="CardDate" hittest="false" text="{s:ad82}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-82" class="FavBtn CardFav">
@@ -2336,8 +2668,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n83}" />
+									<Label class="CardDate" hittest="false" text="{s:ad83}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-83" class="FavBtn CardFav">
@@ -2361,8 +2697,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n84}" />
+									<Label class="CardDate" hittest="false" text="{s:ad84}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-84" class="FavBtn CardFav">
@@ -2386,8 +2726,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n85}" />
+									<Label class="CardDate" hittest="false" text="{s:ad85}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-85" class="FavBtn CardFav">
@@ -2411,8 +2755,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n86}" />
+									<Label class="CardDate" hittest="false" text="{s:ad86}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-86" class="FavBtn CardFav">
@@ -2436,8 +2784,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n87}" />
+									<Label class="CardDate" hittest="false" text="{s:ad87}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-87" class="FavBtn CardFav">
@@ -2461,8 +2813,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n88}" />
+									<Label class="CardDate" hittest="false" text="{s:ad88}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-88" class="FavBtn CardFav">
@@ -2486,8 +2842,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n89}" />
+									<Label class="CardDate" hittest="false" text="{s:ad89}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-89" class="FavBtn CardFav">
@@ -2511,8 +2871,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n90}" />
+									<Label class="CardDate" hittest="false" text="{s:ad90}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-90" class="FavBtn CardFav">
@@ -2536,8 +2900,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n91}" />
+									<Label class="CardDate" hittest="false" text="{s:ad91}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-91" class="FavBtn CardFav">
@@ -2561,8 +2929,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n92}" />
+									<Label class="CardDate" hittest="false" text="{s:ad92}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-92" class="FavBtn CardFav">
@@ -2586,8 +2958,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n93}" />
+									<Label class="CardDate" hittest="false" text="{s:ad93}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-93" class="FavBtn CardFav">
@@ -2611,8 +2987,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n94}" />
+									<Label class="CardDate" hittest="false" text="{s:ad94}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-94" class="FavBtn CardFav">
@@ -2636,8 +3016,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n95}" />
+									<Label class="CardDate" hittest="false" text="{s:ad95}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-95" class="FavBtn CardFav">
@@ -2661,8 +3045,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n96}" />
+									<Label class="CardDate" hittest="false" text="{s:ad96}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-96" class="FavBtn CardFav">
@@ -2686,8 +3074,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n97}" />
+									<Label class="CardDate" hittest="false" text="{s:ad97}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-97" class="FavBtn CardFav">
@@ -2711,8 +3103,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n98}" />
+									<Label class="CardDate" hittest="false" text="{s:ad98}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-98" class="FavBtn CardFav">
@@ -2736,8 +3132,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n99}" />
+									<Label class="CardDate" hittest="false" text="{s:ad99}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-99" class="FavBtn CardFav">
@@ -2761,8 +3161,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n100}" />
+									<Label class="CardDate" hittest="false" text="{s:ad100}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-100" class="FavBtn CardFav">
@@ -2786,8 +3190,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n101}" />
+									<Label class="CardDate" hittest="false" text="{s:ad101}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-101" class="FavBtn CardFav">
@@ -2811,8 +3219,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n102}" />
+									<Label class="CardDate" hittest="false" text="{s:ad102}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-102" class="FavBtn CardFav">
@@ -2836,8 +3248,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n103}" />
+									<Label class="CardDate" hittest="false" text="{s:ad103}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-103" class="FavBtn CardFav">
@@ -2861,8 +3277,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n104}" />
+									<Label class="CardDate" hittest="false" text="{s:ad104}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-104" class="FavBtn CardFav">
@@ -2886,8 +3306,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n105}" />
+									<Label class="CardDate" hittest="false" text="{s:ad105}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-105" class="FavBtn CardFav">
@@ -2911,8 +3335,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n106}" />
+									<Label class="CardDate" hittest="false" text="{s:ad106}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-106" class="FavBtn CardFav">
@@ -2936,8 +3364,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n107}" />
+									<Label class="CardDate" hittest="false" text="{s:ad107}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-107" class="FavBtn CardFav">
@@ -2961,8 +3393,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n108}" />
+									<Label class="CardDate" hittest="false" text="{s:ad108}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-108" class="FavBtn CardFav">
@@ -2986,8 +3422,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n109}" />
+									<Label class="CardDate" hittest="false" text="{s:ad109}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-109" class="FavBtn CardFav">
@@ -3011,8 +3451,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n110}" />
+									<Label class="CardDate" hittest="false" text="{s:ad110}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-110" class="FavBtn CardFav">
@@ -3036,8 +3480,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n111}" />
+									<Label class="CardDate" hittest="false" text="{s:ad111}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-111" class="FavBtn CardFav">
@@ -3061,8 +3509,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n112}" />
+									<Label class="CardDate" hittest="false" text="{s:ad112}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-112" class="FavBtn CardFav">
@@ -3086,8 +3538,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n113}" />
+									<Label class="CardDate" hittest="false" text="{s:ad113}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-113" class="FavBtn CardFav">
@@ -3111,8 +3567,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n114}" />
+									<Label class="CardDate" hittest="false" text="{s:ad114}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-114" class="FavBtn CardFav">
@@ -3136,8 +3596,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n115}" />
+									<Label class="CardDate" hittest="false" text="{s:ad115}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-115" class="FavBtn CardFav">
@@ -3161,8 +3625,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n116}" />
+									<Label class="CardDate" hittest="false" text="{s:ad116}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-116" class="FavBtn CardFav">
@@ -3186,8 +3654,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n117}" />
+									<Label class="CardDate" hittest="false" text="{s:ad117}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-117" class="FavBtn CardFav">
@@ -3211,8 +3683,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n118}" />
+									<Label class="CardDate" hittest="false" text="{s:ad118}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-118" class="FavBtn CardFav">
@@ -3236,8 +3712,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n119}" />
+									<Label class="CardDate" hittest="false" text="{s:ad119}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-119" class="FavBtn CardFav">
@@ -3261,8 +3741,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n120}" />
+									<Label class="CardDate" hittest="false" text="{s:ad120}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-120" class="FavBtn CardFav">
@@ -3286,8 +3770,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n121}" />
+									<Label class="CardDate" hittest="false" text="{s:ad121}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-121" class="FavBtn CardFav">
@@ -3311,8 +3799,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n122}" />
+									<Label class="CardDate" hittest="false" text="{s:ad122}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-122" class="FavBtn CardFav">
@@ -3336,8 +3828,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n123}" />
+									<Label class="CardDate" hittest="false" text="{s:ad123}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-123" class="FavBtn CardFav">
@@ -3361,8 +3857,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n124}" />
+									<Label class="CardDate" hittest="false" text="{s:ad124}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-124" class="FavBtn CardFav">
@@ -3386,8 +3886,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n125}" />
+									<Label class="CardDate" hittest="false" text="{s:ad125}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-125" class="FavBtn CardFav">
@@ -3411,8 +3915,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n126}" />
+									<Label class="CardDate" hittest="false" text="{s:ad126}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-126" class="FavBtn CardFav">
@@ -3436,8 +3944,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n127}" />
+									<Label class="CardDate" hittest="false" text="{s:ad127}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-127" class="FavBtn CardFav">
@@ -3461,8 +3973,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n128}" />
+									<Label class="CardDate" hittest="false" text="{s:ad128}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-128" class="FavBtn CardFav">
@@ -3486,8 +4002,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n129}" />
+									<Label class="CardDate" hittest="false" text="{s:ad129}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-129" class="FavBtn CardFav">
@@ -3511,8 +4031,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n130}" />
+									<Label class="CardDate" hittest="false" text="{s:ad130}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-130" class="FavBtn CardFav">
@@ -3536,8 +4060,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n131}" />
+									<Label class="CardDate" hittest="false" text="{s:ad131}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-131" class="FavBtn CardFav">
@@ -3561,8 +4089,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n132}" />
+									<Label class="CardDate" hittest="false" text="{s:ad132}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-132" class="FavBtn CardFav">
@@ -3586,8 +4118,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n133}" />
+									<Label class="CardDate" hittest="false" text="{s:ad133}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-133" class="FavBtn CardFav">
@@ -3611,8 +4147,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n134}" />
+									<Label class="CardDate" hittest="false" text="{s:ad134}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-134" class="FavBtn CardFav">
@@ -3636,8 +4176,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n135}" />
+									<Label class="CardDate" hittest="false" text="{s:ad135}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-135" class="FavBtn CardFav">
@@ -3661,8 +4205,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n136}" />
+									<Label class="CardDate" hittest="false" text="{s:ad136}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-136" class="FavBtn CardFav">
@@ -3686,8 +4234,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n137}" />
+									<Label class="CardDate" hittest="false" text="{s:ad137}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-137" class="FavBtn CardFav">
@@ -3711,8 +4263,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n138}" />
+									<Label class="CardDate" hittest="false" text="{s:ad138}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-138" class="FavBtn CardFav">
@@ -3736,8 +4292,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n139}" />
+									<Label class="CardDate" hittest="false" text="{s:ad139}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-139" class="FavBtn CardFav">
@@ -3761,8 +4321,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n140}" />
+									<Label class="CardDate" hittest="false" text="{s:ad140}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-140" class="FavBtn CardFav">
@@ -3786,8 +4350,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n141}" />
+									<Label class="CardDate" hittest="false" text="{s:ad141}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-141" class="FavBtn CardFav">
@@ -3811,8 +4379,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n142}" />
+									<Label class="CardDate" hittest="false" text="{s:ad142}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-142" class="FavBtn CardFav">
@@ -3836,8 +4408,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n143}" />
+									<Label class="CardDate" hittest="false" text="{s:ad143}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-143" class="FavBtn CardFav">
@@ -3861,8 +4437,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n144}" />
+									<Label class="CardDate" hittest="false" text="{s:ad144}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-144" class="FavBtn CardFav">
@@ -3886,8 +4466,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n145}" />
+									<Label class="CardDate" hittest="false" text="{s:ad145}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-145" class="FavBtn CardFav">
@@ -3911,8 +4495,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n146}" />
+									<Label class="CardDate" hittest="false" text="{s:ad146}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-146" class="FavBtn CardFav">
@@ -3936,8 +4524,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n147}" />
+									<Label class="CardDate" hittest="false" text="{s:ad147}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-147" class="FavBtn CardFav">
@@ -3961,8 +4553,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n148}" />
+									<Label class="CardDate" hittest="false" text="{s:ad148}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-148" class="FavBtn CardFav">
@@ -3986,8 +4582,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n149}" />
+									<Label class="CardDate" hittest="false" text="{s:ad149}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-149" class="FavBtn CardFav">
@@ -4011,8 +4611,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n150}" />
+									<Label class="CardDate" hittest="false" text="{s:ad150}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-150" class="FavBtn CardFav">
@@ -4036,8 +4640,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n151}" />
+									<Label class="CardDate" hittest="false" text="{s:ad151}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-151" class="FavBtn CardFav">
@@ -4061,8 +4669,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n152}" />
+									<Label class="CardDate" hittest="false" text="{s:ad152}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-152" class="FavBtn CardFav">
@@ -4086,8 +4698,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n153}" />
+									<Label class="CardDate" hittest="false" text="{s:ad153}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-153" class="FavBtn CardFav">
@@ -4111,8 +4727,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n154}" />
+									<Label class="CardDate" hittest="false" text="{s:ad154}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-154" class="FavBtn CardFav">
@@ -4136,8 +4756,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n155}" />
+									<Label class="CardDate" hittest="false" text="{s:ad155}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-155" class="FavBtn CardFav">
@@ -4161,8 +4785,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n156}" />
+									<Label class="CardDate" hittest="false" text="{s:ad156}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-156" class="FavBtn CardFav">
@@ -4186,8 +4814,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n157}" />
+									<Label class="CardDate" hittest="false" text="{s:ad157}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-157" class="FavBtn CardFav">
@@ -4211,8 +4843,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n158}" />
+									<Label class="CardDate" hittest="false" text="{s:ad158}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-158" class="FavBtn CardFav">
@@ -4236,8 +4872,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n159}" />
+									<Label class="CardDate" hittest="false" text="{s:ad159}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-159" class="FavBtn CardFav">
@@ -4261,8 +4901,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n160}" />
+									<Label class="CardDate" hittest="false" text="{s:ad160}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-160" class="FavBtn CardFav">
@@ -4286,8 +4930,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n161}" />
+									<Label class="CardDate" hittest="false" text="{s:ad161}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-161" class="FavBtn CardFav">
@@ -4311,8 +4959,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n162}" />
+									<Label class="CardDate" hittest="false" text="{s:ad162}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-162" class="FavBtn CardFav">
@@ -4336,8 +4988,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n163}" />
+									<Label class="CardDate" hittest="false" text="{s:ad163}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-163" class="FavBtn CardFav">
@@ -4361,8 +5017,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n164}" />
+									<Label class="CardDate" hittest="false" text="{s:ad164}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-164" class="FavBtn CardFav">
@@ -4386,8 +5046,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n165}" />
+									<Label class="CardDate" hittest="false" text="{s:ad165}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-165" class="FavBtn CardFav">
@@ -4411,8 +5075,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n166}" />
+									<Label class="CardDate" hittest="false" text="{s:ad166}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-166" class="FavBtn CardFav">
@@ -4436,8 +5104,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n167}" />
+									<Label class="CardDate" hittest="false" text="{s:ad167}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-167" class="FavBtn CardFav">
@@ -4461,8 +5133,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n168}" />
+									<Label class="CardDate" hittest="false" text="{s:ad168}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-168" class="FavBtn CardFav">
@@ -4486,8 +5162,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n169}" />
+									<Label class="CardDate" hittest="false" text="{s:ad169}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-169" class="FavBtn CardFav">
@@ -4511,8 +5191,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n170}" />
+									<Label class="CardDate" hittest="false" text="{s:ad170}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-170" class="FavBtn CardFav">
@@ -4536,8 +5220,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n171}" />
+									<Label class="CardDate" hittest="false" text="{s:ad171}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-171" class="FavBtn CardFav">
@@ -4561,8 +5249,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n172}" />
+									<Label class="CardDate" hittest="false" text="{s:ad172}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-172" class="FavBtn CardFav">
@@ -4586,8 +5278,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n173}" />
+									<Label class="CardDate" hittest="false" text="{s:ad173}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-173" class="FavBtn CardFav">
@@ -4611,8 +5307,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n174}" />
+									<Label class="CardDate" hittest="false" text="{s:ad174}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-174" class="FavBtn CardFav">
@@ -4636,8 +5336,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n175}" />
+									<Label class="CardDate" hittest="false" text="{s:ad175}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-175" class="FavBtn CardFav">
@@ -4661,8 +5365,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n176}" />
+									<Label class="CardDate" hittest="false" text="{s:ad176}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-176" class="FavBtn CardFav">
@@ -4686,8 +5394,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n177}" />
+									<Label class="CardDate" hittest="false" text="{s:ad177}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-177" class="FavBtn CardFav">
@@ -4711,8 +5423,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n178}" />
+									<Label class="CardDate" hittest="false" text="{s:ad178}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-178" class="FavBtn CardFav">
@@ -4736,8 +5452,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n179}" />
+									<Label class="CardDate" hittest="false" text="{s:ad179}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-179" class="FavBtn CardFav">
@@ -4761,8 +5481,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n180}" />
+									<Label class="CardDate" hittest="false" text="{s:ad180}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-180" class="FavBtn CardFav">
@@ -4786,8 +5510,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n181}" />
+									<Label class="CardDate" hittest="false" text="{s:ad181}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-181" class="FavBtn CardFav">
@@ -4811,8 +5539,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n182}" />
+									<Label class="CardDate" hittest="false" text="{s:ad182}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-182" class="FavBtn CardFav">
@@ -4836,8 +5568,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n183}" />
+									<Label class="CardDate" hittest="false" text="{s:ad183}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-183" class="FavBtn CardFav">
@@ -4861,8 +5597,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n184}" />
+									<Label class="CardDate" hittest="false" text="{s:ad184}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-184" class="FavBtn CardFav">
@@ -4886,8 +5626,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n185}" />
+									<Label class="CardDate" hittest="false" text="{s:ad185}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-185" class="FavBtn CardFav">
@@ -4911,8 +5655,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n186}" />
+									<Label class="CardDate" hittest="false" text="{s:ad186}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-186" class="FavBtn CardFav">
@@ -4936,8 +5684,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n187}" />
+									<Label class="CardDate" hittest="false" text="{s:ad187}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-187" class="FavBtn CardFav">
@@ -4961,8 +5713,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n188}" />
+									<Label class="CardDate" hittest="false" text="{s:ad188}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-188" class="FavBtn CardFav">
@@ -4986,8 +5742,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n189}" />
+									<Label class="CardDate" hittest="false" text="{s:ad189}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-189" class="FavBtn CardFav">
@@ -5011,8 +5771,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n190}" />
+									<Label class="CardDate" hittest="false" text="{s:ad190}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-190" class="FavBtn CardFav">
@@ -5036,8 +5800,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n191}" />
+									<Label class="CardDate" hittest="false" text="{s:ad191}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-191" class="FavBtn CardFav">
@@ -5061,8 +5829,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n192}" />
+									<Label class="CardDate" hittest="false" text="{s:ad192}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-192" class="FavBtn CardFav">
@@ -5086,8 +5858,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n193}" />
+									<Label class="CardDate" hittest="false" text="{s:ad193}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-193" class="FavBtn CardFav">
@@ -5111,8 +5887,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n194}" />
+									<Label class="CardDate" hittest="false" text="{s:ad194}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-194" class="FavBtn CardFav">
@@ -5136,8 +5916,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n195}" />
+									<Label class="CardDate" hittest="false" text="{s:ad195}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-195" class="FavBtn CardFav">
@@ -5161,8 +5945,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n196}" />
+									<Label class="CardDate" hittest="false" text="{s:ad196}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-196" class="FavBtn CardFav">
@@ -5186,8 +5974,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n197}" />
+									<Label class="CardDate" hittest="false" text="{s:ad197}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-197" class="FavBtn CardFav">
@@ -5211,8 +6003,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n198}" />
+									<Label class="CardDate" hittest="false" text="{s:ad198}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-198" class="FavBtn CardFav">
@@ -5236,8 +6032,12 @@
 												<Panel class="CheckIcon" hittest="false" />
 											</Panel>
 										</Panel>
+										<Panel class="RateBar" hittest="false">
+											<Panel class="RateFill" hittest="false" />
+										</Panel>
 									</Panel>
 									<Label class="CardName" hittest="false" text="{s:n199}" />
+									<Label class="CardDate" hittest="false" text="{s:ad199}" />
 								</Button>
 								<Panel class="CardFrame" hittest="false" />
 								<Button id="mv-fav-199" class="FavBtn CardFav">

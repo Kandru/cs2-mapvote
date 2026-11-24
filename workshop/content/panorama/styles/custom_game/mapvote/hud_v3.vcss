@@ -1158,6 +1158,65 @@
 	white-space: nowrap;
 }
 
+/* Rating strip on the shot's bottom edge (YouTube/Steam style): grey = unrated; rated = red track + green like share. */
+.RateBar
+{
+	width: 100%;
+	height: 4px;
+	vertical-align: bottom;
+	flow-children: none;
+	background-color: #6b737c99;
+}
+
+.RateFill
+{
+	width: 100%;
+	height: 100%;
+	background-color: #9ccf4f;
+	clip: rect( 0%, 0%, 100%, 0% );
+}
+
+/* BEGIN rating-ladder */
+.MapCard.p0 .RateBar,
+.MapCard.p10 .RateBar,
+.MapCard.p20 .RateBar,
+.MapCard.p30 .RateBar,
+.MapCard.p40 .RateBar,
+.MapCard.p50 .RateBar,
+.MapCard.p60 .RateBar,
+.MapCard.p70 .RateBar,
+.MapCard.p80 .RateBar,
+.MapCard.p90 .RateBar,
+.MapCard.p100 .RateBar
+{
+	background-color: #e05a5a;
+}
+.MapCard.p0 .RateFill { clip: rect( 0%, 0%, 100%, 0% ); }
+.MapCard.p10 .RateFill { clip: rect( 0%, 10%, 100%, 0% ); }
+.MapCard.p20 .RateFill { clip: rect( 0%, 20%, 100%, 0% ); }
+.MapCard.p30 .RateFill { clip: rect( 0%, 30%, 100%, 0% ); }
+.MapCard.p40 .RateFill { clip: rect( 0%, 40%, 100%, 0% ); }
+.MapCard.p50 .RateFill { clip: rect( 0%, 50%, 100%, 0% ); }
+.MapCard.p60 .RateFill { clip: rect( 0%, 60%, 100%, 0% ); }
+.MapCard.p70 .RateFill { clip: rect( 0%, 70%, 100%, 0% ); }
+.MapCard.p80 .RateFill { clip: rect( 0%, 80%, 100%, 0% ); }
+.MapCard.p90 .RateFill { clip: rect( 0%, 90%, 100%, 0% ); }
+.MapCard.p100 .RateFill { clip: rect( 0%, 100%, 100%, 0% ); }
+/* END rating-ladder */
+
+/* Date the map was added: browse only (the vote grid stays compact). */
+.CardDate
+{
+	width: 100%;
+	height: 20px;
+	padding: 0px 8px 0px 8px;
+	font-family: Stratum2 Bold Condensed;
+	font-size: 16;
+	color: #a3acb6;
+	white-space: nowrap;
+	visibility: collapse;
+}
+
 /* Frame as an overlay sibling so a thicker border never crops the 192x108 shot. */
 .CardFrame
 {
@@ -1366,6 +1425,17 @@
 }
 
 .VoteRoot.view-browse .SortRow
+{
+	visibility: visible;
+}
+
+/* Taller browse tiles carry the added date under the name. */
+.VoteRoot.view-browse .MapSlot
+{
+	height: 161px;
+}
+
+.VoteRoot.view-browse .CardDate
 {
 	visibility: visible;
 }

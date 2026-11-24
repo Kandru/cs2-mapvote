@@ -40,6 +40,44 @@ public class VoteViewTests
         Assert.Equal(expected, VoteIds.ShareClasses[VoteView.ShareStep(votes, total)]);
     }
 
+    [Theory]
+    [InlineData(5, 0, "p100")]
+    [InlineData(0, 4, "p0")]
+    [InlineData(3, 1, "p80")]   // 75 % rounds up
+    [InlineData(99, 1, "p90")]  // mixed: never all green
+    [InlineData(1, 99, "p10")]  // mixed: never all red
+    public void RatingStep_MapsLikeShareToLadderClass(int likes, int dislikes, string expected)
+    {
+        Assert.Equal(expected, VoteIds.ShareClasses[VoteView.RatingStep(likes, dislikes)]);
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(-1, 0)]
+    public void RatingStep_UnratedHasNoLadderClass(int likes, int dislikes)
+    {
+        Assert.Equal(-1, VoteView.RatingStep(likes, dislikes));
+    }
+
+    [Theory]
+    [InlineData("dd.MM.yyyy", "21.11.2026")]
+    [InlineData("yyyy-MM-dd", "2026-11-21")]
+    public void FormatAdded_UsesTheLanguageFormatOnTheUtcDay(string format, string expected)
+    {
+        long lateEvening = new DateTimeOffset(2026, 11, 21, 23, 30, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+        Assert.Equal(expected, VoteView.FormatAdded(lateEvening, format));
+    }
+
+    [Fact]
+    public void FormatAdded_EmptyWhenUnknownAndIsoWhenFormatBroken()
+    {
+        Assert.Equal(string.Empty, VoteView.FormatAdded(0, "dd.MM.yyyy"));
+        Assert.Equal(string.Empty, VoteView.FormatAdded(-5, "dd.MM.yyyy"));
+        Assert.Equal(string.Empty, VoteView.FormatAdded(long.MaxValue, "dd.MM.yyyy"));
+        long day = new DateTimeOffset(2026, 11, 21, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+        Assert.Equal("2026-11-21", VoteView.FormatAdded(day, "%"));
+    }
+
     [Fact]
     public void IsVisible_CombinesTypeChipAndFavoritesOnly()
     {
