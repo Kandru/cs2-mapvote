@@ -242,6 +242,13 @@ namespace MapVote.Config
         /// </summary>
         [JsonPropertyName("order")]
         public string Order { get; set; } = ConfigDefaults.DefaultDisplayOrder;
+
+        /// <summary>
+        /// Show the date a map was added under every map card in both the vote and
+        /// the <c>!maps</c> browser. False hides the row and uses the compact card.
+        /// </summary>
+        [JsonPropertyName("show_added_dates")]
+        public bool ShowAddedDates { get; set; } = true;
     }
 
     public sealed class FilterTypeConfig

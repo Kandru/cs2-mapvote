@@ -11,7 +11,7 @@ using MapVote.Voting;
 namespace MapVote.Huds
 {
     /// <summary>
-    /// View of layout v2. Every viewer has a private layout entity, so the whole overlay is
+    /// View of layout v3. Every viewer has a private layout entity, so the whole overlay is
     /// painted per player; the CustomHud diff caches make unchanged values free.
     /// </summary>
     public static class VoteHud
@@ -27,13 +27,9 @@ namespace MapVote.Huds
         /// <summary>Native writes per server tick, shared by every player and caller.</summary>
         private const int PaintWriteBudget = GameConstants.PaintWriteBudget;
 
-        private enum Mode
-        {
-            Vote,
-            Browse,
-        }
-
-        private static Mode _mode = Mode.Vote;
+        /// <summary>True for <c>!maps</c>; false for the end-match vote and its reveal.</summary>
+        private static bool _browsing;
+        private static bool _showAddedDates = true;
         private static VoteSession? _session;
         private static FiltersConfig _filters = new();
         private static PlayerArchive? _archive;
@@ -100,58 +96,28 @@ namespace MapVote.Huds
 
         private static SlotState SlotAt(int slot) => Slots[slot];
 
-        public static void Bind(
-            VoteSession session,
-            FiltersConfig filters,
-            PlayerArchive archive,
-            MapPlayCounts plays,
-            IReadOnlyDictionary<string, MapSettings> mapSettings,
-            Func<CCSPlayerController?, string, string> text,
-            IReadOnlyDictionary<string, MapOrigin> origins,
-            string? currentMap,
-            MapOrigin currentOrigin,
-            bool cleanMapNames)
-        {
-            BindCore(Mode.Vote, session, session.GridOrder(), filters, archive, plays, mapSettings, text, origins,
-                currentMap, currentOrigin, cleanMapNames);
-        }
-
         /// <summary>
-        /// Binds the same overlay to a plain map list (!maps): shared live ranking, sort chips on.
-        /// A nomination session makes the cards clickable; null keeps browse-only.
+        /// Binds the shared overlay. The end-match vote and <c>!maps</c> use the same
+        /// layout and controls; <paramref name="browsing"/> only changes labels, the
+        /// primary action and which session receives clicks.
         /// </summary>
-        public static void BindBrowse(
+        public static void Bind(
+            VoteSession? session,
+            IReadOnlyList<string> maps,
             FiltersConfig filters,
             PlayerArchive archive,
             MapPlayCounts plays,
             IReadOnlyDictionary<string, MapSettings> mapSettings,
             Func<CCSPlayerController?, string, string> text,
             IReadOnlyDictionary<string, MapOrigin> origins,
-            IReadOnlyList<string> maps,
             string? currentMap,
             MapOrigin currentOrigin,
             bool cleanMapNames,
-            VoteSession? nominations)
+            bool browsing,
+            bool showAddedDates)
         {
-            BindCore(Mode.Browse, nominations, maps, filters, archive, plays, mapSettings, text, origins,
-                currentMap, currentOrigin, cleanMapNames);
-        }
-
-        private static void BindCore(
-            Mode mode,
-            VoteSession? session,
-            IReadOnlyList<string> source,
-            FiltersConfig filters,
-            PlayerArchive archive,
-            MapPlayCounts plays,
-            IReadOnlyDictionary<string, MapSettings> mapSettings,
-            Func<CCSPlayerController?, string, string> text,
-            IReadOnlyDictionary<string, MapOrigin> origins,
-            string? currentMap,
-            MapOrigin currentOrigin,
-            bool cleanMapNames)
-        {
-            _mode = mode;
+            _browsing = browsing;
+            _showAddedDates = showAddedDates;
             _session = session;
             _filters = filters;
             _archive = archive;
@@ -161,7 +127,7 @@ namespace MapVote.Huds
             _formatMapName = MapNameDisplay.Formatter(cleanMapNames);
             // Selection already caps the source at MapCatalog.MaxMaps (= SlotCount); keep it
             // whole so every sort (especially rating) sees the complete list, not a prefix.
-            _grid = MapOrder.Sort(source, _formatMapName);
+            _grid = MapOrder.Sort(maps, _formatMapName);
             _view = MapGridView.Build(_grid, _origins, mapSettings, _formatMapName);
             _currentMap = string.IsNullOrWhiteSpace(currentMap) ? null : currentMap;
             _currentOrigin = currentOrigin;
@@ -174,13 +140,14 @@ namespace MapVote.Huds
             ResetAllSlots();
         }
 
-        public static bool IsBrowsing => _mode == Mode.Browse;
+        public static bool IsBrowsing => _browsing;
 
-        private static bool IsBound => _mode == Mode.Browse || _session is not null;
+        private static bool IsBound => _browsing || _session is not null;
 
         private static void Clear()
         {
-            _mode = Mode.Vote;
+            _browsing = false;
+            _showAddedDates = true;
             _session = null;
             _grid = [];
             _view = null;
@@ -254,7 +221,7 @@ namespace MapVote.Huds
         /// <summary>Countdown target (vote: reveal, reveal: changelevel). Restarts the bar of every open viewer.</summary>
         public static void SetDeadline(DateTime deadlineUtc)
         {
-            if (_mode != Mode.Vote)
+            if (_browsing)
             {
                 return;
             }
@@ -359,9 +326,9 @@ namespace MapVote.Huds
                 ResetSlotState(player.Slot);
             }
 
-            // The browse view is shared. Drop it with its last viewer so the next !maps
+            // Browse state is shared. Drop it with its last viewer so the next !maps
             // always binds a fresh map list and base order.
-            if (_mode == Mode.Browse && !HudMenu.HasOpenSessions)
+            if (_browsing && !HudMenu.HasOpenSessions)
             {
                 Clear();
             }
@@ -369,7 +336,7 @@ namespace MapVote.Huds
 
         public static void PaintRevealFor(CCSPlayerController player, string winner)
         {
-            if (_mode != Mode.Vote || _session is null || !Humans.IsHumanViewer(player))
+            if (_browsing || _session is null || !Humans.IsHumanViewer(player))
             {
                 return;
             }
@@ -466,7 +433,7 @@ namespace MapVote.Huds
 
         public static void BeginReveal(string winner)
         {
-            if (_mode != Mode.Vote)
+            if (_browsing)
             {
                 return;
             }
@@ -495,7 +462,7 @@ namespace MapVote.Huds
         /// <summary>Closes every browse overlay and resets the shared HUD state.</summary>
         public static void CloseBrowse()
         {
-            if (_mode == Mode.Browse)
+            if (_browsing)
             {
                 CloseAll();
             }
@@ -526,18 +493,18 @@ namespace MapVote.Huds
 
         private static void OnButton(CCSPlayerController player, string buttonId)
         {
-            bool browsing = _mode == Mode.Browse;
+            bool browsing = _browsing;
             bool interactive = browsing || _revealing || _session is { IsOpen: true };
             if (!interactive || !IsSlot(player.Slot))
             {
                 PluginLog.Debug(
-                    () => $"hud button ignored: {Humans.Label(player)} slot={player.Slot} mode={_mode} interactive={interactive} id={buttonId}");
+                    () => $"hud button ignored: {Humans.Label(player)} slot={player.Slot} browse={browsing} interactive={interactive} id={buttonId}");
                 return;
             }
 
             int slot = player.Slot;
             PluginLog.Debug(
-                () => $"hud button: {Humans.Label(player)} slot={slot} mode={_mode} id={buttonId}");
+                () => $"hud button: {Humans.Label(player)} slot={slot} browse={browsing} id={buttonId}");
             if (buttonId == VoteIds.Minimize)
             {
                 if (browsing)
@@ -661,7 +628,7 @@ namespace MapVote.Huds
                 return;
             }
 
-            string action = _mode == Mode.Browse ? "nomination" : "vote";
+            string action = _browsing ? "nomination" : "vote";
             PluginLog.Info(
                 $"{action}: {Humans.Label(player, steamId)} -> {map} ({_session.CountOf(map)} vote(s))");
             PluginLog.Debug(() =>
@@ -845,7 +812,6 @@ namespace MapVote.Huds
         private static void PaintPlayer(CCSPlayerController player)
         {
             int slot = player.Slot;
-            bool browse = _mode == Mode.Browse;
             IReadOnlyList<string> order = OrderFor(slot);
             HashSet<string> favorites = FavoritesOf(player);
             int availableFavoriteCount = VoteView.AvailableFavoriteCount(favorites, _grid);
@@ -855,7 +821,7 @@ namespace MapVote.Huds
             }
 
             // Replace, not string.Format: a broken translation must not throw in the paint loop.
-            CustomHud.SetText(player, Panel, VoteIds.TitleVar, browse
+            CustomHud.SetText(player, Panel, VoteIds.TitleVar, _browsing
                 ? MapNameDisplay.ForHud(T(player, "hud.maps_title").Replace("{0}", _grid.Count.ToString(), StringComparison.Ordinal))
                 : L(player, "hud.title"));
             if (_deadlineUtc is { } deadline)
@@ -864,7 +830,9 @@ namespace MapVote.Huds
                 CustomHud.SetText(player, Panel, VoteIds.TimeVar, VoteView.FormatTime(seconds));
             }
 
-            SetPlayerGroup(player, Panel, VoteIds.Views, browse ? 2 : _revealing ? 1 : 0);
+            SetPlayerGroup(player, Panel, VoteIds.Views, _revealing ? 1 : 0);
+            SetPlayerClass(player, Panel, VoteIds.DatesOff, !_showAddedDates, xmlOn: false);
+            SetPlayerClass(player, VoteIds.Timer, "is-off", _deadlineUtc is null, xmlOn: false);
             CustomHud.SetHasClass(player, Panel, "is-minimized", SlotAt(slot).Minimized);
             CustomHud.SetText(player, Panel, VoteIds.HideVar, HideText(player));
             CustomHud.SetHasClass(player, VoteIds.Timer, "is-urgent", IsUrgent());
@@ -905,7 +873,7 @@ namespace MapVote.Huds
 
             bool anyShown = false;
             string groupSeparator = T(player, "number.group_separator");
-            string? addedFormat = browse ? T(player, "hud.added_format") : null;
+            string? addedFormat = _showAddedDates ? T(player, "hud.added_format") : null;
             for (int i = 0; i < SlotCount; i++)
             {
                 if (CustomHud.TickWrites >= PaintWriteBudget)
@@ -1094,7 +1062,7 @@ namespace MapVote.Huds
                 ? _session.VoteOf(steamId)
                 : null;
 
-            string status = _mode == Mode.Browse
+            string status = _browsing
                 ? _session is null ? L(player, "hud.status_browse")
                 : mine is null ? L(player, "hud.status_nominate_hint")
                 : MapNameDisplay.ForHud(string.Format(T(player, "hud.status_nominated"), _formatMapName(mine)))
@@ -1153,7 +1121,7 @@ namespace MapVote.Huds
                 favorites.Contains(map));
 
         private static string HideText(CCSPlayerController player) =>
-            L(player, _mode == Mode.Browse ? "hud.close" : SlotAt(player.Slot).Minimized ? "hud.show" : "hud.hide");
+            L(player, _browsing ? "hud.close" : SlotAt(player.Slot).Minimized ? "hud.show" : "hud.hide");
 
         // ---------------------------------------------------------------- countdown
 

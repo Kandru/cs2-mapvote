@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate workshop/preview from versioned vote XML + hud/maps VCSS so the browser mock stays in sync."""
+"""Generate workshop/preview from the current vote XML + hud/maps VCSS so the browser mock stays in sync."""
 from __future__ import annotations
 
 import html
@@ -37,6 +37,10 @@ PREFIX_RE = re.compile(r'"([^"]*)"')
 NOMINATIONS_RE = re.compile(
     r"class NominationsConfig.*?Enabled\s*\{\s*get;\s*set;\s*\}\s*=\s*(true|false);",
     re.S,
+)
+ADDED_DATES_RE = re.compile(
+    r'\[JsonPropertyName\("show_added_dates"\)\]\s*public bool ShowAddedDates\s*'
+    r'\{\s*get;\s*set;\s*\}\s*=\s*(true|false);'
 )
 
 TAGS = {"Panel": "div", "Label": "div", "Button": "button", "Image": "div"}
@@ -396,6 +400,9 @@ def preview_config() -> dict[str, object]:
     nominations = NOMINATIONS_RE.search(config_source)
     if nominations is None:
         raise ValueError("could not read the nominations default from PluginConfig.cs")
+    added_dates = ADDED_DATES_RE.search(config_source)
+    if added_dates is None:
+        raise ValueError("could not read the show_added_dates default from PluginConfig.cs")
 
     if types:
         types.insert(0, {"id": "all", "label": lang.get("filter.all", "All"), "prefixes": []})
@@ -404,6 +411,7 @@ def preview_config() -> dict[str, object]:
         "sorts": sorts,
         "text": lang,
         "nominationsEnabled": nominations.group(1) == "true",
+        "showAddedDates": added_dates.group(1) == "true",
     }
 
 
@@ -446,7 +454,7 @@ STACK_CLASS_RE = re.compile(r"^\.([A-Za-z][\w-]*)\s*\{[^}]*flow-children:\s*none
 
 
 def sync() -> list[str]:
-    """Generate the v2 browser preview from the same XML/CSS the plugin ships."""
+    """Generate the browser preview from the same XML/CSS the plugin ships."""
     for path in (VOTE_XML, HUD_VCSS, MAPS_VCSS):
         if not path.is_file():
             return [f"missing {path.relative_to(ROOT)}"]

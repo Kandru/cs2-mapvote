@@ -7,13 +7,14 @@ Every pool slot is authored in its default state; XML default = C# default.
 
 Root
   #Vote                    classes: is-off (P, XML on), is-fading (P), is-minimized (P),
-                           view group view-vote | view-reveal | view-browse (P, XML view-vote).
+                           dates-off (P, hidden added-date row and compact cards),
+                           view group view-vote | view-reveal (P, XML view-vote).
                            Reveal is a root view: grid dimmed, rating dimmed, winner card shown.
-                           Browse (!maps): timer and status check hidden; ranking, vote badges
-                           and sort row live (same renderer as the vote).
+                           The end-match vote and browse (!maps) share this one view; only the
+                           timer (state: is-off without a deadline), labels and primary action differ.
 Top bar
   mv_title      (G) title text                      "Stimme für die nächste Map" / browse "Karten · 152" (whole list)
-  #mv-timer               is-urgent (P, last 5 s; red text + pulse, the only infinite animation)
+  #mv-timer               is-off (P) without a vote deadline; is-urgent (P, last 5 s; red text + pulse)
   mv_time       (G) countdown text, at most 1x/s     "0:08"
   #mv-timer-fill          span-3 … span-90 (P, set first), is-running (P, next tick). Reset: remove both.
   #mv-timer-fill-reveal   same classes, used only in the reveal: a fresh panel, because reversing a still
@@ -51,7 +52,7 @@ Filters
   ft{i}         (G) label with count "Bomb 34"
   #mv-fav-only  Button    is-active (P), is-disabled (P, no favourites)
   mv_favonly    (G) "Favoriten"
-  #mv-fs-{i}    Button    sort chips, browse only: is-off (G, XML on), is-active (G - order is global)
+  #mv-fs-{i}    Button    sort chips in both views: is-off (G, XML on), is-active (P)
   fs{i}         (G) label
 Grid (pool GRID_SLOTS = VoteIds.SlotCount)
   #mv-slot-{i}            is-off (P, XML on) = filter/visibility, is-self (P) = own vote
@@ -64,8 +65,8 @@ Grid (pool GRID_SLOTS = VoteIds.SlotCount)
   v{i}, n{i}    (G) vote count / name
   CardTopLeft             rating pill + own-vote check (both overlay the shot's top-left)
   ln{i}, dn{i}  (G) positive / negative rating counts, compact form (999, 1.2k, 12k)
-  ad{i}         (P) date the map was added (maps.*.added, UTC day), lang hud.added_format; browse only
-                    (row collapsed in the vote, never written there); empty = unknown
+  ad{i}         (P) date the map was added (maps.*.added, UTC day), lang hud.added_format; in both
+                    views unless display.show_added_dates=false (dates-off, row collapsed); empty = unknown
   #mv-empty               is-off (P, XML on)
   mv_empty      (P) "Keine Map passt zu diesem Filter"
 Reveal (visible with view-reveal)

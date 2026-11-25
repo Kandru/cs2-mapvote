@@ -36,8 +36,40 @@ public class ConfigNormalizeTests
             ["alphabetical", "newest", "oldest", "most_positive", "most_negative"],
             config.Filters.Sorts.Select(static sort => sort.Id));
         Assert.Equal(ConfigDefaults.DefaultDisplayOrder, config.Display.Order);
+        Assert.True(config.Display.ShowAddedDates);
         Assert.Equal(ConfigDefaults.DefaultSuccessCommand, config.Rtv.SuccessCommand);
         Assert.Equal(MapCatalog.MaxMaps, config.Endmatch.MaxMaps);
+    }
+
+    [Fact]
+    public void Normalize_PreservesExplicitShowAddedDatesFalse()
+    {
+        PluginConfig config = new()
+        {
+            Display = new DisplayConfig { ShowAddedDates = false },
+        };
+
+        config.Normalize();
+
+        Assert.False(config.Display.ShowAddedDates);
+    }
+
+    [Fact]
+    public void Config_ReadsShowAddedDatesFromJson()
+    {
+        PluginConfig config = JsonSerializer.Deserialize<PluginConfig>(
+            """
+            {
+              "display":
+              {
+                "show_added_dates": false
+              }
+            }
+            """)!;
+
+        config.Normalize();
+
+        Assert.False(config.Display.ShowAddedDates);
     }
 
     [Fact]

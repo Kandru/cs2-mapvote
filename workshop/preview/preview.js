@@ -1,12 +1,14 @@
-// Browser stand-in for the C# view of the current layout. Type/sort defaults and all strings come
-// from ConfigDefaults.cs + lang/de.json through window.PV_CONFIG (tools/sync_preview.py),
-// so the mock follows the plugin instead of duplicating a second configuration.
-// URL: ?n=8|45|all &state=vote|voted|reveal|empty|browse &clean=1 (no tool bar).
+// Browser stand-in for the C# view of the current layout. Type/sort, nominations and date defaults
+// and all strings come from ConfigDefaults.cs / PluginConfig.cs / lang/de.json through
+// window.PV_CONFIG (tools/sync_preview.py), so the mock follows the plugin instead of
+// duplicating a second configuration.
+// URL: ?n=8|45|all &state=vote|voted|reveal|empty|browse &dates=0 (hide dates) &clean=1 (no tool bar).
 (() => {
   const q = new URLSearchParams(location.search);
   const BROWSE = document.body.dataset.browse === "1";
   const CONFIG = window.PV_CONFIG;
   const L = CONFIG.text;
+  const SHOW_DATES = q.has("dates") ? q.get("dates") !== "0" : CONFIG.showAddedDates;
   const SLOTS = document.querySelectorAll('[id^="mv-slot-"]').length;
   const TYPE_SLOTS = document.querySelectorAll('[id^="mv-ft-"]').length;
   const SORT_SLOTS = document.querySelectorAll('[id^="mv-fs-"]').length;
@@ -105,7 +107,7 @@
   const flag = (id, cls, on) => $(id)?.classList.toggle(cls, !!on);
   const group = (id, classes, active) => { const el = $(id); if (el) classes.forEach((c) => el.classList.toggle(c, c === active)); };
   const shot = (id, map) => { const el = $(id); if (el) el.style.backgroundImage = map ? `url("maps/${map.img}.webp")` : ""; };
-  const VIEWS = ["view-vote", "view-reveal", "view-browse"];
+  const VIEWS = ["view-vote", "view-reveal"];
   const SHARES = Array.from({ length: 11 }, (_, i) => `p${i * 10}`);
 
   const ranked = () =>
@@ -168,9 +170,11 @@
 
   let grid = [];
   const paint = () => {
-    group("Vote", VIEWS, BROWSE ? "view-browse" : s.reveal ? "view-reveal" : "view-vote");
+    group("Vote", VIEWS, s.reveal ? "view-reveal" : "view-vote");
     flag("Vote", "is-off", s.closed);
     flag("Vote", "is-minimized", s.minimized);
+    flag("Vote", "dates-off", !SHOW_DATES);
+    flag("mv-timer", "is-off", BROWSE);
     text("mv_title", BROWSE ? fmt("hud.maps_title", all.length) : L["hud.title"]);
     text("mv_hide", BROWSE ? L["hud.close"] : s.minimized ? L["hud.show"] : L["hud.hide"]);
 
@@ -263,7 +267,7 @@
       text(`dn${i}`, formatCount(down));
       const step = ratingStep(up, down);
       SHARES.forEach((c, k) => flag(`mv-${i}`, c, k === step));
-      if (BROWSE) text(`ad${i}`, formatAdded(known(m) ? addedAt(m) : 0));
+      if (SHOW_DATES) text(`ad${i}`, formatAdded(known(m) ? addedAt(m) : 0));
       group(`mv-${i}`, ["votes-none", "votes-some"], (s.votes[m.id] || 0) > 0 ? "votes-some" : "votes-none");
       flag(`mv-slot-${i}`, "is-self", m.id === s.mine);
       flag(`mv-fav-${i}`, "is-active", s.fav.has(m.id));

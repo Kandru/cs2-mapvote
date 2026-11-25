@@ -160,9 +160,6 @@ namespace MapVote.Voting
             return ranked.ConvertAll(static x => x.Map);
         }
 
-        /// <summary>Full catalog order for the map grid (voted maps stay visible with overlays).</summary>
-        public IReadOnlyList<string> GridOrder() => _maps;
-
         public void Lock()
         {
             if (!IsOpen)

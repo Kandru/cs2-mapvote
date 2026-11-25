@@ -124,32 +124,7 @@ namespace MapVote
 
             if (!VoteHud.IsBrowsing)
             {
-                List<MapEntry> maps = SelectMaps(excludeCurrent: false);
-                var (currentMap, currentOrigin) = CurrentMap();
-                Dictionary<string, MapOrigin> origins = new(maps.Count, StringComparer.Ordinal);
-                List<string> names = new(maps.Count);
-                foreach (MapEntry map in maps)
-                {
-                    origins[map.Name] = map.Origin;
-                    names.Add(map.Name);
-                }
-
-                VoteSession? nominations = NominationSessionFor(names);
-                VoteHud.BindBrowse(
-                    Config.Filters,
-                    _archive,
-                    _plays,
-                    Config.Maps,
-                    (viewer, key) => Localization.ForPlayerSafe(Localizer, viewer, key),
-                    origins,
-                    names,
-                    currentMap,
-                    currentOrigin,
-                    Config.CleanMapNames,
-                    nominations);
-                PluginLog.Debug(
-                    () => $"maps: bound browse list with {names.Count} map(s), current={currentMap ?? "unknown"}, "
-                        + $"nominations={(nominations is null ? "off" : $"{nominations.VotedOrder().Count} map(s)")}");
+                BindVoteHud(SelectMaps(excludeCurrent: false), browsing: true);
             }
 
             VoteHud.OpenFor(player);

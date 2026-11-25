@@ -68,7 +68,9 @@ namespace MapVote.Huds
         public const int SpanMax = 90;
         public const int ShareStep = 10;
 
-        public static readonly string[] Views = ["view-vote", "view-reveal", "view-browse"];
+        public static readonly string[] Views = ["view-vote", "view-reveal"];
+        /// <summary>Root class that hides the added-date row and uses the compact card.</summary>
+        public const string DatesOff = "dates-off";
         /// <summary>Root classes alternated by the server so every blocked click replays the sound.</summary>
         public static readonly string[] BlockedSoundClasses = ["is-blocked-1", "is-blocked-2"];
         public static readonly string[] VotesClasses = ["votes-none", "votes-some"];
@@ -81,7 +83,7 @@ namespace MapVote.Huds
         public static readonly string[] GridNameVars = BuildIndexed("n", SlotCount);
         public static readonly string[] GridLikeVars = BuildIndexed("ln", SlotCount);
         public static readonly string[] GridDislikeVars = BuildIndexed("dn", SlotCount);
-        /// <summary>Browse only: date the map was added (lang hud.added_format); empty = unknown.</summary>
+        /// <summary>Date the map was added (lang hud.added_format); hidden by <see cref="DatesOff"/>; empty = unknown.</summary>
         public static readonly string[] GridAddedVars = BuildIndexed("ad", SlotCount);
 
         public static readonly string[] RankRowIds = BuildIndexed("mv-rank-", RankSlots);        // is-off (XML on)

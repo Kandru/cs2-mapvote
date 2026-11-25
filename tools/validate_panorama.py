@@ -203,7 +203,7 @@ def check_css(raw: str) -> list[str]:
             errors.append(f"{name}: missing share ladder class p{p}")
         if f".MapCard.p{p} .RateFill " not in css:
             errors.append(f"{name}: missing rating ladder class p{p}")
-    for req in (".is-off", ".is-fading", ".is-minimized", ".view-reveal", ".view-browse", ".is-running",
+    for req in (".is-off", ".is-fading", ".is-minimized", ".view-reveal", ".dates-off", ".is-running",
                 ".is-urgent", ".is-active", ".is-disabled", ".is-self", ".votes-some", ".ico-like", ".ico-dislike"):
         if req not in css:
             errors.append(f"{name}: missing required selector {req}")

@@ -14,7 +14,7 @@ public class VoteSessionTests
         Assert.Equal(VoteCastResult.Accepted, session.Cast(2, "c"));
         Assert.Equal(VoteCastResult.Accepted, session.Cast(3, "b"));
         Assert.Equal(["b", "c"], session.VotedOrder());
-        Assert.Equal(["a", "b", "c"], session.GridOrder());
+        Assert.Equal(["a", "b", "c"], session.Maps);
         Assert.Equal(2, session.CountOf("b"));
         Assert.Equal(1, session.CountOf("c"));
 
@@ -32,7 +32,7 @@ public class VoteSessionTests
         Assert.Equal(VoteCastResult.Changed, session.Cast(3, "a"));
         Assert.Equal(0, session.CountOf("b"));
         Assert.Equal(["c", "a"], session.VotedOrder());
-        Assert.Equal(["a", "b", "c"], session.GridOrder());
+        Assert.Equal(["a", "b", "c"], session.Maps);
     }
 
     [Fact]

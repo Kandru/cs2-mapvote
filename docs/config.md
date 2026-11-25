@@ -21,6 +21,7 @@ Path: `addons/counterstrikesharp/configs/plugins/MapVote/MapVote.json` (created 
 | `filters.enabled` | `true` | Type / sort chip bar |
 | `filters.types` | bomb/hostage/… | Chip groups: `id` + `prefixes` (map-name prefixes; empty → “other”) |
 | `display.order` | `shuffle` | Base order of the map list: `shuffle` (assigned once per match, reused by browse and the vote) or `alphabetical` |
+| `display.show_added_dates` | `true` | Show the UTC date each map was added under its card, in both the vote and `!maps`. `false` hides the row and uses the compact card. The `newest` / `oldest` sorts still use `maps.*.added` |
 | `filters.sorts` | A-Z / newest / oldest / most positive / most negative | `id`, `by` (`newest` / `oldest` / `plays` / `rating` / `name` / `favorite`), `order` (`asc` / `desc`). At most `VoteIds.FilterSortSlots` (5) are shown. Sorts only reorder; they never hide maps. `newest`/`oldest` use `maps.*.added`; maps without a timestamp sort last. `rating` is net likes − dislikes |
 | `maps` | (auto) | Per-map settings. Keys `map_{name}` (local) / `ws_{name}` (workshop). Each value is `{ "enabled": true, "added": <unix_seconds> }`. Missing key = shown; `added` is recorded on first discovery and drives the newest/oldest sorts. On a fully ready catalog refresh, keys for maps that no longer exist are removed. The old `maps_votable` key is not read |
 

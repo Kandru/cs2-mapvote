@@ -249,24 +249,7 @@ namespace MapVote
             int carried = Config.Nominations.Enabled && _nominationSession is { } nominations
                 ? nominations.CopyVotesTo(_session)
                 : 0;
-            _origins = new Dictionary<string, MapOrigin>(unique.Count, StringComparer.Ordinal);
-            foreach (MapEntry map in unique)
-            {
-                _origins[map.Name] = map.Origin;
-            }
-
-            var (currentMap, currentOrigin) = CurrentMap();
-            VoteHud.Bind(
-                _session,
-                Config.Filters,
-                _archive,
-                _plays,
-                Config.Maps,
-                (player, key) => Localization.ForPlayerSafe(Localizer, player, key),
-                _origins,
-                currentMap,
-                currentOrigin,
-                Config.CleanMapNames);
+            BindVoteHud(unique, browsing: false);
             _pendingWinner = null;
 
             int humans = Humans.GetHumans().Count();
@@ -274,9 +257,46 @@ namespace MapVote
             PluginLog.Info(
                 $"map vote started: {unique.Count} map(s), {humans} player(s), {shown} shown, {carried} nomination(s) carried, {_voteSeconds}s");
             PluginLog.Debug(() =>
-                $"map vote: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s current={currentMap} ({currentOrigin})");
+                $"map vote: open={_timing.OpenSeconds}s reveal={_timing.RevealSeconds}s changelevel_at={_timing.ChangelevelOffsetSeconds}s");
 
             ShowVoteHud();
+        }
+
+        /// <summary>
+        /// Resolves the shared HUD input once and binds it. Browse passes the full list and
+        /// its nomination session; the end-match vote passes its candidate list and session.
+        /// </summary>
+        private void BindVoteHud(IReadOnlyList<MapEntry> maps, bool browsing)
+        {
+            var (currentMap, currentOrigin) = CurrentMap();
+            Dictionary<string, MapOrigin> origins = new(maps.Count, StringComparer.Ordinal);
+            List<string> names = new(maps.Count);
+            foreach (MapEntry map in maps)
+            {
+                origins[map.Name] = map.Origin;
+                names.Add(map.Name);
+            }
+
+            VoteSession? session = browsing ? NominationSessionFor(names) : _session;
+            _origins = origins;
+            VoteHud.Bind(
+                session,
+                names,
+                Config.Filters,
+                _archive,
+                _plays,
+                Config.Maps,
+                (viewer, key) => Localization.ForPlayerSafe(Localizer, viewer, key),
+                origins,
+                currentMap,
+                currentOrigin,
+                Config.CleanMapNames,
+                browsing,
+                Config.Display.ShowAddedDates);
+
+            PluginLog.Debug(
+                () => $"hud: bound {(browsing ? "browse" : "vote")} with {names.Count} map(s), current={currentMap ?? "unknown"} ({currentOrigin}), "
+                    + $"session={(session is null ? "off" : $"{session.VotedOrder().Count} map(s)")}");
         }
 
         /// <summary>
